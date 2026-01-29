@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import Papa from 'papaparse';
 import { useForm } from 'react-hook-form';
-import { 
-  Sun, 
-  Moon, 
-  Home, 
-  PartyPopper, 
-  Info, 
-  Phone, 
-  Calendar, 
-  Clock, 
+import {
+  Sun,
+  Moon,
+  Home,
+  PartyPopper,
+  Info,
+  Phone,
+  Calendar,
+  Clock,
   CalendarDays,
   ArrowRight,
   ArrowUpRight,
@@ -25,6 +24,7 @@ import {
   Twitter,
   Menu
 } from 'lucide-react';
+import { getEvents } from './services/eventService';
 import './App.css';
 import BgEventos from '../public/eventos.png'
 
@@ -38,8 +38,6 @@ function App() {
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
 
-  const GOOGLE_SHEET_URL = import.meta.env.VITE_GOOGLE_SHEET_URL;
-
   useEffect(() => {
     // Carrega tema salvo
     const savedTheme = localStorage.getItem('theme');
@@ -48,18 +46,19 @@ function App() {
       document.documentElement.setAttribute('data-theme', 'dark');
     }
 
-    Papa.parse(GOOGLE_SHEET_URL, {
-      download: true,
-      header: true,
-      complete: (results) => {
-        console.log(results.data);
-        setAgenda(results.data);
-        setLoading(false);
-      },
-      error: () => {
+    // Carrega eventos do Supabase
+    async function loadEvents() {
+      try {
+        const events = await getEvents();
+        setAgenda(events);
+      } catch (error) {
+        console.error('Erro ao carregar eventos:', error);
+      } finally {
         setLoading(false);
       }
-    });
+    }
+
+    loadEvents();
   }, []);
 
   const toggleTheme = () => {
@@ -276,39 +275,42 @@ function App() {
             <div className="eventos-grid">
               {agenda.length > 0 ? (
                 agenda.map((item, index) => (
-                  <div key={index} className="evento-card" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div key={item.id || index} className="evento-card" style={{ animationDelay: `${index * 0.1}s` }}>
                     <div className="card-image">
                       <img
-                        src={item['Imagem do evento'] === "" ? BgEventos : item['Imagem do evento']}
-                        alt={item['Nome do evento']}
+                        src={item.imagem || BgEventos}
+                        alt={item.nome}
                       />
-                      <div className="card-badge">{item.Periodo}</div>
+                      <div className="card-badge">{item.periodo}</div>
                     </div>
                     <div className="card-content">
-                      <h3>{item['Nome do evento']}</h3>
+                      <h3>{item.nome}</h3>
+                      {item.descricao && (
+                        <p className="event-description">{item.descricao}</p>
+                      )}
                       <div className="event-info">
                         <div className="info-item">
                           <span className="icon">
                             <Calendar size={16} />
                           </span>
-                          <span>{item['Data do evento']}</span>
+                          <span>{item.data_evento}</span>
                         </div>
                         <div className="info-item">
                           <span className="icon">
                             <Clock size={16} />
                           </span>
-                          <span>{item['Horario do evento']}</span>
+                          <span>{item.horario}</span>
                         </div>
                         <div className="info-item">
                           <span className="icon">
                             <CalendarDays size={16} />
                           </span>
-                          <span>{item['Dia da Semana']}</span>
+                          <span>{item.dia_semana}</span>
                         </div>
                       </div>
-                      <a 
-                        href={item['Link do evento']} 
-                        target="_blank" 
+                      <a
+                        href={item.link}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="event-link"
                       >

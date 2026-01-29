@@ -599,7 +599,18 @@ section {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.event-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
   margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
 }
 
 .event-info {

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Lock, Mail, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { signIn, getSession } from '../services/authService';
 import './Admin.css';
 
 function Login() {
@@ -12,26 +13,33 @@ function Login() {
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
-  // Credenciais fixas (em produção, usar autenticação real)
-  const ADMIN_EMAIL = 'admin@eventflow.com';
-  const ADMIN_PASSWORD = 'admin123';
+  // Verifica se já está autenticado
+  useEffect(() => {
+    async function checkSession() {
+      const session = await getSession();
+      if (session) {
+        navigate('/admin/dashboard');
+      }
+    }
+    checkSession();
+  }, [navigate]);
 
   const onSubmit = async (data) => {
     setIsLoading(true);
     setError('');
 
-    // Simula delay de autenticação
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    if (data.email === ADMIN_EMAIL && data.password === ADMIN_PASSWORD) {
-      localStorage.setItem('adminAuth', 'true');
-      localStorage.setItem('adminEmail', data.email);
+    try {
+      await signIn(data.email, data.password);
       navigate('/admin/dashboard');
-    } else {
-      setError('Email ou senha incorretos');
+    } catch (err) {
+      if (err.message === 'Invalid login credentials') {
+        setError('Email ou senha incorretos');
+      } else {
+        setError(err.message || 'Erro ao fazer login');
+      }
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
@@ -121,8 +129,7 @@ function Login() {
         </form>
 
         <div className="login-footer">
-          <p>Credenciais de teste:</p>
-          <code>admin@eventflow.com / admin123</code>
+          <p>Acesso restrito a administradores</p>
         </div>
       </div>
     </div>

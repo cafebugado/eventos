@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Papa from 'papaparse';
 import {
   LayoutDashboard,
   Plus,
@@ -19,9 +18,20 @@ import {
   Edit2,
   Save,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Upload,
+  FileText
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { getSession, signOut, getCurrentUser } from '../services/authService';
+import {
+  getEvents,
+  createEvent,
+  updateEvent,
+  deleteEvent as deleteEventService,
+  getEventStats,
+  uploadEventImage
+} from '../services/eventService';
 import './Admin.css';
 import BgEventos from '../../public/eventos.png';
 
@@ -33,40 +43,58 @@ function Dashboard() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [notification, setNotification] = useState(null);
   const [activeTab, setActiveTab] = useState('eventos');
+  const [stats, setStats] = useState({ total: 0, noturno: 0, diurno: 0 });
+  const [userEmail, setUserEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
 
-  const GOOGLE_SHEET_URL = import.meta.env.VITE_GOOGLE_SHEET_URL;
-
   useEffect(() => {
-    // Verifica autenticação
-    const isAuth = localStorage.getItem('adminAuth');
-    if (!isAuth) {
-      navigate('/admin');
-      return;
-    }
-
-    // Carrega tema
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true);
-      document.documentElement.setAttribute('data-theme', 'dark');
-    }
-
-    // Carrega eventos do Google Sheets
-    Papa.parse(GOOGLE_SHEET_URL, {
-      download: true,
-      header: true,
-      complete: (results) => {
-        setEventos(results.data.filter(item => item['Nome do evento']));
-        setLoading(false);
-      },
-      error: () => {
-        setLoading(false);
+    async function init() {
+      const session = await getSession();
+      if (!session) {
+        navigate('/admin');
+        return;
       }
-    });
+
+      const user = await getCurrentUser();
+      if (user) {
+        setUserEmail(user.email);
+      }
+
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        setIsDarkMode(true);
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+
+      await loadEvents();
+    }
+
+    init();
   }, [navigate]);
+
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      const [eventsData, statsData] = await Promise.all([
+        getEvents(),
+        getEventStats()
+      ]);
+      setEventos(eventsData);
+      setStats(statsData);
+    } catch (error) {
+      console.error('Erro ao carregar eventos:', error);
+      showNotification('Erro ao carregar eventos', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
@@ -81,10 +109,14 @@ function Dashboard() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
-    localStorage.removeItem('adminEmail');
-    navigate('/admin');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/admin');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      showNotification('Erro ao fazer logout', 'error');
+    }
   };
 
   const showNotification = (message, type = 'success') => {
@@ -94,11 +126,14 @@ function Dashboard() {
 
   const openCreateModal = () => {
     setEditingEvent(null);
+    setImageFile(null);
+    setImagePreview(null);
     reset({
       nome: '',
-      data: '',
+      descricao: '',
+      data_evento: '',
       horario: '',
-      diaSemana: '',
+      dia_semana: '',
       periodo: '',
       link: '',
       imagem: ''
@@ -106,59 +141,120 @@ function Dashboard() {
     setShowModal(true);
   };
 
-  const openEditModal = (evento, index) => {
-    setEditingEvent({ ...evento, index });
-    setValue('nome', evento['Nome do evento']);
-    setValue('data', evento['Data do evento']);
-    setValue('horario', evento['Horario do evento']);
-    setValue('diaSemana', evento['Dia da Semana']);
-    setValue('periodo', evento['Periodo']);
-    setValue('link', evento['Link do evento']);
-    setValue('imagem', evento['Imagem do evento']);
+  const openEditModal = (evento) => {
+    setEditingEvent(evento);
+    setImageFile(null);
+    setImagePreview(evento.imagem || null);
+    setValue('nome', evento.nome);
+    setValue('descricao', evento.descricao || '');
+    setValue('data_evento', evento.data_evento);
+    setValue('horario', evento.horario);
+    setValue('dia_semana', evento.dia_semana);
+    setValue('periodo', evento.periodo);
+    setValue('link', evento.link);
+    setValue('imagem', evento.imagem || '');
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
     setEditingEvent(null);
+    setImageFile(null);
+    setImagePreview(null);
     reset();
   };
 
-  const onSubmit = (data) => {
-    const novoEvento = {
-      'Nome do evento': data.nome,
-      'Data do evento': data.data,
-      'Horario do evento': data.horario,
-      'Dia da Semana': data.diaSemana,
-      'Periodo': data.periodo,
-      'Link do evento': data.link,
-      'Imagem do evento': data.imagem
-    };
-
-    if (editingEvent) {
-      // Atualiza evento existente
-      const updatedEventos = [...eventos];
-      updatedEventos[editingEvent.index] = novoEvento;
-      setEventos(updatedEventos);
-      showNotification('Evento atualizado com sucesso!');
-    } else {
-      // Cria novo evento
-      setEventos([...eventos, novoEvento]);
-      showNotification('Evento criado com sucesso!');
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        showNotification('Imagem deve ter no máximo 5MB', 'error');
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        showNotification('Arquivo deve ser uma imagem', 'error');
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
-
-    closeModal();
   };
 
-  const deleteEvent = (index) => {
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setValue('imagem', '');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const onSubmit = async (data) => {
+    setIsSubmitting(true);
+    try {
+      let imageUrl = data.imagem || null;
+
+      // Se tem arquivo de imagem, faz upload
+      if (imageFile) {
+        setIsUploading(true);
+        try {
+          imageUrl = await uploadEventImage(imageFile);
+        } catch (uploadError) {
+          console.error('Erro no upload:', uploadError);
+          showNotification('Erro ao fazer upload da imagem', 'error');
+          setIsSubmitting(false);
+          setIsUploading(false);
+          return;
+        }
+        setIsUploading(false);
+      }
+
+      const eventData = {
+        nome: data.nome,
+        descricao: data.descricao || null,
+        data_evento: data.data_evento,
+        horario: data.horario,
+        dia_semana: data.dia_semana,
+        periodo: data.periodo,
+        link: data.link,
+        imagem: imageUrl
+      };
+
+      if (editingEvent) {
+        await updateEvent(editingEvent.id, eventData);
+        showNotification('Evento atualizado com sucesso!');
+      } else {
+        await createEvent(eventData);
+        showNotification('Evento criado com sucesso!');
+      }
+
+      closeModal();
+      await loadEvents();
+    } catch (error) {
+      console.error('Erro ao salvar evento:', error);
+      showNotification('Erro ao salvar evento', 'error');
+    } finally {
+      setIsSubmitting(false);
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteEvent = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este evento?')) {
-      const updatedEventos = eventos.filter((_, i) => i !== index);
-      setEventos(updatedEventos);
-      showNotification('Evento excluído com sucesso!');
+      try {
+        await deleteEventService(id);
+        showNotification('Evento excluído com sucesso!');
+        await loadEvents();
+      } catch (error) {
+        console.error('Erro ao excluir evento:', error);
+        showNotification('Erro ao excluir evento', 'error');
+      }
     }
   };
-
-  const adminEmail = localStorage.getItem('adminEmail');
 
   return (
     <div className="admin-dashboard">
@@ -192,11 +288,11 @@ function Dashboard() {
         <div className="sidebar-footer">
           <div className="user-info">
             <div className="user-avatar">
-              {adminEmail?.charAt(0).toUpperCase()}
+              {userEmail?.charAt(0).toUpperCase() || 'A'}
             </div>
             <div className="user-details">
               <span className="user-name">Admin</span>
-              <span className="user-email">{adminEmail}</span>
+              <span className="user-email">{userEmail}</span>
             </div>
           </div>
           <button className="logout-btn" onClick={handleLogout}>
@@ -229,7 +325,7 @@ function Dashboard() {
                 <Calendar size={24} />
               </div>
               <div className="stat-info">
-                <span className="stat-value">{eventos.length}</span>
+                <span className="stat-value">{stats.total}</span>
                 <span className="stat-label">Total de Eventos</span>
               </div>
             </div>
@@ -238,9 +334,7 @@ function Dashboard() {
                 <CheckCircle size={24} />
               </div>
               <div className="stat-info">
-                <span className="stat-value">
-                  {eventos.filter(e => e['Periodo'] === 'Noturno').length}
-                </span>
+                <span className="stat-value">{stats.noturno}</span>
                 <span className="stat-label">Eventos Noturnos</span>
               </div>
             </div>
@@ -249,9 +343,7 @@ function Dashboard() {
                 <Sun size={24} />
               </div>
               <div className="stat-info">
-                <span className="stat-value">
-                  {eventos.filter(e => e['Periodo'] === 'Matinal' || e['Periodo'] === 'Diurno').length}
-                </span>
+                <span className="stat-value">{stats.diurno}</span>
                 <span className="stat-label">Eventos Diurnos</span>
               </div>
             </div>
@@ -292,44 +384,47 @@ function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {eventos.map((evento, index) => (
-                      <tr key={index}>
+                    {eventos.map((evento) => (
+                      <tr key={evento.id}>
                         <td>
                           <img
-                            src={evento['Imagem do evento'] || BgEventos}
-                            alt={evento['Nome do evento']}
+                            src={evento.imagem || BgEventos}
+                            alt={evento.nome}
                             className="event-thumbnail"
                           />
                         </td>
                         <td>
-                          <span className="event-name">{evento['Nome do evento']}</span>
+                          <span className="event-name">{evento.nome}</span>
+                          {evento.descricao && (
+                            <span className="event-desc-preview">{evento.descricao}</span>
+                          )}
                         </td>
-                        <td>{evento['Data do evento']}</td>
-                        <td>{evento['Horario do evento']}</td>
+                        <td>{evento.data_evento}</td>
+                        <td>{evento.horario}</td>
                         <td>
-                          <span className={`badge badge-${evento['Periodo']?.toLowerCase()}`}>
-                            {evento['Periodo']}
+                          <span className={`badge badge-${evento.periodo?.toLowerCase()}`}>
+                            {evento.periodo}
                           </span>
                         </td>
                         <td>
                           <div className="action-buttons">
                             <button
                               className="btn-icon btn-view"
-                              onClick={() => window.open(evento['Link do evento'], '_blank')}
+                              onClick={() => window.open(evento.link, '_blank')}
                               title="Ver evento"
                             >
                               <Eye size={16} />
                             </button>
                             <button
                               className="btn-icon btn-edit"
-                              onClick={() => openEditModal(evento, index)}
+                              onClick={() => openEditModal(evento)}
                               title="Editar"
                             >
                               <Edit2 size={16} />
                             </button>
                             <button
                               className="btn-icon btn-delete"
-                              onClick={() => deleteEvent(index)}
+                              onClick={() => handleDeleteEvent(evento.id)}
                               title="Excluir"
                             >
                               <Trash2 size={16} />
@@ -349,7 +444,7 @@ function Dashboard() {
       {/* Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content modal-large" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editingEvent ? 'Editar Evento' : 'Criar Novo Evento'}</h2>
               <button className="modal-close" onClick={closeModal}>
@@ -373,6 +468,20 @@ function Dashboard() {
                 </div>
               </div>
 
+              <div className="form-row">
+                <div className="form-field">
+                  <label>
+                    <FileText size={16} />
+                    Descrição do Evento
+                  </label>
+                  <textarea
+                    placeholder="Descreva o evento..."
+                    rows="3"
+                    {...register("descricao")}
+                  />
+                </div>
+              </div>
+
               <div className="form-row two-cols">
                 <div className="form-field">
                   <label>
@@ -382,9 +491,9 @@ function Dashboard() {
                   <input
                     type="text"
                     placeholder="Ex: 15/02/2025"
-                    {...register("data", { required: "Data é obrigatória" })}
+                    {...register("data_evento", { required: "Data é obrigatória" })}
                   />
-                  {errors.data && <span className="field-error">{errors.data.message}</span>}
+                  {errors.data_evento && <span className="field-error">{errors.data_evento.message}</span>}
                 </div>
                 <div className="form-field">
                   <label>
@@ -406,7 +515,7 @@ function Dashboard() {
                     <Calendar size={16} />
                     Dia da Semana
                   </label>
-                  <select {...register("diaSemana", { required: "Dia da semana é obrigatório" })}>
+                  <select {...register("dia_semana", { required: "Dia da semana é obrigatório" })}>
                     <option value="">Selecione...</option>
                     <option value="Segunda-feira">Segunda-feira</option>
                     <option value="Terça-feira">Terça-feira</option>
@@ -416,7 +525,7 @@ function Dashboard() {
                     <option value="Sábado">Sábado</option>
                     <option value="Domingo">Domingo</option>
                   </select>
-                  {errors.diaSemana && <span className="field-error">{errors.diaSemana.message}</span>}
+                  {errors.dia_semana && <span className="field-error">{errors.dia_semana.message}</span>}
                 </div>
                 <div className="form-field">
                   <label>
@@ -453,13 +562,49 @@ function Dashboard() {
                 <div className="form-field">
                   <label>
                     <Image size={16} />
-                    URL da Imagem (opcional)
+                    Imagem do Evento
                   </label>
-                  <input
-                    type="url"
-                    placeholder="https://..."
-                    {...register("imagem")}
-                  />
+
+                  <div className="image-upload-container">
+                    {imagePreview ? (
+                      <div className="image-preview">
+                        <img src={imagePreview} alt="Preview" />
+                        <button type="button" className="remove-image" onClick={removeImage}>
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        className="image-upload-area"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Upload size={32} />
+                        <p>Clique para fazer upload</p>
+                        <span>PNG, JPG até 5MB</span>
+                      </div>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      style={{ display: 'none' }}
+                    />
+                  </div>
+
+                  <div className="image-url-option">
+                    <span>ou cole a URL da imagem:</span>
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      {...register("imagem")}
+                      onChange={(e) => {
+                        if (e.target.value && !imageFile) {
+                          setImagePreview(e.target.value);
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -467,9 +612,18 @@ function Dashboard() {
                 <button type="button" className="btn-secondary" onClick={closeModal}>
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary">
-                  <Save size={18} />
-                  {editingEvent ? 'Salvar Alterações' : 'Criar Evento'}
+                <button type="submit" className="btn-primary" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <span className="button-spinner"></span>
+                      {isUploading ? 'Enviando imagem...' : 'Salvando...'}
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      {editingEvent ? 'Salvar Alterações' : 'Criar Evento'}
+                    </>
+                  )}
                 </button>
               </div>
             </form>
