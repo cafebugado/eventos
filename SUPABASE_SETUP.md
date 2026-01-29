@@ -90,6 +90,7 @@ Vá em **Storage** no menu lateral e:
 Depois, configure as políticas do bucket. Vá em **Policies** dentro do bucket `imagens` e adicione:
 
 ### Política de Leitura Pública
+
 ```sql
 -- No SQL Editor, execute:
 CREATE POLICY "Imagens são públicas" ON storage.objects
@@ -98,6 +99,7 @@ CREATE POLICY "Imagens são públicas" ON storage.objects
 ```
 
 ### Política de Upload para Usuários Autenticados
+
 ```sql
 CREATE POLICY "Usuários autenticados podem fazer upload" ON storage.objects
   FOR INSERT
@@ -105,6 +107,7 @@ CREATE POLICY "Usuários autenticados podem fazer upload" ON storage.objects
 ```
 
 ### Política de Deleção para Usuários Autenticados
+
 ```sql
 CREATE POLICY "Usuários autenticados podem deletar imagens" ON storage.objects
   FOR DELETE
@@ -112,6 +115,7 @@ CREATE POLICY "Usuários autenticados podem deletar imagens" ON storage.objects
 ```
 
 **OU** configure via interface:
+
 1. Vá em Storage > imagens > Policies
 2. Clique em "New Policy"
 3. Selecione "For full customization"
@@ -148,6 +152,7 @@ VITE_SUPABASE_ANON_KEY=sua-anon-key-aqui
 ## 7. Testar a Aplicação
 
 1. Inicie o servidor de desenvolvimento:
+
    ```bash
    pnpm dev
    ```
@@ -169,19 +174,19 @@ INSERT INTO eventos (nome, descricao, data_evento, horario, dia_semana, periodo,
 
 ## Estrutura da Tabela
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| id | UUID | Identificador único (gerado automaticamente) |
-| nome | TEXT | Nome do evento |
-| descricao | TEXT | Descrição detalhada do evento (opcional) |
-| data_evento | TEXT | Data no formato "DD/MM/YYYY" |
-| horario | TEXT | Horário no formato "HH:MM" |
-| dia_semana | TEXT | Dia da semana por extenso |
-| periodo | TEXT | Matinal, Diurno, Vespertino ou Noturno |
-| link | TEXT | URL para participação/inscrição |
-| imagem | TEXT | URL da imagem do evento (opcional) |
-| created_at | TIMESTAMP | Data de criação (automático) |
-| updated_at | TIMESTAMP | Data de atualização (automático) |
+| Campo       | Tipo      | Descrição                                    |
+| ----------- | --------- | -------------------------------------------- |
+| id          | UUID      | Identificador único (gerado automaticamente) |
+| nome        | TEXT      | Nome do evento                               |
+| descricao   | TEXT      | Descrição detalhada do evento (opcional)     |
+| data_evento | TEXT      | Data no formato "DD/MM/YYYY"                 |
+| horario     | TEXT      | Horário no formato "HH:MM"                   |
+| dia_semana  | TEXT      | Dia da semana por extenso                    |
+| periodo     | TEXT      | Matinal, Diurno, Vespertino ou Noturno       |
+| link        | TEXT      | URL para participação/inscrição              |
+| imagem      | TEXT      | URL da imagem do evento (opcional)           |
+| created_at  | TIMESTAMP | Data de criação (automático)                 |
+| updated_at  | TIMESTAMP | Data de atualização (automático)             |
 
 ## Storage de Imagens
 
@@ -244,6 +249,7 @@ pnpm preview
 ## Suporte
 
 Para mais informações sobre o Supabase:
+
 - [Documentação oficial](https://supabase.com/docs)
 - [Guia de autenticação](https://supabase.com/docs/guides/auth)
 - [Guia de banco de dados](https://supabase.com/docs/guides/database)

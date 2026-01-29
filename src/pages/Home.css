@@ -197,20 +197,20 @@
 }
 
 /* Dark Mode */
-[data-theme="dark"] .home-header {
+[data-theme='dark'] .home-header {
   background: rgba(15, 23, 42, 0.8);
 }
 
-[data-theme="dark"] .home-info-box {
+[data-theme='dark'] .home-info-box {
   background: rgba(37, 99, 235, 0.12);
   border-color: rgba(37, 99, 235, 0.3);
 }
 
-[data-theme="dark"] .home-feature {
+[data-theme='dark'] .home-feature {
   background: var(--surface);
 }
 
-[data-theme="dark"] .home-feature:hover {
+[data-theme='dark'] .home-feature:hover {
   background: rgba(37, 99, 235, 0.15);
 }
 

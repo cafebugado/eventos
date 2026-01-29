@@ -24,12 +24,14 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 ## 📦 Instalação
 
 1. Clone o repositório:
+
 ```bash
 git clone https://github.com/seu-usuario/eventos-cafe-bugado.git
 cd eventos-cafe-bugado
 ```
 
 2. Instale as dependências:
+
 ```bash
 npm install
 # ou
@@ -37,16 +39,19 @@ pnpm install
 ```
 
 3. Configure as variáveis de ambiente:
+
 ```bash
 cp .env.example .env
 ```
 
 4. Edite o arquivo `.env` com a URL do seu Google Sheets:
+
 ```env
 VITE_GOOGLE_SHEET_URL=https://docs.google.com/spreadsheets/d/SEU_ID/export?format=csv&gid=0
 ```
 
 5. Execute o projeto:
+
 ```bash
 npm run dev
 # ou
@@ -57,9 +62,9 @@ pnpm dev
 
 Para que a aplicação funcione, você precisa de um Google Sheets público com as seguintes colunas:
 
-| Nome do evento | Data do evento | Horario do evento | Dia da Semana | Periodo | Link do evento | Imagem do evento |
-|----------------|----------------|-------------------|---------------|---------|----------------|------------------|
-| Workshop React | 15/03/2025 | 19:00 | Sábado | Noturno | https://link.com | https://imagem.jpg |
+| Nome do evento | Data do evento | Horario do evento | Dia da Semana | Periodo | Link do evento   | Imagem do evento   |
+| -------------- | -------------- | ----------------- | ------------- | ------- | ---------------- | ------------------ |
+| Workshop React | 15/03/2025     | 19:00             | Sábado        | Noturno | https://link.com | https://imagem.jpg |
 
 ### Passos para configurar:
 
@@ -92,7 +97,7 @@ As cores estão definidas como CSS custom properties em `:root`:
 O tema escuro é ativado através do atributo `data-theme="dark"` no elemento raiz:
 
 ```css
-[data-theme="dark"] {
+[data-theme='dark'] {
   --primary-blue: #3b82f6;
   --background: #0f172a;
   --surface: #1e293b;
@@ -115,7 +120,7 @@ O sistema de animações é baseado no `Intersection Observer`:
 O design é mobile-first com breakpoints:
 
 - **Desktop**: >= 768px
-- **Tablet**: 481px - 767px  
+- **Tablet**: 481px - 767px
 - **Mobile**: <= 480px
 
 ## 🔧 Scripts Disponíveis
@@ -152,24 +157,28 @@ public/
 ## 🌟 Funcionalidades Detalhadas
 
 ### Dark Mode
+
 - Toggle no header para alternar temas
 - Preferência salva no localStorage
 - Transições suaves entre temas
 - Cores otimizadas para ambos os modos
 
 ### Animações
+
 - Seções animam ao entrar na tela
 - Cards de eventos aparecem em sequência
 - Hover effects nos elementos interativos
 - Transições suaves nos botões
 
 ### Navegação
+
 - Scroll suave entre seções
 - Indicador visual da seção ativa
 - Menu fixo com backdrop blur
 - Navegação por teclado acessível
 
 ### Responsividade
+
 - Layout grid adaptativo
 - Imagens responsivas
 - Tipografia escalável
@@ -189,7 +198,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 ## 👥 Autores
 
-- **Dario Reis** - *Desenvolvedor Front-end* - [@darioreisjr](https://github.com/darioreisjr)
+- **Dario Reis** - _Desenvolvedor Front-end_ - [@darioreisjr](https://github.com/darioreisjr)
 
 ## 🙏 Agradecimentos
 

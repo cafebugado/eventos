@@ -1,46 +1,50 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { Lock, Mail, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { signIn, getSession } from '../services/authService';
-import './Admin.css';
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { Lock, Mail, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { signIn, getSession } from '../services/authService'
+import './Admin.css'
 
 function Login() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm()
 
   // Verifica se já está autenticado
   useEffect(() => {
     async function checkSession() {
-      const session = await getSession();
+      const session = await getSession()
       if (session) {
-        navigate('/admin/dashboard');
+        navigate('/admin/dashboard')
       }
     }
-    checkSession();
-  }, [navigate]);
+    checkSession()
+  }, [navigate])
 
   const onSubmit = async (data) => {
-    setIsLoading(true);
-    setError('');
+    setIsLoading(true)
+    setError('')
 
     try {
-      await signIn(data.email, data.password);
-      navigate('/admin/dashboard');
+      await signIn(data.email, data.password)
+      navigate('/admin/dashboard')
     } catch (err) {
       if (err.message === 'Invalid login credentials') {
-        setError('Email ou senha incorretos');
+        setError('Email ou senha incorretos')
       } else {
-        setError(err.message || 'Erro ao fazer login');
+        setError(err.message || 'Erro ao fazer login')
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="admin-login-container">
@@ -69,18 +73,16 @@ function Login() {
                 id="email"
                 type="email"
                 placeholder="seu@email.com"
-                {...register("email", {
-                  required: "Email é obrigatório",
+                {...register('email', {
+                  required: 'Email é obrigatório',
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Email inválido"
-                  }
+                    message: 'Email inválido',
+                  },
                 })}
               />
             </div>
-            {errors.email && (
-              <span className="field-error">{errors.email.message}</span>
-            )}
+            {errors.email && <span className="field-error">{errors.email.message}</span>}
           </div>
 
           <div className="form-field">
@@ -89,14 +91,14 @@ function Login() {
               <Lock size={18} className="input-icon" />
               <input
                 id="password"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                {...register("password", {
-                  required: "Senha é obrigatória",
+                {...register('password', {
+                  required: 'Senha é obrigatória',
                   minLength: {
                     value: 6,
-                    message: "Senha deve ter pelo menos 6 caracteres"
-                  }
+                    message: 'Senha deve ter pelo menos 6 caracteres',
+                  },
                 })}
               />
               <button
@@ -107,16 +109,10 @@ function Login() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {errors.password && (
-              <span className="field-error">{errors.password.message}</span>
-            )}
+            {errors.password && <span className="field-error">{errors.password.message}</span>}
           </div>
 
-          <button
-            type="submit"
-            className="login-button"
-            disabled={isLoading}
-          >
+          <button type="submit" className="login-button" disabled={isLoading}>
             {isLoading ? (
               <>
                 <span className="button-spinner"></span>
@@ -133,7 +129,7 @@ function Login() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default Login;
+export default Login

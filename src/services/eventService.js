@@ -17,11 +17,7 @@ export async function getEvents() {
 
 // Buscar evento por ID
 export async function getEventById(id) {
-  const { data, error } = await supabase
-    .from('eventos')
-    .select('*')
-    .eq('id', id)
-    .single()
+  const { data, error } = await supabase.from('eventos').select('*').eq('id', id).single()
 
   if (error) {
     console.error('Erro ao buscar evento:', error)
@@ -136,9 +132,7 @@ export async function uploadEventImage(file) {
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
   const filePath = `eventos/${fileName}`
 
-  const { error: uploadError } = await supabase.storage
-    .from('imagens')
-    .upload(filePath, file)
+  const { error: uploadError } = await supabase.storage.from('imagens').upload(filePath, file)
 
   if (uploadError) {
     console.error('Erro ao fazer upload da imagem:', uploadError)
@@ -153,12 +147,16 @@ export async function uploadEventImage(file) {
 
 // Deletar imagem do Storage
 export async function deleteEventImage(imageUrl) {
-  if (!imageUrl) return
+  if (!imageUrl) {
+    return
+  }
 
   // Extrai o path da URL
   const url = new URL(imageUrl)
   const pathParts = url.pathname.split('/storage/v1/object/public/imagens/')
-  if (pathParts.length < 2) return
+  if (pathParts.length < 2) {
+    return
+  }
 
   const filePath = pathParts[1]
 

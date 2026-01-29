@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   Plus,
@@ -20,114 +20,117 @@ import {
   AlertCircle,
   CheckCircle,
   Upload,
-  FileText
-} from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { getSession, signOut, getCurrentUser } from '../services/authService';
+  FileText,
+} from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { getSession, signOut, getCurrentUser } from '../services/authService'
 import {
   getEvents,
   createEvent,
   updateEvent,
   deleteEvent as deleteEventService,
   getEventStats,
-  uploadEventImage
-} from '../services/eventService';
-import './Admin.css';
-import BgEventos from '../../public/eventos.png';
+  uploadEventImage,
+} from '../services/eventService'
+import './Admin.css'
+import BgEventos from '../../public/eventos.png'
 
 function Dashboard() {
-  const [eventos, setEventos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
-  const [notification, setNotification] = useState(null);
-  const [activeTab, setActiveTab] = useState('eventos');
-  const [stats, setStats] = useState({ total: 0, noturno: 0, diurno: 0 });
-  const [userEmail, setUserEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef(null);
-  const navigate = useNavigate();
+  const [eventos, setEventos] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [editingEvent, setEditingEvent] = useState(null)
+  const [notification, setNotification] = useState(null)
+  const [activeTab, setActiveTab] = useState('eventos')
+  const [stats, setStats] = useState({ total: 0, noturno: 0, diurno: 0 })
+  const [userEmail, setUserEmail] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef(null)
+  const navigate = useNavigate()
 
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm()
 
   useEffect(() => {
     async function init() {
-      const session = await getSession();
+      const session = await getSession()
       if (!session) {
-        navigate('/admin');
-        return;
+        navigate('/admin')
+        return
       }
 
-      const user = await getCurrentUser();
+      const user = await getCurrentUser()
       if (user) {
-        setUserEmail(user.email);
+        setUserEmail(user.email)
       }
 
-      const savedTheme = localStorage.getItem('theme');
+      const savedTheme = localStorage.getItem('theme')
       if (savedTheme === 'dark') {
-        setIsDarkMode(true);
-        document.documentElement.setAttribute('data-theme', 'dark');
+        setIsDarkMode(true)
+        document.documentElement.setAttribute('data-theme', 'dark')
       }
 
-      await loadEvents();
+      await loadEvents()
     }
 
-    init();
-  }, [navigate]);
+    init()
+  }, [navigate])
 
   const loadEvents = async () => {
     try {
-      setLoading(true);
-      const [eventsData, statsData] = await Promise.all([
-        getEvents(),
-        getEventStats()
-      ]);
-      setEventos(eventsData);
-      setStats(statsData);
+      setLoading(true)
+      const [eventsData, statsData] = await Promise.all([getEvents(), getEventStats()])
+      setEventos(eventsData)
+      setStats(statsData)
     } catch (error) {
-      console.error('Erro ao carregar eventos:', error);
-      showNotification('Erro ao carregar eventos', 'error');
+      console.error('Erro ao carregar eventos:', error)
+      showNotification('Erro ao carregar eventos', 'error')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const toggleTheme = () => {
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
+    const newTheme = !isDarkMode
+    setIsDarkMode(newTheme)
 
     if (newTheme) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('theme', 'dark');
+      document.documentElement.setAttribute('data-theme', 'dark')
+      localStorage.setItem('theme', 'dark')
     } else {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('theme', 'light');
+      document.documentElement.removeAttribute('data-theme')
+      localStorage.setItem('theme', 'light')
     }
-  };
+  }
 
   const handleLogout = async () => {
     try {
-      await signOut();
-      navigate('/admin');
+      await signOut()
+      navigate('/admin')
     } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-      showNotification('Erro ao fazer logout', 'error');
+      console.error('Erro ao fazer logout:', error)
+      showNotification('Erro ao fazer logout', 'error')
     }
-  };
+  }
 
   const showNotification = (message, type = 'success') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
-  };
+    setNotification({ message, type })
+    setTimeout(() => setNotification(null), 3000)
+  }
 
   const openCreateModal = () => {
-    setEditingEvent(null);
-    setImageFile(null);
-    setImagePreview(null);
+    setEditingEvent(null)
+    setImageFile(null)
+    setImagePreview(null)
     reset({
       nome: '',
       descricao: '',
@@ -136,81 +139,81 @@ function Dashboard() {
       dia_semana: '',
       periodo: '',
       link: '',
-      imagem: ''
-    });
-    setShowModal(true);
-  };
+      imagem: '',
+    })
+    setShowModal(true)
+  }
 
   const openEditModal = (evento) => {
-    setEditingEvent(evento);
-    setImageFile(null);
-    setImagePreview(evento.imagem || null);
-    setValue('nome', evento.nome);
-    setValue('descricao', evento.descricao || '');
-    setValue('data_evento', evento.data_evento);
-    setValue('horario', evento.horario);
-    setValue('dia_semana', evento.dia_semana);
-    setValue('periodo', evento.periodo);
-    setValue('link', evento.link);
-    setValue('imagem', evento.imagem || '');
-    setShowModal(true);
-  };
+    setEditingEvent(evento)
+    setImageFile(null)
+    setImagePreview(evento.imagem || null)
+    setValue('nome', evento.nome)
+    setValue('descricao', evento.descricao || '')
+    setValue('data_evento', evento.data_evento)
+    setValue('horario', evento.horario)
+    setValue('dia_semana', evento.dia_semana)
+    setValue('periodo', evento.periodo)
+    setValue('link', evento.link)
+    setValue('imagem', evento.imagem || '')
+    setShowModal(true)
+  }
 
   const closeModal = () => {
-    setShowModal(false);
-    setEditingEvent(null);
-    setImageFile(null);
-    setImagePreview(null);
-    reset();
-  };
+    setShowModal(false)
+    setEditingEvent(null)
+    setImageFile(null)
+    setImagePreview(null)
+    reset()
+  }
 
   const handleImageSelect = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        showNotification('Imagem deve ter no máximo 5MB', 'error');
-        return;
+        showNotification('Imagem deve ter no máximo 5MB', 'error')
+        return
       }
       if (!file.type.startsWith('image/')) {
-        showNotification('Arquivo deve ser uma imagem', 'error');
-        return;
+        showNotification('Arquivo deve ser uma imagem', 'error')
+        return
       }
-      setImageFile(file);
-      const reader = new FileReader();
+      setImageFile(file)
+      const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+        setImagePreview(reader.result)
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   const removeImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-    setValue('imagem', '');
+    setImageFile(null)
+    setImagePreview(null)
+    setValue('imagem', '')
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = ''
     }
-  };
+  }
 
   const onSubmit = async (data) => {
-    setIsSubmitting(true);
+    setIsSubmitting(true)
     try {
-      let imageUrl = data.imagem || null;
+      let imageUrl = data.imagem || null
 
       // Se tem arquivo de imagem, faz upload
       if (imageFile) {
-        setIsUploading(true);
+        setIsUploading(true)
         try {
-          imageUrl = await uploadEventImage(imageFile);
+          imageUrl = await uploadEventImage(imageFile)
         } catch (uploadError) {
-          console.error('Erro no upload:', uploadError);
-          showNotification('Erro ao fazer upload da imagem', 'error');
-          setIsSubmitting(false);
-          setIsUploading(false);
-          return;
+          console.error('Erro no upload:', uploadError)
+          showNotification('Erro ao fazer upload da imagem', 'error')
+          setIsSubmitting(false)
+          setIsUploading(false)
+          return
         }
-        setIsUploading(false);
+        setIsUploading(false)
       }
 
       const eventData = {
@@ -221,40 +224,40 @@ function Dashboard() {
         dia_semana: data.dia_semana,
         periodo: data.periodo,
         link: data.link,
-        imagem: imageUrl
-      };
-
-      if (editingEvent) {
-        await updateEvent(editingEvent.id, eventData);
-        showNotification('Evento atualizado com sucesso!');
-      } else {
-        await createEvent(eventData);
-        showNotification('Evento criado com sucesso!');
+        imagem: imageUrl,
       }
 
-      closeModal();
-      await loadEvents();
+      if (editingEvent) {
+        await updateEvent(editingEvent.id, eventData)
+        showNotification('Evento atualizado com sucesso!')
+      } else {
+        await createEvent(eventData)
+        showNotification('Evento criado com sucesso!')
+      }
+
+      closeModal()
+      await loadEvents()
     } catch (error) {
-      console.error('Erro ao salvar evento:', error);
-      showNotification('Erro ao salvar evento', 'error');
+      console.error('Erro ao salvar evento:', error)
+      showNotification('Erro ao salvar evento', 'error')
     } finally {
-      setIsSubmitting(false);
-      setIsUploading(false);
+      setIsSubmitting(false)
+      setIsUploading(false)
     }
-  };
+  }
 
   const handleDeleteEvent = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este evento?')) {
       try {
-        await deleteEventService(id);
-        showNotification('Evento excluído com sucesso!');
-        await loadEvents();
+        await deleteEventService(id)
+        showNotification('Evento excluído com sucesso!')
+        await loadEvents()
       } catch (error) {
-        console.error('Erro ao excluir evento:', error);
-        showNotification('Erro ao excluir evento', 'error');
+        console.error('Erro ao excluir evento:', error)
+        showNotification('Erro ao excluir evento', 'error')
       }
     }
-  };
+  }
 
   return (
     <div className="admin-dashboard">
@@ -276,8 +279,8 @@ function Dashboard() {
           <button
             className={`menu-item ${activeTab === 'criar' ? 'active' : ''}`}
             onClick={() => {
-              setActiveTab('criar');
-              openCreateModal();
+              setActiveTab('criar')
+              openCreateModal()
             }}
           >
             <Plus size={20} />
@@ -287,9 +290,7 @@ function Dashboard() {
 
         <div className="sidebar-footer">
           <div className="user-info">
-            <div className="user-avatar">
-              {userEmail?.charAt(0).toUpperCase() || 'A'}
-            </div>
+            <div className="user-avatar">{userEmail?.charAt(0).toUpperCase() || 'A'}</div>
             <div className="user-details">
               <span className="user-name">Admin</span>
               <span className="user-email">{userEmail}</span>
@@ -444,7 +445,7 @@ function Dashboard() {
       {/* Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content modal-large" onClick={e => e.stopPropagation()}>
+          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editingEvent ? 'Editar Evento' : 'Criar Novo Evento'}</h2>
               <button className="modal-close" onClick={closeModal}>
@@ -462,7 +463,7 @@ function Dashboard() {
                   <input
                     type="text"
                     placeholder="Ex: Workshop de React"
-                    {...register("nome", { required: "Nome é obrigatório" })}
+                    {...register('nome', { required: 'Nome é obrigatório' })}
                   />
                   {errors.nome && <span className="field-error">{errors.nome.message}</span>}
                 </div>
@@ -477,7 +478,7 @@ function Dashboard() {
                   <textarea
                     placeholder="Descreva o evento..."
                     rows="3"
-                    {...register("descricao")}
+                    {...register('descricao')}
                   />
                 </div>
               </div>
@@ -491,9 +492,11 @@ function Dashboard() {
                   <input
                     type="text"
                     placeholder="Ex: 15/02/2025"
-                    {...register("data_evento", { required: "Data é obrigatória" })}
+                    {...register('data_evento', { required: 'Data é obrigatória' })}
                   />
-                  {errors.data_evento && <span className="field-error">{errors.data_evento.message}</span>}
+                  {errors.data_evento && (
+                    <span className="field-error">{errors.data_evento.message}</span>
+                  )}
                 </div>
                 <div className="form-field">
                   <label>
@@ -503,7 +506,7 @@ function Dashboard() {
                   <input
                     type="text"
                     placeholder="Ex: 19:00"
-                    {...register("horario", { required: "Horário é obrigatório" })}
+                    {...register('horario', { required: 'Horário é obrigatório' })}
                   />
                   {errors.horario && <span className="field-error">{errors.horario.message}</span>}
                 </div>
@@ -515,7 +518,7 @@ function Dashboard() {
                     <Calendar size={16} />
                     Dia da Semana
                   </label>
-                  <select {...register("dia_semana", { required: "Dia da semana é obrigatório" })}>
+                  <select {...register('dia_semana', { required: 'Dia da semana é obrigatório' })}>
                     <option value="">Selecione...</option>
                     <option value="Segunda-feira">Segunda-feira</option>
                     <option value="Terça-feira">Terça-feira</option>
@@ -525,14 +528,16 @@ function Dashboard() {
                     <option value="Sábado">Sábado</option>
                     <option value="Domingo">Domingo</option>
                   </select>
-                  {errors.dia_semana && <span className="field-error">{errors.dia_semana.message}</span>}
+                  {errors.dia_semana && (
+                    <span className="field-error">{errors.dia_semana.message}</span>
+                  )}
                 </div>
                 <div className="form-field">
                   <label>
                     <Tag size={16} />
                     Período
                   </label>
-                  <select {...register("periodo", { required: "Período é obrigatório" })}>
+                  <select {...register('periodo', { required: 'Período é obrigatório' })}>
                     <option value="">Selecione...</option>
                     <option value="Matinal">Matinal</option>
                     <option value="Diurno">Diurno</option>
@@ -552,7 +557,7 @@ function Dashboard() {
                   <input
                     type="url"
                     placeholder="https://..."
-                    {...register("link", { required: "Link é obrigatório" })}
+                    {...register('link', { required: 'Link é obrigatório' })}
                   />
                   {errors.link && <span className="field-error">{errors.link.message}</span>}
                 </div>
@@ -597,10 +602,10 @@ function Dashboard() {
                     <input
                       type="url"
                       placeholder="https://..."
-                      {...register("imagem")}
+                      {...register('imagem')}
                       onChange={(e) => {
                         if (e.target.value && !imageFile) {
-                          setImagePreview(e.target.value);
+                          setImagePreview(e.target.value)
                         }
                       }}
                     />
@@ -639,7 +644,7 @@ function Dashboard() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
-export default Dashboard;
+export default Dashboard

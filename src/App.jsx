@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 import {
   Sun,
   Moon,
@@ -24,109 +24,114 @@ import {
   Briefcase,
   Camera,
   Twitter,
-  Menu
-} from 'lucide-react';
-import { getEvents } from './services/eventService';
-import './App.css';
+  Menu,
+} from 'lucide-react'
+import { getEvents } from './services/eventService'
+import './App.css'
 import BgEventos from '../public/eventos.png'
 
 function App() {
-  const [agenda, setAgenda] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('eventos');
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const navigate = useNavigate();
+  const [agenda, setAgenda] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [activeSection, setActiveSection] = useState('eventos')
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const navigate = useNavigate()
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm()
 
   useEffect(() => {
     // Carrega tema salvo
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem('theme')
     if (savedTheme === 'dark') {
-      setIsDarkMode(true);
-      document.documentElement.setAttribute('data-theme', 'dark');
+      setIsDarkMode(true)
+      document.documentElement.setAttribute('data-theme', 'dark')
     }
 
     // Carrega eventos do Supabase
     async function loadEvents() {
       try {
-        const events = await getEvents();
-        setAgenda(events);
+        const events = await getEvents()
+        setAgenda(events)
       } catch (error) {
-        console.error('Erro ao carregar eventos:', error);
+        console.error('Erro ao carregar eventos:', error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     }
 
-    loadEvents();
-  }, []);
+    loadEvents()
+  }, [])
 
   const toggleTheme = () => {
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
+    const newTheme = !isDarkMode
+    setIsDarkMode(newTheme)
 
     if (newTheme) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('theme', 'dark');
+      document.documentElement.setAttribute('data-theme', 'dark')
+      localStorage.setItem('theme', 'dark')
     } else {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('theme', 'light');
+      document.documentElement.removeAttribute('data-theme')
+      localStorage.setItem('theme', 'light')
     }
-  };
+  }
 
   const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
+    const element = document.getElementById(sectionId)
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setActiveSection(sectionId);
+      element.scrollIntoView({ behavior: 'smooth' })
+      setActiveSection(sectionId)
     }
-    setIsMobileMenuOpen(false);
-  };
+    setIsMobileMenuOpen(false)
+  }
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+    setIsSidebarOpen(!isSidebarOpen)
+  }
 
   const onSubmit = (data) => {
-    console.log('Formulário enviado:', data);
-    alert('Mensagem enviada com sucesso!');
-    reset();
-  };
+    console.log('Formulário enviado:', data)
+    alert('Mensagem enviada com sucesso!')
+    reset()
+  }
 
   useEffect(() => {
     const observerOptions = {
       threshold: 0.3,
-      rootMargin: '-50px 0px'
-    };
+      rootMargin: '-50px 0px',
+    }
 
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('animate-in');
+          entry.target.classList.add('animate-in')
         }
-      });
-    }, observerOptions);
+      })
+    }, observerOptions)
 
-    const sections = document.querySelectorAll('.animate-section');
-    sections.forEach(section => {
-      observer.observe(section);
-    });
+    const sections = document.querySelectorAll('.animate-section')
+    sections.forEach((section) => {
+      observer.observe(section)
+    })
 
-    return () => observer.disconnect();
-  }, []);
+    return () => observer.disconnect()
+  }, [])
 
   const navigationItems = [
     { id: 'eventos', label: 'Eventos', icon: PartyPopper },
     { id: 'sobre', label: 'Sobre', icon: Info },
-    { id: 'contato', label: 'Contato', icon: Phone }
-  ];
+    { id: 'contato', label: 'Contato', icon: Phone },
+  ]
 
   return (
     <div className="App">
@@ -134,7 +139,12 @@ function App() {
       <header className="main-header">
         <div className="header-container">
           <div className="logo">
-            <a href="https://cafebugado.com.br" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <a
+              href="https://cafebugado.com.br"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
               <h1>Eventos</h1>
               <span>Comunidade Café Bugado</span>
             </a>
@@ -147,7 +157,7 @@ function App() {
                   Início
                 </button>
               </li>
-              {navigationItems.map(item => (
+              {navigationItems.map((item) => (
                 <li key={item.id}>
                   <button
                     className={activeSection === item.id ? 'active' : ''}
@@ -171,18 +181,14 @@ function App() {
           <Menu size={24} />
         </button>
         <nav className="sidebar-nav">
-          <button
-            className="sidebar-item"
-            onClick={() => navigate('/')}
-            aria-label="Início"
-          >
+          <button className="sidebar-item" onClick={() => navigate('/')} aria-label="Início">
             <span className="sidebar-icon">
               <Home size={20} />
             </span>
             <span className="sidebar-label">Início</span>
           </button>
-          {navigationItems.map(item => {
-            const IconComponent = item.icon;
+          {navigationItems.map((item) => {
+            const IconComponent = item.icon
             return (
               <button
                 key={item.id}
@@ -195,7 +201,7 @@ function App() {
                 </span>
                 <span className="sidebar-label">{item.label}</span>
               </button>
-            );
+            )
           })}
         </nav>
       </aside>
@@ -219,15 +225,18 @@ function App() {
             <nav className="mobile-nav">
               <button
                 className="mobile-nav-item"
-                onClick={() => { setIsMobileMenuOpen(false); navigate('/'); }}
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  navigate('/')
+                }}
               >
                 <span className="mobile-icon">
                   <Home size={20} />
                 </span>
                 <span>Início</span>
               </button>
-              {navigationItems.map(item => {
-                const IconComponent = item.icon;
+              {navigationItems.map((item) => {
+                const IconComponent = item.icon
                 return (
                   <button
                     key={item.id}
@@ -239,7 +248,7 @@ function App() {
                     </span>
                     <span>{item.label}</span>
                   </button>
-                );
+                )
               })}
             </nav>
           </div>
@@ -261,8 +270,8 @@ function App() {
           <div className="section-header">
             <h2>Próximos Eventos</h2>
             <p>
-              Eventos de comunidades e empresas de tecnologia. Meetups, workshops, hackathons
-              e conferências — tudo compartilhado para você não perder nenhuma oportunidade.
+              Eventos de comunidades e empresas de tecnologia. Meetups, workshops, hackathons e
+              conferências — tudo compartilhado para você não perder nenhuma oportunidade.
             </p>
           </div>
 
@@ -275,19 +284,18 @@ function App() {
             <div className="eventos-grid">
               {agenda.length > 0 ? (
                 agenda.map((item, index) => (
-                  <div key={item.id || index} className="evento-card" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div
+                    key={item.id || index}
+                    className="evento-card"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
                     <div className="card-image">
-                      <img
-                        src={item.imagem || BgEventos}
-                        alt={item.nome}
-                      />
+                      <img src={item.imagem || BgEventos} alt={item.nome} />
                       <div className="card-badge">{item.periodo}</div>
                     </div>
                     <div className="card-content">
                       <h3>{item.nome}</h3>
-                      {item.descricao && (
-                        <p className="event-description">{item.descricao}</p>
-                      )}
+                      {item.descricao && <p className="event-description">{item.descricao}</p>}
                       <div className="event-info">
                         <div className="info-item">
                           <span className="icon">
@@ -340,11 +348,13 @@ function App() {
           <div className="container">
             <div className="sobre-content">
               <div className="section-badge">Nossa Missão</div>
-              <h2>Transformando a forma como você <span className="highlight">descobre eventos</span></h2>
+              <h2>
+                Transformando a forma como você <span className="highlight">descobre eventos</span>
+              </h2>
               <p>
-                A Comunidade Café Bugado nasceu da necessidade de centralizar e simplificar a descoberta de eventos.
-                Acreditamos que experiências memoráveis acontecem quando as pessoas certas se encontram
-                nos lugares certos, no momento certo.
+                A Comunidade Café Bugado nasceu da necessidade de centralizar e simplificar a
+                descoberta de eventos. Acreditamos que experiências memoráveis acontecem quando as
+                pessoas certas se encontram nos lugares certos, no momento certo.
               </p>
 
               <div className="about-stats">
@@ -364,28 +374,40 @@ function App() {
                     <Target size={40} />
                   </div>
                   <h4>Curadoria Especializada</h4>
-                  <p>Cada evento passa por um processo rigoroso de seleção, garantindo qualidade e relevância para nossa comunidade.</p>
+                  <p>
+                    Cada evento passa por um processo rigoroso de seleção, garantindo qualidade e
+                    relevância para nossa comunidade.
+                  </p>
                 </div>
                 <div className="feature">
                   <div className="feature-icon">
                     <Zap size={40} />
                   </div>
                   <h4>Atualização em Tempo Real</h4>
-                  <p>Nossa plataforma é sincronizada automaticamente, garantindo que você sempre tenha acesso às informações mais recentes.</p>
+                  <p>
+                    Nossa plataforma é sincronizada automaticamente, garantindo que você sempre
+                    tenha acesso às informações mais recentes.
+                  </p>
                 </div>
                 <div className="feature">
                   <div className="feature-icon">
                     <Globe size={40} />
                   </div>
                   <h4>Diversidade de Categorias</h4>
-                  <p>De tecnologia a arte, de negócios a entretenimento. Temos eventos para todos os interesses e momentos da vida.</p>
+                  <p>
+                    De tecnologia a arte, de negócios a entretenimento. Temos eventos para todos os
+                    interesses e momentos da vida.
+                  </p>
                 </div>
                 <div className="feature">
                   <div className="feature-icon">
                     <Handshake size={40} />
                   </div>
                   <h4>Comunidade Ativa</h4>
-                  <p>Conecte-se com pessoas que compartilham seus interesses e construa uma rede de contatos valiosa.</p>
+                  <p>
+                    Conecte-se com pessoas que compartilham seus interesses e construa uma rede de
+                    contatos valiosa.
+                  </p>
                 </div>
               </div>
             </div>
@@ -396,10 +418,12 @@ function App() {
         <section id="contato" className="contato-section animate-section">
           <div className="container">
             <div className="section-badge">Fale Conosco</div>
-            <h2>Vamos criar algo <span className="highlight">incrível juntos</span></h2>
+            <h2>
+              Vamos criar algo <span className="highlight">incrível juntos</span>
+            </h2>
             <p>
-              Seja você um organizador de eventos, participante ou parceiro,
-              adoraríamos conhecer sua história e como podemos ajudar.
+              Seja você um organizador de eventos, participante ou parceiro, adoraríamos conhecer
+              sua história e como podemos ajudar.
             </p>
 
             <div className="contato-grid">
@@ -444,14 +468,21 @@ function App() {
                       <input
                         type="text"
                         placeholder="Seu nome"
-                        {...register("nome", {
-                          required: "Nome é obrigatório",
-                          minLength: { value: 2, message: "Nome deve ter pelo menos 2 caracteres" }
+                        {...register('nome', {
+                          required: 'Nome é obrigatório',
+                          minLength: { value: 2, message: 'Nome deve ter pelo menos 2 caracteres' },
                         })}
                         style={{ borderColor: errors.nome ? '#ef4444' : undefined }}
                       />
                       {errors.nome && (
-                        <span style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                        <span
+                          style={{
+                            color: '#ef4444',
+                            fontSize: '0.75rem',
+                            marginTop: '0.25rem',
+                            display: 'block',
+                          }}
+                        >
                           {errors.nome.message}
                         </span>
                       )}
@@ -460,17 +491,24 @@ function App() {
                       <input
                         type="email"
                         placeholder="Seu email"
-                        {...register("email", {
-                          required: "Email é obrigatório",
+                        {...register('email', {
+                          required: 'Email é obrigatório',
                           pattern: {
                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: "Email inválido"
-                          }
+                            message: 'Email inválido',
+                          },
                         })}
                         style={{ borderColor: errors.email ? '#ef4444' : undefined }}
                       />
                       {errors.email && (
-                        <span style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                        <span
+                          style={{
+                            color: '#ef4444',
+                            fontSize: '0.75rem',
+                            marginTop: '0.25rem',
+                            display: 'block',
+                          }}
+                        >
                           {errors.email.message}
                         </span>
                       )}
@@ -480,13 +518,20 @@ function App() {
                     <input
                       type="text"
                       placeholder="Assunto"
-                      {...register("assunto", {
-                        required: "Assunto é obrigatório"
+                      {...register('assunto', {
+                        required: 'Assunto é obrigatório',
                       })}
                       style={{ borderColor: errors.assunto ? '#ef4444' : undefined }}
                     />
                     {errors.assunto && (
-                      <span style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                      <span
+                        style={{
+                          color: '#ef4444',
+                          fontSize: '0.75rem',
+                          marginTop: '0.25rem',
+                          display: 'block',
+                        }}
+                      >
                         {errors.assunto.message}
                       </span>
                     )}
@@ -495,14 +540,24 @@ function App() {
                     <textarea
                       placeholder="Sua mensagem..."
                       rows="4"
-                      {...register("mensagem", {
-                        required: "Mensagem é obrigatória",
-                        minLength: { value: 10, message: "Mensagem deve ter pelo menos 10 caracteres" }
+                      {...register('mensagem', {
+                        required: 'Mensagem é obrigatória',
+                        minLength: {
+                          value: 10,
+                          message: 'Mensagem deve ter pelo menos 10 caracteres',
+                        },
                       })}
                       style={{ borderColor: errors.mensagem ? '#ef4444' : undefined }}
                     />
                     {errors.mensagem && (
-                      <span style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                      <span
+                        style={{
+                          color: '#ef4444',
+                          fontSize: '0.75rem',
+                          marginTop: '0.25rem',
+                          display: 'block',
+                        }}
+                      >
                         {errors.mensagem.message}
                       </span>
                     )}
@@ -525,12 +580,17 @@ function App() {
         <div className="footer-container">
           <div className="footer-content">
             <div className="footer-section">
-              <a href="https://cafebugado.com.br" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <a
+                href="https://cafebugado.com.br"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
                 <h4>Eventos</h4>
               </a>
               <p>
-                Comunidade Café Bugado - Conectando pessoas através de eventos
-                e experiências únicas na comunidade.
+                Comunidade Café Bugado - Conectando pessoas através de eventos e experiências únicas
+                na comunidade.
               </p>
               <div className="social-links">
                 <a href="#" aria-label="LinkedIn">
@@ -547,38 +607,71 @@ function App() {
             <div className="footer-section">
               <h4>Navegação</h4>
               <ul>
-                <li><button onClick={() => navigate('/')}>Início</button></li>
-                <li><button onClick={() => scrollToSection('eventos')}>Eventos</button></li>
-                <li><button onClick={() => scrollToSection('sobre')}>Sobre</button></li>
-                <li><button onClick={() => scrollToSection('contato')}>Contato</button></li>
+                <li>
+                  <button onClick={() => navigate('/')}>Início</button>
+                </li>
+                <li>
+                  <button onClick={() => scrollToSection('eventos')}>Eventos</button>
+                </li>
+                <li>
+                  <button onClick={() => scrollToSection('sobre')}>Sobre</button>
+                </li>
+                <li>
+                  <button onClick={() => scrollToSection('contato')}>Contato</button>
+                </li>
               </ul>
             </div>
             <div className="footer-section">
               <h4>Categorias</h4>
               <ul>
-                <li><a href="#">Tecnologia</a></li>
-                <li><a href="#">Negócios</a></li>
-                <li><a href="#">Arte & Cultura</a></li>
-                <li><a href="#">Networking</a></li>
+                <li>
+                  <a href="#">Tecnologia</a>
+                </li>
+                <li>
+                  <a href="#">Negócios</a>
+                </li>
+                <li>
+                  <a href="#">Arte & Cultura</a>
+                </li>
+                <li>
+                  <a href="#">Networking</a>
+                </li>
               </ul>
             </div>
             <div className="footer-section">
               <h4>Suporte</h4>
               <ul>
-                <li><a href="#">Central de Ajuda</a></li>
-                <li><a href="#">Termos de Uso</a></li>
-                <li><a href="#">Privacidade</a></li>
+                <li>
+                  <a href="#">Central de Ajuda</a>
+                </li>
+                <li>
+                  <a href="#">Termos de Uso</a>
+                </li>
+                <li>
+                  <a href="#">Privacidade</a>
+                </li>
               </ul>
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; {new Date().getFullYear()} <a href="https://cafebugado.com.br" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>Comunidade Café Bugado</a>. Todos os direitos reservados.</p>
+            <p>
+              &copy; {new Date().getFullYear()}{' '}
+              <a
+                href="https://cafebugado.com.br"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                Comunidade Café Bugado
+              </a>
+              . Todos os direitos reservados.
+            </p>
             <p>Feito com ❤️ para conectar pessoas através de eventos</p>
           </div>
         </div>
       </footer>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

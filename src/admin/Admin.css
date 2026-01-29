@@ -63,7 +63,7 @@
   font-size: 0.875rem;
 }
 
-[data-theme="dark"] .login-error {
+[data-theme='dark'] .login-error {
   background: #450a0a;
   color: #fca5a5;
 }
@@ -339,7 +339,7 @@
   color: #dc2626;
 }
 
-[data-theme="dark"] .logout-btn:hover {
+[data-theme='dark'] .logout-btn:hover {
   background: #450a0a;
   color: #fca5a5;
 }
