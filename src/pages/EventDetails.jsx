@@ -1,18 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import {
-  Sun,
-  Moon,
-  Home,
-  ArrowLeft,
-  Calendar,
-  Clock,
-  CalendarDays,
-  ArrowUpRight,
-  MapPin,
-  ExternalLink,
-} from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, CalendarDays, ArrowUpRight } from 'lucide-react'
 import { getEventById } from '../services/eventService'
+import Header from '../components/Header'
+import Footer from '../components/Footer'
 import BgEventos from '../../public/eventos.png'
 import './EventDetails.css'
 
@@ -22,22 +13,15 @@ function EventDetails() {
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true)
-      document.documentElement.setAttribute('data-theme', 'dark')
-    }
-
     async function loadEvent() {
       try {
         const eventData = await getEventById(id)
         setEvent(eventData)
       } catch (err) {
         console.error('Erro ao carregar evento:', err)
-        setError('Evento não encontrado')
+        setError('Evento nao encontrado')
       } finally {
         setLoading(false)
       }
@@ -46,26 +30,15 @@ function EventDetails() {
     loadEvent()
   }, [id])
 
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode
-    setIsDarkMode(newTheme)
-
-    if (newTheme) {
-      document.documentElement.setAttribute('data-theme', 'dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.removeAttribute('data-theme')
-      localStorage.setItem('theme', 'light')
-    }
-  }
-
   if (loading) {
     return (
       <div className="event-details-page">
+        <Header />
         <div className="loading-container">
           <div className="spinner"></div>
           <p>Carregando evento...</p>
         </div>
+        <Footer />
       </div>
     )
   }
@@ -73,45 +46,23 @@ function EventDetails() {
   if (error || !event) {
     return (
       <div className="event-details-page">
+        <Header />
         <div className="error-container">
-          <h2>Evento não encontrado</h2>
-          <p>O evento que você está procurando não existe ou foi removido.</p>
+          <h2>Evento nao encontrado</h2>
+          <p>O evento que voce esta procurando nao existe ou foi removido.</p>
           <button onClick={() => navigate('/eventos')} className="back-button">
             <ArrowLeft size={18} />
             Voltar para Eventos
           </button>
         </div>
+        <Footer />
       </div>
     )
   }
 
   return (
     <div className="event-details-page">
-      <header className="details-header">
-        <div className="header-container">
-          <div className="logo">
-            <a
-              href="https://cafebugado.com.br"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              <h1>Eventos</h1>
-              <span>Comunidade Café Bugado</span>
-            </a>
-          </div>
-          <nav className="details-nav">
-            <button onClick={() => navigate('/')}>
-              <Home size={16} style={{ marginRight: '0.25rem' }} />
-              Início
-            </button>
-            <button onClick={() => navigate('/eventos')}>Eventos</button>
-          </nav>
-          <button className="theme-toggle" onClick={toggleTheme} aria-label="Alternar tema">
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-        </div>
-      </header>
+      <Header />
 
       <main className="details-main">
         <div className="details-container">
@@ -151,7 +102,7 @@ function EventDetails() {
                     <Clock size={24} />
                   </div>
                   <div className="info-text">
-                    <span className="info-label">Horário</span>
+                    <span className="info-label">Horario</span>
                     <span className="info-value">{event.horario}</span>
                   </div>
                 </div>
@@ -180,6 +131,8 @@ function EventDetails() {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   )
 }

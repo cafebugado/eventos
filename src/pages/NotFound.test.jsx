@@ -23,9 +23,9 @@ describe('NotFound', () => {
     renderWithRouter(<NotFound />)
 
     expect(screen.getByText('404')).toBeInTheDocument()
-    expect(screen.getByText('Página não encontrada')).toBeInTheDocument()
+    expect(screen.getByText('Pagina nao encontrada')).toBeInTheDocument()
     expect(
-      screen.getByText('A página que você está procurando não existe ou foi movida.')
+      screen.getByText('A pagina que voce esta procurando nao existe ou foi movida.')
     ).toBeInTheDocument()
   })
 
@@ -33,7 +33,7 @@ describe('NotFound', () => {
     renderWithRouter(<NotFound />)
 
     expect(screen.getByRole('button', { name: /Voltar/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Ir para Início/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Ir para Inicio/i })).toBeInTheDocument()
   })
 
   it('deve voltar para página anterior ao clicar em Voltar', async () => {
@@ -45,11 +45,11 @@ describe('NotFound', () => {
     expect(mockNavigate).toHaveBeenCalledWith(-1)
   })
 
-  it('deve navegar para home ao clicar em Ir para Início', async () => {
+  it('deve navegar para home ao clicar em Ir para Inicio', async () => {
     const user = userEvent.setup()
     renderWithRouter(<NotFound />)
 
-    await user.click(screen.getByRole('button', { name: /Ir para Início/i }))
+    await user.click(screen.getByRole('button', { name: /Ir para Inicio/i }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/')
   })
