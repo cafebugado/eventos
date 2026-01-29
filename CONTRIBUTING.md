@@ -112,12 +112,37 @@ Antes de cada commit:
 
 Valida a mensagem de commit seguindo o padrão Conventional Commits.
 
-## Fluxo de Trabalho
+## Fluxo de Trabalho (Git Flow)
 
-1. **Crie uma branch** a partir de `main`:
+Este projeto segue um fluxo de branches rigoroso para garantir qualidade e revisão de código.
+
+### Estrutura de Branches
+
+```
+feature/* ──┐
+fix/*     ──┼──► developer ──► main (produção)
+hotfix/*  ──┘
+              (1 aprovação)    (2 aprovações)
+```
+
+### Regras Importantes
+
+| Branch      | Pode receber PR de               | Aprovações necessárias |
+| ----------- | -------------------------------- | ---------------------- |
+| `developer` | `feature/*`, `fix/*`, `hotfix/*` | 1 aprovação            |
+| `main`      | **Apenas** `developer`           | 2 aprovações           |
+
+### Passo a Passo
+
+1. **Crie uma branch** a partir de `developer`:
 
    ```bash
-   git checkout -b feat/nome-da-feature
+   # Atualize a developer primeiro
+   git checkout developer
+   git pull origin developer
+
+   # Crie sua branch de feature
+   git checkout -b feature/nome-da-feature
    ```
 
 2. **Faça commits** seguindo o padrão:
@@ -126,13 +151,61 @@ Valida a mensagem de commit seguindo o padrão Conventional Commits.
    git commit -m "feat(escopo): descrição clara"
    ```
 
-3. **Mantenha atualizado** com a main:
+3. **Mantenha atualizado** com a developer:
 
    ```bash
-   git pull origin main --rebase
+   git pull origin developer --rebase
    ```
 
-4. **Abra um Pull Request** com descrição clara
+4. **Envie sua branch** para o repositório:
+
+   ```bash
+   git push -u origin feature/nome-da-feature
+   ```
+
+5. **Abra um Pull Request** para `developer`:
+   - Descreva as mudanças claramente
+   - Aguarde o CI passar (lint, testes, build)
+   - Solicite revisão de **1 pessoa**
+   - Após aprovação, faça o merge
+
+6. **Para enviar para produção** (developer → main):
+   - Abra um PR de `developer` para `main`
+   - Aguarde o CI passar
+   - Solicite revisão de **2 pessoas**
+   - Após 2 aprovações, faça o merge
+
+### CI/CD Pipeline
+
+Toda branch e PR passa pelos seguintes checks:
+
+- **Lint**: Verifica formatação (Prettier) e erros (ESLint)
+- **Testes**: Executa todos os testes com Vitest
+- **Build**: Garante que o projeto compila sem erros
+
+### Exemplos de Branches
+
+```bash
+# Features
+feature/adicionar-login
+feature/exportar-csv
+feature/melhorar-dashboard
+
+# Correções
+fix/corrigir-filtro-data
+fix/resolver-erro-login
+
+# Hotfixes (correções urgentes)
+hotfix/corrigir-crash-producao
+```
+
+### O que NÃO fazer
+
+- ❌ Push direto na `main`
+- ❌ Push direto na `developer`
+- ❌ PR de feature diretamente para `main`
+- ❌ Merge sem aprovações necessárias
+- ❌ Merge com CI falhando
 
 ## Estrutura do Projeto
 
