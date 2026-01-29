@@ -572,7 +572,7 @@ function App() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; 2025 <a href="https://cafebugado.com.br" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>Comunidade Café Bugado</a>. Todos os direitos reservados.</p>
+            <p>&copy; {new Date().getFullYear()} <a href="https://cafebugado.com.br" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>Comunidade Café Bugado</a>. Todos os direitos reservados.</p>
             <p>Feito com ❤️ para conectar pessoas através de eventos</p>
           </div>
         </div>

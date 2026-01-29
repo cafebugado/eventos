@@ -104,7 +104,7 @@ function Home() {
       {/* Footer */}
       <footer className="home-footer">
         <p>
-          &copy; 2025{' '}
+          &copy; {new Date().getFullYear()}{' '}
           <a href="https://cafebugado.com.br" target="_blank" rel="noopener noreferrer">
             Comunidade Café Bugado
           </a>
