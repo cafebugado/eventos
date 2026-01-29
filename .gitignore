@@ -1,0 +1,35 @@
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.*.local
+
+# Build e cache
+dist/
+build/
+.cache/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor e IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Testes
+coverage/
+.nyc_output/
