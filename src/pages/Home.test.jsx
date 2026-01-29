@@ -24,10 +24,10 @@ describe('Home', () => {
   it('deve renderizar o conteúdo principal', () => {
     renderWithRouter(<Home />)
 
-    expect(screen.getByRole('heading', { name: 'Eventos' })).toBeInTheDocument()
-    expect(screen.getAllByText('Comunidade Café Bugado').length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('heading', { name: 'Eventos' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Comunidade Cafe Bugado').length).toBeGreaterThan(0)
     expect(screen.getByText(/Eventos de/)).toBeInTheDocument()
-    expect(screen.getByText('Tecnologia')).toBeInTheDocument()
+    expect(screen.getAllByText('Tecnologia').length).toBeGreaterThan(0)
   })
 
   it('deve renderizar as features', () => {
@@ -35,7 +35,7 @@ describe('Home', () => {
 
     expect(screen.getByText('Meetups & Workshops')).toBeInTheDocument()
     expect(screen.getByText('Hackathons')).toBeInTheDocument()
-    expect(screen.getByText('Conferências')).toBeInTheDocument()
+    expect(screen.getByText('Conferencias')).toBeInTheDocument()
   })
 
   it('deve renderizar a caixa informativa', () => {
@@ -113,7 +113,7 @@ describe('Home', () => {
   it('deve ter link externo para cafebugado.com.br', () => {
     renderWithRouter(<Home />)
 
-    const links = screen.getAllByRole('link', { name: /Comunidade Café Bugado/i })
+    const links = screen.getAllByRole('link', { name: /Comunidade Cafe Bugado/i })
     links.forEach((link) => {
       expect(link).toHaveAttribute('href', 'https://cafebugado.com.br')
       expect(link).toHaveAttribute('target', '_blank')
