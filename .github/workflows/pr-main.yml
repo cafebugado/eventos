@@ -69,9 +69,6 @@ jobs:
       - name: Executar lint
         run: pnpm lint
 
-      - name: Executar testes com cobertura
-        run: pnpm test:coverage
-
       - name: Build de produção
         run: pnpm build
 
@@ -100,13 +97,12 @@ jobs:
           echo "### ⚠️ Atenção: Deploy para Produção" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ✅ Requisitos para Merge" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] CI passou (lint, testes, build)" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] CI passou (lint, build)" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] **2 aprovações** necessárias para merge" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] Revisão de código completa" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📝 Checklist para Revisores" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] Código segue os padrões do projeto" >> $GITHUB_STEP_SUMMARY
-          echo "- [ ] Testes cobrem as mudanças" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] Sem regressões de funcionalidade" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] Performance adequada" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

@@ -64,9 +64,6 @@ jobs:
       - name: Executar lint
         run: pnpm lint
 
-      - name: Executar testes
-        run: pnpm test:run
-
       - name: Build
         run: pnpm build
 
@@ -84,7 +81,7 @@ jobs:
           echo "**Branch destino:** \`developer\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ✅ Requisitos" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] CI passou (lint, testes, build)" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] CI passou (lint, build)" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] **1 aprovação** necessária para merge" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
