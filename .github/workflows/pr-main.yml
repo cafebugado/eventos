@@ -1,0 +1,114 @@
+# Workflow para Pull Requests direcionados à branch main
+# Requer 2 aprovações para merge (mais rigoroso)
+
+name: PR para Main
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  validate-branch:
+    name: Validar Branch de Origem
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verificar branch de origem
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          echo "Branch de origem: $BRANCH"
+
+          # APENAS a branch developer pode fazer PR para main
+          if [[ "$BRANCH" == "developer" ]]; then
+            echo "✅ Branch válida para PR em main"
+          else
+            echo "❌ Erro: PRs para main DEVEM vir APENAS da branch developer"
+            echo "Branch atual: $BRANCH"
+            echo ""
+            echo "Fluxo correto:"
+            echo "  feature/* → developer → main"
+            echo ""
+            echo "Por favor, faça merge primeiro em developer."
+            exit 1
+          fi
+
+  ci-checks:
+    name: CI Checks Completos
+    runs-on: ubuntu-latest
+    needs: validate-branch
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Verificar formatação
+        run: pnpm format:check
+
+      - name: Executar lint
+        run: pnpm lint
+
+      - name: Executar testes com cobertura
+        run: pnpm test:coverage
+
+      - name: Build de produção
+        run: pnpm build
+
+      - name: Verificar tamanho do bundle
+        run: |
+          echo "## 📦 Tamanho do Bundle" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          du -sh dist/
+          find dist -name "*.js" -exec du -h {} \; | sort -rh | head -10
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  pr-info:
+    name: Informações do PR
+    runs-on: ubuntu-latest
+    needs: ci-checks
+
+    steps:
+      - name: Resumo do PR
+        run: |
+          echo "## 🚀 Pull Request para Main (Produção)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch origem:** \`developer\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch destino:** \`main\` (produção)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ⚠️ Atenção: Deploy para Produção" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Requisitos para Merge" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] CI passou (lint, testes, build)" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] **2 aprovações** necessárias para merge" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Revisão de código completa" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 Checklist para Revisores" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Código segue os padrões do projeto" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Testes cobrem as mudanças" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Sem regressões de funcionalidade" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Performance adequada" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "_Este PR irá para **produção** após merge._" >> $GITHUB_STEP_SUMMARY
