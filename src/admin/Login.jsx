@@ -49,8 +49,8 @@ function Login() {
           <div className="login-logo">
             <Lock size={40} />
           </div>
-          <h1>EventFlow Admin</h1>
-          <p>Acesse o painel de administração</p>
+          <h1>Eventos Admin</h1>
+          <p>Comunidade Café Bugado - Painel de administração</p>
         </div>
 
         {error && (

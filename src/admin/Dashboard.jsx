@@ -261,8 +261,8 @@ function Dashboard() {
       {/* Sidebar */}
       <aside className="admin-sidebar">
         <div className="sidebar-header">
-          <h2>EventFlow</h2>
-          <span>Admin</span>
+          <h2>Eventos</h2>
+          <span>Café Bugado Admin</span>
         </div>
 
         <nav className="sidebar-menu">

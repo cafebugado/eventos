@@ -1,6 +1,8 @@
-# EventFlow - Plataforma Minimalista de Eventos
+# Eventos - Comunidade Café Bugado
 
-Uma plataforma moderna e minimalista para descobrir e participar dos melhores eventos, com design limpo, dark mode e animações suaves.
+Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e participar dos melhores eventos, com design limpo, dark mode e animações suaves.
+
+**Site:** [cafebugado.com.br](https://cafebugado.com.br)
 
 ## ✨ Funcionalidades
 
@@ -23,8 +25,8 @@ Uma plataforma moderna e minimalista para descobrir e participar dos melhores ev
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/eventflow.git
-cd eventflow
+git clone https://github.com/seu-usuario/eventos-cafe-bugado.git
+cd eventos-cafe-bugado
 ```
 
 2. Instale as dependências:

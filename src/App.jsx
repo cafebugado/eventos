@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import {
   Sun,
@@ -12,6 +13,7 @@ import {
   CalendarDays,
   ArrowRight,
   ArrowUpRight,
+  ArrowLeft,
   Target,
   Zap,
   Globe,
@@ -35,6 +37,7 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
 
@@ -64,7 +67,7 @@ function App() {
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
-    
+
     if (newTheme) {
       document.documentElement.setAttribute('data-theme', 'dark');
       localStorage.setItem('theme', 'dark');
@@ -93,7 +96,6 @@ function App() {
 
   const onSubmit = (data) => {
     console.log('Formulário enviado:', data);
-    // Aqui você pode adicionar a lógica de envio do formulário
     alert('Mensagem enviada com sucesso!');
     reset();
   };
@@ -121,7 +123,6 @@ function App() {
   }, []);
 
   const navigationItems = [
-    { id: 'home', label: 'Início', icon: Home },
     { id: 'eventos', label: 'Eventos', icon: PartyPopper },
     { id: 'sobre', label: 'Sobre', icon: Info },
     { id: 'contato', label: 'Contato', icon: Phone }
@@ -133,14 +134,22 @@ function App() {
       <header className="main-header">
         <div className="header-container">
           <div className="logo">
-            <h1>EventFlow</h1>
-            <span>Eventos em fluxo contínuo</span>
+            <a href="https://cafebugado.com.br" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <h1>Eventos</h1>
+              <span>Comunidade Café Bugado</span>
+            </a>
           </div>
           <nav className="main-nav desktop-nav">
             <ul>
+              <li>
+                <button onClick={() => navigate('/')}>
+                  <Home size={16} style={{ marginRight: '0.25rem' }} />
+                  Início
+                </button>
+              </li>
               {navigationItems.map(item => (
                 <li key={item.id}>
-                  <button 
+                  <button
                     className={activeSection === item.id ? 'active' : ''}
                     onClick={() => scrollToSection(item.id)}
                   >
@@ -162,6 +171,16 @@ function App() {
           <Menu size={24} />
         </button>
         <nav className="sidebar-nav">
+          <button
+            className="sidebar-item"
+            onClick={() => navigate('/')}
+            aria-label="Início"
+          >
+            <span className="sidebar-icon">
+              <Home size={20} />
+            </span>
+            <span className="sidebar-label">Início</span>
+          </button>
           {navigationItems.map(item => {
             const IconComponent = item.icon;
             return (
@@ -198,6 +217,15 @@ function App() {
               </button>
             </div>
             <nav className="mobile-nav">
+              <button
+                className="mobile-nav-item"
+                onClick={() => { setIsMobileMenuOpen(false); navigate('/'); }}
+              >
+                <span className="mobile-icon">
+                  <Home size={20} />
+                </span>
+                <span>Início</span>
+              </button>
               {navigationItems.map(item => {
                 const IconComponent = item.icon;
                 return (
@@ -218,51 +246,23 @@ function App() {
         </>
       )}
 
-      {/* Seção Hero */}
-      <section id="home" className="hero-section animate-section">
-        <div className="hero-content">
-          <div className="hero-badge">Bem-vindo ao futuro dos eventos</div>
-          <h1>Conecte-se aos <span className="highlight">Melhores Eventos</span></h1>
-          <p>
-            Uma plataforma moderna e intuitiva que reúne os eventos mais relevantes 
-            da sua cidade. Descubra experiências únicas, conecte-se com pessoas 
-            interessantes e participe de momentos que transformam.
-          </p>
-          <div className="hero-stats">
-            <div className="stat">
-              <span className="stat-number">500+</span>
-              <span className="stat-label">Eventos</span>
-            </div>
-            <div className="stat">
-              <span className="stat-number">10k+</span>
-              <span className="stat-label">Participantes</span>
-            </div>
-            <div className="stat">
-              <span className="stat-number">50+</span>
-              <span className="stat-label">Categorias</span>
-            </div>
-          </div>
-          <button 
-            className="cta-button"
-            onClick={() => scrollToSection('eventos')}
-          >
-            Explorar Eventos
-            <span className="button-arrow">
-              <ArrowRight size={16} />
-            </span>
+      {/* Main Content */}
+      <main className="main-content" style={{ paddingTop: '6rem' }}>
+        {/* Back to Home */}
+        <div className="back-to-home">
+          <button onClick={() => navigate('/')} className="back-link">
+            <ArrowLeft size={18} />
+            <span>Voltar ao Início</span>
           </button>
         </div>
-      </section>
 
-      {/* Main Content */}
-      <main className="main-content">
         {/* Seção de Eventos */}
         <section id="eventos" className="eventos-section animate-section">
           <div className="section-header">
             <h2>Próximos Eventos</h2>
             <p>
-              Eventos cuidadosamente selecionados para proporcionar as melhores experiências. 
-              De workshops técnicos a shows musicais, encontre o que combina com você.
+              Eventos de comunidades e empresas de tecnologia. Meetups, workshops, hackathons
+              e conferências — tudo compartilhado para você não perder nenhuma oportunidade.
             </p>
           </div>
 
@@ -342,11 +342,11 @@ function App() {
               <div className="section-badge">Nossa Missão</div>
               <h2>Transformando a forma como você <span className="highlight">descobre eventos</span></h2>
               <p>
-                O EventFlow nasceu da necessidade de centralizar e simplificar a descoberta de eventos. 
-                Acreditamos que experiências memoráveis acontecem quando as pessoas certas se encontram 
+                A Comunidade Café Bugado nasceu da necessidade de centralizar e simplificar a descoberta de eventos.
+                Acreditamos que experiências memoráveis acontecem quando as pessoas certas se encontram
                 nos lugares certos, no momento certo.
               </p>
-              
+
               <div className="about-stats">
                 <div className="about-stat">
                   <h3>3 anos</h3>
@@ -398,10 +398,10 @@ function App() {
             <div className="section-badge">Fale Conosco</div>
             <h2>Vamos criar algo <span className="highlight">incrível juntos</span></h2>
             <p>
-              Seja você um organizador de eventos, participante ou parceiro, 
+              Seja você um organizador de eventos, participante ou parceiro,
               adoraríamos conhecer sua história e como podemos ajudar.
             </p>
-            
+
             <div className="contato-grid">
               <div className="contato-info">
                 <div className="contato-item">
@@ -410,7 +410,7 @@ function App() {
                   </div>
                   <div className="contato-details">
                     <h4>Email</h4>
-                    <p>contato@eventflow.com</p>
+                    <p>contato@cafebugado.com.br</p>
                     <span>Resposta em até 24h</span>
                   </div>
                 </div>
@@ -435,15 +435,15 @@ function App() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="contato-form">
                 <h3>Envie sua mensagem</h3>
                 <form className="contact-form" onSubmit={handleSubmit(onSubmit)}>
                   <div className="form-group">
                     <div>
-                      <input 
-                        type="text" 
-                        placeholder="Seu nome" 
+                      <input
+                        type="text"
+                        placeholder="Seu nome"
                         {...register("nome", {
                           required: "Nome é obrigatório",
                           minLength: { value: 2, message: "Nome deve ter pelo menos 2 caracteres" }
@@ -457,9 +457,9 @@ function App() {
                       )}
                     </div>
                     <div>
-                      <input 
-                        type="email" 
-                        placeholder="Seu email" 
+                      <input
+                        type="email"
+                        placeholder="Seu email"
                         {...register("email", {
                           required: "Email é obrigatório",
                           pattern: {
@@ -477,9 +477,9 @@ function App() {
                     </div>
                   </div>
                   <div>
-                    <input 
-                      type="text" 
-                      placeholder="Assunto" 
+                    <input
+                      type="text"
+                      placeholder="Assunto"
                       {...register("assunto", {
                         required: "Assunto é obrigatório"
                       })}
@@ -492,9 +492,9 @@ function App() {
                     )}
                   </div>
                   <div>
-                    <textarea 
-                      placeholder="Sua mensagem..." 
-                      rows="4" 
+                    <textarea
+                      placeholder="Sua mensagem..."
+                      rows="4"
                       {...register("mensagem", {
                         required: "Mensagem é obrigatória",
                         minLength: { value: 10, message: "Mensagem deve ter pelo menos 10 caracteres" }
@@ -525,10 +525,12 @@ function App() {
         <div className="footer-container">
           <div className="footer-content">
             <div className="footer-section">
-              <h4>EventFlow</h4>
+              <a href="https://cafebugado.com.br" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <h4>Eventos</h4>
+              </a>
               <p>
-                Transformando a descoberta de eventos através de tecnologia, 
-                curadoria e uma experiência de usuário excepcional.
+                Comunidade Café Bugado - Conectando pessoas através de eventos
+                e experiências únicas na comunidade.
               </p>
               <div className="social-links">
                 <a href="#" aria-label="LinkedIn">
@@ -545,6 +547,7 @@ function App() {
             <div className="footer-section">
               <h4>Navegação</h4>
               <ul>
+                <li><button onClick={() => navigate('/')}>Início</button></li>
                 <li><button onClick={() => scrollToSection('eventos')}>Eventos</button></li>
                 <li><button onClick={() => scrollToSection('sobre')}>Sobre</button></li>
                 <li><button onClick={() => scrollToSection('contato')}>Contato</button></li>
@@ -569,7 +572,7 @@ function App() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; 2025 EventFlow. Todos os direitos reservados.</p>
+            <p>&copy; 2025 <a href="https://cafebugado.com.br" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>Comunidade Café Bugado</a>. Todos os direitos reservados.</p>
             <p>Feito com ❤️ para conectar pessoas através de eventos</p>
           </div>
         </div>
