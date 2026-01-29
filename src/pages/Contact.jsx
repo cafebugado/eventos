@@ -1,25 +1,11 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import {
-  Sun,
-  Moon,
-  Home,
-  PartyPopper,
-  Info,
-  Phone,
-  ArrowLeft,
-  ArrowRight,
-  Mail,
-  MessageCircle,
-  MapPin,
-  Menu,
-} from 'lucide-react'
+import { ArrowLeft, ArrowRight, Mail, MessageCircle, MapPin } from 'lucide-react'
+import Header from '../components/Header'
+import Footer from '../components/Footer'
 import './Contact.css'
 
 function Contact() {
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const navigate = useNavigate()
 
   const {
@@ -29,156 +15,35 @@ function Contact() {
     reset,
   } = useForm()
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true)
-      document.documentElement.setAttribute('data-theme', 'dark')
-    }
-  }, [])
-
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode
-    setIsDarkMode(newTheme)
-
-    if (newTheme) {
-      document.documentElement.setAttribute('data-theme', 'dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.removeAttribute('data-theme')
-      localStorage.setItem('theme', 'light')
-    }
-  }
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
-  }
-
   const onSubmit = (data) => {
-    console.log('Formulário enviado:', data)
+    console.log('Formulario enviado:', data)
     alert('Mensagem enviada com sucesso!')
     reset()
   }
 
-  const navigationItems = [
-    { path: '/eventos', label: 'Eventos', icon: PartyPopper },
-    { path: '/sobre', label: 'Sobre', icon: Info },
-    { path: '/contato', label: 'Contato', icon: Phone },
-  ]
-
   return (
     <div className="page-container">
-      {/* Header */}
-      <header className="main-header">
-        <div className="header-container">
-          <div className="logo">
-            <a
-              href="https://cafebugado.com.br"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              <h1>Eventos</h1>
-              <span>Comunidade Café Bugado</span>
-            </a>
-          </div>
-          <nav className="main-nav desktop-nav">
-            <ul>
-              <li>
-                <button onClick={() => navigate('/')}>
-                  <Home size={16} style={{ marginRight: '0.25rem' }} />
-                  Início
-                </button>
-              </li>
-              {navigationItems.map((item) => (
-                <li key={item.path}>
-                  <button
-                    className={item.path === '/contato' ? 'active' : ''}
-                    onClick={() => navigate(item.path)}
-                  >
-                    {item.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <button className="theme-toggle" onClick={toggleTheme} aria-label="Alternar tema">
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile FAB */}
-      <button className="mobile-fab" onClick={toggleMobileMenu} aria-label="Menu">
-        <Menu size={24} />
-      </button>
-
-      {/* Menu Mobile Sheet */}
-      {isMobileMenuOpen && (
-        <>
-          <div className="mobile-overlay" onClick={toggleMobileMenu}></div>
-          <div className="mobile-sheet">
-            <div className="mobile-sheet-header">
-              <h3>Menu</h3>
-              <button className="mobile-close" onClick={toggleMobileMenu} aria-label="Fechar menu">
-                ✕
-              </button>
-            </div>
-            <nav className="mobile-nav">
-              <button
-                className="mobile-nav-item"
-                onClick={() => {
-                  setIsMobileMenuOpen(false)
-                  navigate('/')
-                }}
-              >
-                <span className="mobile-icon">
-                  <Home size={20} />
-                </span>
-                <span>Início</span>
-              </button>
-              {navigationItems.map((item) => {
-                const IconComponent = item.icon
-                return (
-                  <button
-                    key={item.path}
-                    className={`mobile-nav-item ${item.path === '/contato' ? 'active' : ''}`}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false)
-                      navigate(item.path)
-                    }}
-                  >
-                    <span className="mobile-icon">
-                      <IconComponent size={20} />
-                    </span>
-                    <span>{item.label}</span>
-                  </button>
-                )
-              })}
-            </nav>
-          </div>
-        </>
-      )}
+      <Header />
 
       {/* Main Content */}
       <main className="main-content" style={{ paddingTop: '6rem' }}>
         <div className="back-to-home">
           <button onClick={() => navigate('/')} className="back-link">
             <ArrowLeft size={18} />
-            <span>Voltar ao Início</span>
+            <span>Voltar ao Inicio</span>
           </button>
         </div>
 
-        {/* Seção Contato */}
+        {/* Secao Contato */}
         <section className="contato-section">
           <div className="container">
             <div className="section-badge">Fale Conosco</div>
             <h2>
-              Vamos criar algo <span className="highlight">incrível juntos</span>
+              Vamos criar algo <span className="highlight">incrivel juntos</span>
             </h2>
             <p className="section-description">
-              Seja você um organizador de eventos, participante ou parceiro, adoraríamos conhecer
-              sua história e como podemos ajudar.
+              Seja voce um organizador de eventos, participante ou parceiro, adorariamos conhecer
+              sua historia e como podemos ajudar.
             </p>
 
             <div className="contato-grid">
@@ -190,7 +55,7 @@ function Contact() {
                   <div className="contato-details">
                     <h4>Email</h4>
                     <p>contato@cafebugado.com.br</p>
-                    <span>Resposta em até 24h</span>
+                    <span>Resposta em ate 24h</span>
                   </div>
                 </div>
                 <div className="contato-item">
@@ -200,7 +65,7 @@ function Contact() {
                   <div className="contato-details">
                     <h4>WhatsApp</h4>
                     <p>(11) 99999-9999</p>
-                    <span>Seg-Sex, 9h às 18h</span>
+                    <span>Seg-Sex, 9h as 18h</span>
                   </div>
                 </div>
                 <div className="contato-item">
@@ -208,8 +73,8 @@ function Contact() {
                     <MapPin size={24} />
                   </div>
                   <div className="contato-details">
-                    <h4>Localização</h4>
-                    <p>São Paulo, SP - Brasil</p>
+                    <h4>Localizacao</h4>
+                    <p>Sao Paulo, SP - Brasil</p>
                     <span>Atendimento remoto</span>
                   </div>
                 </div>
@@ -224,7 +89,7 @@ function Contact() {
                         type="text"
                         placeholder="Seu nome"
                         {...register('nome', {
-                          required: 'Nome é obrigatório',
+                          required: 'Nome e obrigatorio',
                           minLength: { value: 2, message: 'Nome deve ter pelo menos 2 caracteres' },
                         })}
                         style={{ borderColor: errors.nome ? '#ef4444' : undefined }}
@@ -236,10 +101,10 @@ function Contact() {
                         type="email"
                         placeholder="Seu email"
                         {...register('email', {
-                          required: 'Email é obrigatório',
+                          required: 'Email e obrigatorio',
                           pattern: {
                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: 'Email inválido',
+                            message: 'Email invalido',
                           },
                         })}
                         style={{ borderColor: errors.email ? '#ef4444' : undefined }}
@@ -254,7 +119,7 @@ function Contact() {
                       type="text"
                       placeholder="Assunto"
                       {...register('assunto', {
-                        required: 'Assunto é obrigatório',
+                        required: 'Assunto e obrigatorio',
                       })}
                       style={{ borderColor: errors.assunto ? '#ef4444' : undefined }}
                     />
@@ -267,7 +132,7 @@ function Contact() {
                       placeholder="Sua mensagem..."
                       rows="4"
                       {...register('mensagem', {
-                        required: 'Mensagem é obrigatória',
+                        required: 'Mensagem e obrigatoria',
                         minLength: {
                           value: 10,
                           message: 'Mensagem deve ter pelo menos 10 caracteres',
@@ -291,6 +156,8 @@ function Contact() {
           </div>
         </section>
       </main>
+
+      <Footer />
     </div>
   )
 }
