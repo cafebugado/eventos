@@ -1,0 +1,88 @@
+# Workflow para Pull Requests direcionados à branch developer
+# Requer 1 aprovação para merge
+
+name: PR para Developer
+
+on:
+  pull_request:
+    branches:
+      - developer
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  validate-branch:
+    name: Validar Branch de Origem
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verificar branch de origem
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          echo "Branch de origem: $BRANCH"
+
+          # Branches permitidas para PR em developer
+          if [[ "$BRANCH" =~ ^(feature|fix|hotfix)/ ]]; then
+            echo "✅ Branch válida para PR em developer"
+          else
+            echo "❌ Erro: PRs para developer devem vir de branches feature/*, fix/* ou hotfix/*"
+            echo "Branch atual: $BRANCH"
+            exit 1
+          fi
+
+  ci-checks:
+    name: CI Checks
+    runs-on: ubuntu-latest
+    needs: validate-branch
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Verificar formatação
+        run: pnpm format:check
+
+      - name: Executar lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+
+  pr-info:
+    name: Informações do PR
+    runs-on: ubuntu-latest
+    needs: ci-checks
+
+    steps:
+      - name: Resumo do PR
+        run: |
+          echo "## 📋 Pull Request para Developer" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch origem:** \`${{ github.head_ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch destino:** \`developer\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Requisitos" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] CI passou (lint, build)" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] **1 aprovação** necessária para merge" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "_Após aprovação, o merge pode ser realizado._" >> $GITHUB_STEP_SUMMARY
