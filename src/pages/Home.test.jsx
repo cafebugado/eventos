@@ -107,7 +107,7 @@ describe('Home', () => {
 
     const currentYear = new Date().getFullYear()
     expect(screen.getByText(new RegExp(currentYear.toString()))).toBeInTheDocument()
-    expect(screen.getByText(/Todos os direitos reservados/)).toBeInTheDocument()
+    expect(screen.getByText(/Feito com/)).toBeInTheDocument()
   })
 
   it('deve ter link externo para cafebugado.com.br', () => {
