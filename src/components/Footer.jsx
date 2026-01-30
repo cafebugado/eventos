@@ -1,10 +1,6 @@
-import { useNavigate } from 'react-router-dom'
-import { ArrowUpRight } from 'lucide-react'
 import './Footer.css'
 
 function Footer() {
-  const navigate = useNavigate()
-
   const socialLinks = [
     {
       name: 'GitHub',
@@ -53,103 +49,32 @@ function Footer() {
     },
   ]
 
-  const quickLinks = [
-    { label: 'Inicio', path: '/' },
-    { label: 'Eventos', path: '/eventos' },
-    { label: 'Sobre', path: '/sobre' },
-    { label: 'Contato', path: '/contato' },
-  ]
-
   return (
     <footer className="main-footer">
-      <div className="footer-glow"></div>
       <div className="footer-container">
-        <div className="footer-top">
-          <div className="footer-brand">
-            <a
-              href="https://cafebugado.com.br"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="footer-logo-link"
-            >
-              <div className="footer-logo">
-                <div className="footer-logo-text">
-                  <h3>Eventos</h3>
-                  <span>Cafe Bugado</span>
-                </div>
-              </div>
-            </a>
-            <p className="footer-description">
-              Conectando pessoas por meio de eventos e experiências criadas pela comunidade tech.
-            </p>
-            <div className="social-links">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={social.name}
-                  className="social-link"
-                  data-tooltip={social.name}
-                >
-                  {social.icon}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          <div className="footer-links-grid">
-            <div className="footer-section">
-              <h4>Navegacao</h4>
-              <ul>
-                {quickLinks.map((link) => (
-                  <li key={link.path}>
-                    <button onClick={() => navigate(link.path)}>
-                      <span>{link.label}</span>
-                      <ArrowUpRight size={14} className="link-arrow" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="footer-section">
-              <h4>Comunidade</h4>
-              <ul>
-                <li>
-                  <a href="https://discord.gg/hWvZq7xK" target="_blank" rel="noopener noreferrer">
-                    <span>Discord</span>
-                    <ArrowUpRight size={14} className="link-arrow" />
-                  </a>
-                </li>
-                <li>
-                  <a href="https://github.com/cafebugado" target="_blank" rel="noopener noreferrer">
-                    <span>GitHub</span>
-                    <ArrowUpRight size={14} className="link-arrow" />
-                  </a>
-                </li>
-                <li>
-                  <a href="https://t.me/jornadati/58" target="_blank" rel="noopener noreferrer">
-                    <span>Telegram</span>
-                    <ArrowUpRight size={14} className="link-arrow" />
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="footer-bottom">
-          <div className="footer-bottom-content">
-            <p>
-              <span>&copy; {new Date().getFullYear()}</span>
-              <a href="https://cafebugado.com.br" target="_blank" rel="noopener noreferrer">
-                Comunidade Cafe Bugado
+        <div className="footer-content">
+          <div className="social-links">
+            {socialLinks.map((social) => (
+              <a
+                key={social.name}
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.name}
+                className="social-link"
+                data-tooltip={social.name}
+              >
+                {social.icon}
               </a>
-            </p>
-            <p className="made-with">Um projeto da comunidade para a comunidade.</p>
+            ))}
           </div>
+
+          <div className="footer-text">
+            <p className="footer-description">Eventos e encontros criados pela comunidade tech.</p>
+            <p className="footer-tagline">Um projeto da comunidade para a comunidade.</p>
+          </div>
+
+          <p className="footer-copyright">&copy; {new Date().getFullYear()} Cafe Bugado</p>
         </div>
       </div>
     </footer>
