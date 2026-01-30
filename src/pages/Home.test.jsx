@@ -27,29 +27,29 @@ describe('Home', () => {
     expect(screen.getAllByRole('heading', { name: 'Eventos' }).length).toBeGreaterThan(0)
     expect(screen.getAllByText('Comunidade Cafe Bugado').length).toBeGreaterThan(0)
     expect(screen.getByText(/Eventos de/)).toBeInTheDocument()
-    expect(screen.getAllByText('Tecnologia').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/tecnologia/i).length).toBeGreaterThan(0)
   })
 
   it('deve renderizar as features', () => {
     renderWithRouter(<Home />)
 
-    expect(screen.getByText('Meetups & Workshops')).toBeInTheDocument()
+    expect(screen.getByText('Meetups e Workshops')).toBeInTheDocument()
     expect(screen.getByText('Hackathons')).toBeInTheDocument()
-    expect(screen.getByText('Conferencias')).toBeInTheDocument()
+    expect(screen.getByText('Conferências')).toBeInTheDocument()
   })
 
   it('deve renderizar a caixa informativa', () => {
     renderWithRouter(<Home />)
 
-    expect(screen.getByText(/Como funciona:/)).toBeInTheDocument()
-    expect(screen.getByText(/Reunimos eventos de diversas comunidades/)).toBeInTheDocument()
+    expect(screen.getByText(/Como funciona/)).toBeInTheDocument()
+    expect(screen.getByText(/A comunidade indica eventos/)).toBeInTheDocument()
   })
 
   it('deve navegar para /eventos ao clicar no botão CTA', async () => {
     const user = userEvent.setup()
     renderWithRouter(<Home />)
 
-    await user.click(screen.getByRole('button', { name: /Ver Eventos/i }))
+    await user.click(screen.getByRole('button', { name: /Ver eventos da comunidade/i }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/eventos')
   })
@@ -107,7 +107,7 @@ describe('Home', () => {
 
     const currentYear = new Date().getFullYear()
     expect(screen.getByText(new RegExp(currentYear.toString()))).toBeInTheDocument()
-    expect(screen.getByText(/Feito com/)).toBeInTheDocument()
+    expect(screen.getByText(/Um projeto da comunidade/)).toBeInTheDocument()
   })
 
   it('deve ter link externo para cafebugado.com.br', () => {

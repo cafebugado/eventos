@@ -126,14 +126,15 @@ function App() {
       <Header />
 
       {/* Main Content */}
-      <main className="main-content" style={{ paddingTop: '6rem' }}>
+      <main className="main-content">
         {/* Secao de Eventos */}
         <section id="eventos" className="eventos-section animate-section">
           <div className="section-header">
-            <h2>Proximos Eventos</h2>
+            <h2>Próximos eventos</h2>
             <p>
-              Eventos de comunidades e empresas de tecnologia. Meetups, workshops, hackathons e
-              conferencias — tudo compartilhado para voce nao perder nenhuma oportunidade.
+              Eventos de tecnologia que estão rolando ou vão acontecer em breve. Tudo indicado pela
+              comunidade, com meetups, workshops, hackathons e conferências para quem quer aprender,
+              trocar ideia e se aproximar da área.
             </p>
           </div>
 

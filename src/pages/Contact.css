@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--background);
+  background: linear-gradient(135deg, var(--background) 0%, var(--surface) 100%);
 }
 
 /* Back to Home Link */
@@ -273,8 +273,7 @@
 
 /* Contact section */
 .contato-section {
-  padding: 4rem 2rem;
-  background: var(--surface);
+  padding: 10rem 2rem 4rem;
   text-align: center;
 }
 
@@ -291,6 +290,7 @@
   color: var(--text-secondary);
   max-width: 600px;
   margin: 0 auto 3rem;
+  text-align: justify;
 }
 
 .contato-grid {
