@@ -25,7 +25,7 @@ describe('Home', () => {
     renderWithRouter(<Home />)
 
     expect(screen.getAllByRole('heading', { name: 'Eventos' }).length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Comunidade Cafe Bugado').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Cafe Bugado').length).toBeGreaterThan(0)
     expect(screen.getByText(/Eventos de/)).toBeInTheDocument()
     expect(screen.getAllByText(/tecnologia/i).length).toBeGreaterThan(0)
   })
@@ -113,7 +113,7 @@ describe('Home', () => {
   it('deve ter link externo para cafebugado.com.br', () => {
     renderWithRouter(<Home />)
 
-    const links = screen.getAllByRole('link', { name: /Comunidade Cafe Bugado/i })
+    const links = screen.getAllByRole('link', { name: /Cafe Bugado/i })
     links.forEach((link) => {
       expect(link).toHaveAttribute('href', 'https://cafebugado.com.br')
       expect(link).toHaveAttribute('target', '_blank')
