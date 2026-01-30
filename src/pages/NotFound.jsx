@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Home, ArrowLeft } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import FloatingMenu from '../components/FloatingMenu'
 import './NotFound.css'
 
 function NotFound() {
@@ -28,6 +29,7 @@ function NotFound() {
       </div>
 
       <Footer />
+      <FloatingMenu />
     </div>
   )
 }

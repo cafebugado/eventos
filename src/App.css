@@ -1310,13 +1310,27 @@ section {
     max-width: none;
   }
 
-  .filter-periodo,
-  .filter-toggle {
-    justify-content: center;
+  .filter-periodo {
+    position: relative;
+    width: 100%;
   }
 
-  .periodo-select {
-    flex: 1;
+  .filter-periodo > svg {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .filter-periodo .periodo-select {
+    width: 100%;
+    padding-left: 2.75rem;
+  }
+
+  .filter-toggle {
+    justify-content: center;
   }
 
   .hero-section {
