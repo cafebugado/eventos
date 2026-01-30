@@ -1,13 +1,10 @@
-import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { ArrowLeft, ArrowRight, Mail, MessageCircle, MapPin } from 'lucide-react'
+import { ArrowRight, Mail, MessageCircle, MapPin } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import './Contact.css'
 
 function Contact() {
-  const navigate = useNavigate()
-
   const {
     register,
     handleSubmit,
@@ -26,24 +23,18 @@ function Contact() {
       <Header />
 
       {/* Main Content */}
-      <main className="main-content" style={{ paddingTop: '6rem' }}>
-        <div className="back-to-home">
-          <button onClick={() => navigate('/')} className="back-link">
-            <ArrowLeft size={18} />
-            <span>Voltar ao Inicio</span>
-          </button>
-        </div>
-
+      <main className="main-content">
         {/* Secao Contato */}
         <section className="contato-section">
           <div className="container">
-            <div className="section-badge">Fale Conosco</div>
             <h2>
-              Vamos criar algo <span className="highlight">incrivel juntos</span>
+              Vamos fortalecer a
+              <br />
+              <span className="highlight">comunidade juntos</span>
             </h2>
             <p className="section-description">
-              Seja voce um organizador de eventos, participante ou parceiro, adorariamos conhecer
-              sua historia e como podemos ajudar.
+              Se você organiza eventos, participa ou quer colaborar, a gente quer ouvir você. Conte
+              sua ideia, dúvida ou sugestão e vamos conversar.
             </p>
 
             <div className="contato-grid">
@@ -54,8 +45,10 @@ function Contact() {
                   </div>
                   <div className="contato-details">
                     <h4>Email</h4>
-                    <p>contato@cafebugado.com.br</p>
-                    <span>Resposta em ate 24h</span>
+                    <p>comunidade.cafebugado@gmail.com</p>
+                    <span>
+                      Fale com a gente para dúvidas, sugestões ou parcerias. Resposta em até 24h.
+                    </span>
                   </div>
                 </div>
                 <div className="contato-item">
@@ -64,8 +57,11 @@ function Contact() {
                   </div>
                   <div className="contato-details">
                     <h4>WhatsApp</h4>
-                    <p>(11) 99999-9999</p>
-                    <span>Seg-Sex, 9h as 18h</span>
+                    <p>+55 11 96188-9886</p>
+                    <span>
+                      Canal direto para falar com a comunidade e tirar dúvidas rápidas. Seg a sex,
+                      das 9h às 18h.
+                    </span>
                   </div>
                 </div>
                 <div className="contato-item">
@@ -73,15 +69,15 @@ function Contact() {
                     <MapPin size={24} />
                   </div>
                   <div className="contato-details">
-                    <h4>Localizacao</h4>
-                    <p>Sao Paulo, SP - Brasil</p>
-                    <span>Atendimento remoto</span>
+                    <h4>Localização</h4>
+                    <p>Brasil</p>
+                    <span>Atendimento remoto para todo o Brasil.</span>
                   </div>
                 </div>
               </div>
 
               <div className="contato-form">
-                <h3>Envie sua mensagem</h3>
+                <h3>Fale com a comunidade</h3>
                 <form className="contact-form" onSubmit={handleSubmit(onSubmit)}>
                   <div className="form-group">
                     <div>
@@ -89,7 +85,7 @@ function Contact() {
                         type="text"
                         placeholder="Seu nome"
                         {...register('nome', {
-                          required: 'Nome e obrigatorio',
+                          required: 'Nome é obrigatório',
                           minLength: { value: 2, message: 'Nome deve ter pelo menos 2 caracteres' },
                         })}
                         style={{ borderColor: errors.nome ? '#ef4444' : undefined }}
@@ -101,10 +97,10 @@ function Contact() {
                         type="email"
                         placeholder="Seu email"
                         {...register('email', {
-                          required: 'Email e obrigatorio',
+                          required: 'Email é obrigatório',
                           pattern: {
                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: 'Email invalido',
+                            message: 'Email inválido',
                           },
                         })}
                         style={{ borderColor: errors.email ? '#ef4444' : undefined }}
@@ -117,9 +113,9 @@ function Contact() {
                   <div>
                     <input
                       type="text"
-                      placeholder="Assunto"
+                      placeholder="Sobre o que você quer falar"
                       {...register('assunto', {
-                        required: 'Assunto e obrigatorio',
+                        required: 'Assunto é obrigatório',
                       })}
                       style={{ borderColor: errors.assunto ? '#ef4444' : undefined }}
                     />
@@ -129,10 +125,10 @@ function Contact() {
                   </div>
                   <div>
                     <textarea
-                      placeholder="Sua mensagem..."
+                      placeholder="Conte sua mensagem aqui"
                       rows="4"
                       {...register('mensagem', {
-                        required: 'Mensagem e obrigatoria',
+                        required: 'Mensagem é obrigatória',
                         minLength: {
                           value: 10,
                           message: 'Mensagem deve ter pelo menos 10 caracteres',
@@ -145,7 +141,7 @@ function Contact() {
                     )}
                   </div>
                   <button type="submit" className="form-button">
-                    Enviar Mensagem
+                    Enviar mensagem
                     <span className="button-arrow">
                       <ArrowRight size={16} />
                     </span>

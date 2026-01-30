@@ -48,6 +48,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(135deg, var(--background) 0%, var(--surface) 100%);
 }
 
 /* Back to Home Link */
@@ -609,11 +610,13 @@ section {
   color: var(--text-secondary);
   max-width: 600px;
   margin: 0 auto;
+  text-align: justify;
 }
 
 /* Events section */
 .eventos-section {
-  background: var(--surface);
+  background: linear-gradient(135deg, var(--background) 0%, var(--surface) 100%);
+  padding-top: 10rem;
 }
 
 /* Eventos Filters */

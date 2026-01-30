@@ -16,19 +16,20 @@ function Home() {
         <section className="home-hero">
           <div className="home-hero-content">
             <h1>
-              Eventos de <span className="highlight">Tecnologia</span> em um so lugar
+              Eventos de <span className="highlight">tecnologia</span> em um só lugar
             </h1>
 
             <p className="home-description">
-              Somos um hub de divulgacao de eventos criados por comunidades e empresas de
-              tecnologia. Nao organizamos eventos — apenas compartilhamos as melhores oportunidades
-              para voce se conectar, aprender e crescer na area de desenvolvimento e tecnologia.
+              Este é um espaço feito por e para a comunidade. Reunimos eventos de tecnologia criados
+              por comunidades e empresas para facilitar o acesso de quem quer aprender, trocar ideia
+              e conhecer pessoas da área. Aqui você encontra oportunidades para participar,
+              contribuir e crescer junto com outras pessoas que vivem tecnologia no dia a dia.
             </p>
 
             <div className="home-features">
               <div className="home-feature">
                 <span className="feature-code">{'</>'}</span>
-                <span>Meetups & Workshops</span>
+                <span>Meetups e Workshops</span>
               </div>
               <div className="home-feature">
                 <span className="feature-code">{'{ }'}</span>
@@ -36,7 +37,7 @@ function Home() {
               </div>
               <div className="home-feature">
                 <span className="feature-code">{'#'}</span>
-                <span>Conferencias</span>
+                <span>Conferências</span>
               </div>
             </div>
 
@@ -44,15 +45,20 @@ function Home() {
               <div className="info-icon">
                 <Info size={20} />
               </div>
-              <p>
-                <strong>Como funciona:</strong> Reunimos eventos de diversas comunidades e empresas
-                de tecnologia em uma unica plataforma. Cada evento e organizado por terceiros — nos
-                apenas facilitamos a descoberta para voce nao perder nenhuma oportunidade.
-              </p>
+              <div>
+                <p>
+                  <strong>Como funciona</strong>
+                </p>
+                <p>
+                  A comunidade indica eventos e nós reunimos tudo em um só lugar. Os eventos são
+                  organizados por terceiros. Nosso papel é ajudar na divulgação e facilitar a
+                  descoberta para que ninguém fique de fora.
+                </p>
+              </div>
             </div>
 
             <button className="home-cta" onClick={() => navigate('/eventos')}>
-              Ver Eventos
+              Ver eventos da comunidade
               <ArrowRight size={18} />
             </button>
           </div>
