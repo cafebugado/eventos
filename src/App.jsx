@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar, Clock, CalendarDays } from 'lucide-react'
+import { Calendar, Clock, CalendarDays, Search, Filter, Eye, EyeOff } from 'lucide-react'
 import { getEvents } from './services/eventService'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import './App.css'
 import BgEventos from '../public/eventos.png'
+
+const PERIODOS = ['Todos', 'Matinal', 'Diurno', 'Vespertino', 'Noturno']
 
 // Funcao para converter data no formato DD/MM/YYYY para objeto Date
 function parseEventDate(dateStr) {
@@ -24,6 +26,9 @@ function parseEventDate(dateStr) {
 function App() {
   const [agenda, setAgenda] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedPeriodo, setSelectedPeriodo] = useState('Todos')
+  const [showPastEvents, setShowPastEvents] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -66,6 +71,31 @@ function App() {
     loadEvents()
   }, [])
 
+  // Filtra e ordena eventos client-side
+  const filteredEvents = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    return agenda.filter((event) => {
+      // Filtro de busca por nome/descricao
+      const searchLower = searchTerm.toLowerCase()
+      const matchesSearch =
+        !searchTerm ||
+        event.nome?.toLowerCase().includes(searchLower) ||
+        event.descricao?.toLowerCase().includes(searchLower)
+
+      // Filtro por periodo
+      const matchesPeriodo = selectedPeriodo === 'Todos' || event.periodo === selectedPeriodo
+
+      // Filtro de eventos passados
+      const eventDate = parseEventDate(event.data_evento)
+      const isPastEvent = eventDate < today
+      const matchesPastFilter = showPastEvents || !isPastEvent
+
+      return matchesSearch && matchesPeriodo && matchesPastFilter
+    })
+  }, [agenda, searchTerm, selectedPeriodo, showPastEvents])
+
   useEffect(() => {
     const observerOptions = {
       threshold: 0.3,
@@ -104,6 +134,44 @@ function App() {
             </p>
           </div>
 
+          {/* Filtros */}
+          <div className="eventos-filters">
+            <div className="filter-search">
+              <Search size={20} className="search-icon" />
+              <input
+                type="text"
+                placeholder="Buscar por nome ou descricao..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+            </div>
+
+            <div className="filter-periodo">
+              <Filter size={18} />
+              <select
+                value={selectedPeriodo}
+                onChange={(e) => setSelectedPeriodo(e.target.value)}
+                className="periodo-select"
+              >
+                {PERIODOS.map((periodo) => (
+                  <option key={periodo} value={periodo}>
+                    {periodo}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              className={`filter-toggle ${showPastEvents ? 'active' : ''}`}
+              onClick={() => setShowPastEvents(!showPastEvents)}
+              title={showPastEvents ? 'Ocultar eventos passados' : 'Mostrar eventos passados'}
+            >
+              {showPastEvents ? <Eye size={18} /> : <EyeOff size={18} />}
+              <span>{showPastEvents ? 'Ocultando passados' : 'Mostrar passados'}</span>
+            </button>
+          </div>
+
           {loading ? (
             <div className="loading">
               <div className="spinner"></div>
@@ -111,8 +179,8 @@ function App() {
             </div>
           ) : (
             <div className="eventos-grid">
-              {agenda.length > 0 ? (
-                agenda.map((item, index) => (
+              {filteredEvents.length > 0 ? (
+                filteredEvents.map((item, index) => (
                   <div
                     key={item.id || index}
                     className="evento-card"
@@ -165,8 +233,14 @@ function App() {
                   <div className="empty-icon">
                     <Calendar size={48} />
                   </div>
-                  <h3>Nenhum evento no momento</h3>
-                  <p>Estamos preparando eventos incriveis para voce. Volte em breve!</p>
+                  <h3>
+                    {agenda.length === 0 ? 'Nenhum evento no momento' : 'Nenhum evento encontrado'}
+                  </h3>
+                  <p>
+                    {agenda.length === 0
+                      ? 'Estamos preparando eventos incriveis para voce. Volte em breve!'
+                      : 'Tente ajustar os filtros de busca.'}
+                  </p>
                 </div>
               )}
             </div>
