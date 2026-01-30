@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--background);
+  background: linear-gradient(135deg, var(--background) 0%, var(--surface) 100%);
 }
 
 /* Back to Home Link */
@@ -273,8 +273,7 @@
 
 /* About section */
 .sobre-section {
-  padding: 4rem 2rem;
-  background: var(--background);
+  padding: 10rem 2rem 4rem;
 }
 
 .sobre-content {
@@ -295,6 +294,7 @@
   color: var(--text-secondary);
   max-width: 700px;
   margin: 0 auto 3rem;
+  text-align: justify;
 }
 
 .about-stats {
