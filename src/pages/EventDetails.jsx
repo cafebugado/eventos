@@ -4,6 +4,7 @@ import { ArrowLeft, Calendar, Clock, CalendarDays, ArrowUpRight } from 'lucide-r
 import { getEventById } from '../services/eventService'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import FloatingMenu from '../components/FloatingMenu'
 import BgEventos from '../../public/eventos.png'
 import './EventDetails.css'
 
@@ -133,6 +134,7 @@ function EventDetails() {
       </main>
 
       <Footer />
+      <FloatingMenu />
     </div>
   )
 }

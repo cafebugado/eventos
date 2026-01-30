@@ -1,6 +1,7 @@
 import { Target, Zap, Globe, Handshake } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import FloatingMenu from '../components/FloatingMenu'
 import './About.css'
 
 function About() {
@@ -87,6 +88,7 @@ function About() {
       </main>
 
       <Footer />
+      <FloatingMenu />
     </div>
   )
 }
