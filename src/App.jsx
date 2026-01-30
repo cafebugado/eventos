@@ -56,8 +56,11 @@ function App() {
           }
 
           // Ambos futuros: mais proximo primeiro
+          if (isAFuture) {
+            return dateA - dateB
+          }
           // Ambos passados: mais recente primeiro
-          return dateA - dateB
+          return dateB - dateA
         })
 
         setAgenda(sortedEvents)
