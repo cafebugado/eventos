@@ -4,6 +4,7 @@ import { Calendar, Clock, CalendarDays, Search, Filter, Eye, EyeOff } from 'luci
 import { getEvents } from './services/eventService'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import FloatingMenu from './components/FloatingMenu'
 import './App.css'
 import BgEventos from '../public/eventos.png'
 
@@ -253,6 +254,7 @@ function App() {
       </main>
 
       <Footer />
+      <FloatingMenu />
     </div>
   )
 }

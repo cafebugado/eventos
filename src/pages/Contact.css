@@ -441,6 +441,21 @@
   }
 }
 
+@media (max-width: 900px) {
+  .contato-section {
+    padding: 5rem 1.5rem 2rem;
+  }
+
+  .contato-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .section-description {
+    text-align: center;
+  }
+}
+
 @media (max-width: 768px) {
   .main-nav {
     display: none;
@@ -458,27 +473,49 @@
     padding: 1rem 2rem;
   }
 
-  .contato-section {
-    padding: 2rem 1rem;
-  }
-
   .contato-section h2 {
     font-size: 2rem;
-  }
-
-  .contato-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
   }
 
   .form-group {
     grid-template-columns: 1fr;
   }
+
+  .contato-form {
+    padding: 1.5rem;
+  }
+
+  .contato-item {
+    padding: 1rem;
+  }
+
+  .contato-icon {
+    width: 44px;
+    height: 44px;
+  }
 }
 
 @media (max-width: 480px) {
+  .contato-section {
+    padding: 5rem 1rem 2rem;
+  }
+
   .contato-section h2 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
+  }
+
+  .section-description {
+    font-size: 1rem;
+  }
+
+  .contato-item {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .contato-details {
+    text-align: center;
   }
 
   .mobile-fab {

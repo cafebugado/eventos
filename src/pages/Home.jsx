@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Info } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import FloatingMenu from '../components/FloatingMenu'
 import './Home.css'
 
 function Home() {
@@ -66,6 +67,7 @@ function Home() {
       </main>
 
       <Footer />
+      <FloatingMenu />
     </div>
   )
 }

@@ -371,6 +371,12 @@
   }
 }
 
+@media (max-width: 900px) {
+  .sobre-section {
+    padding-top: 5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .main-nav {
     display: none;
@@ -389,7 +395,7 @@
   }
 
   .sobre-section {
-    padding: 2rem 1rem;
+    padding: 5rem 1rem 2rem;
   }
 
   .sobre-content h2 {

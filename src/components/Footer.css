@@ -187,11 +187,34 @@
   color: var(--primary-blue);
 }
 
-/* Responsive */
-@media (max-width: 640px) {
+/* Responsive - Mobile */
+@media (max-width: 900px) {
   .footer-content {
     flex-direction: column;
-    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.75rem;
+  }
+
+  .footer-logo-link {
+    justify-content: center;
+  }
+
+  .footer-logo-text {
+    justify-content: center;
+  }
+
+  .social-links {
+    justify-content: center;
+  }
+
+  .footer-text {
+    align-items: center;
+  }
+
+  .footer-copyright {
+    text-align: center;
   }
 }
 

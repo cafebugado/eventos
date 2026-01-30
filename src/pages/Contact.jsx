@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { ArrowRight, Mail, MessageCircle, MapPin } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import FloatingMenu from '../components/FloatingMenu'
 import './Contact.css'
 
 function Contact() {
@@ -154,6 +155,7 @@ function Contact() {
       </main>
 
       <Footer />
+      <FloatingMenu />
     </div>
   )
 }
