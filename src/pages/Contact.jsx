@@ -13,8 +13,7 @@ function Contact() {
     reset,
   } = useForm()
 
-  const onSubmit = (data) => {
-    console.log('Formulario enviado:', data)
+  const onSubmit = (_data) => {
     alert('Mensagem enviada com sucesso!')
     reset()
   }

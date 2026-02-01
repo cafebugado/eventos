@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -123,6 +123,25 @@ function Dashboard() {
     formState: { errors },
   } = useForm()
 
+  const showNotification = useCallback((message, type = 'success') => {
+    setNotification({ message, type })
+    setTimeout(() => setNotification(null), 3000)
+  }, [])
+
+  const loadEvents = useCallback(async () => {
+    try {
+      setLoading(true)
+      const [eventsData, statsData] = await Promise.all([getEvents(), getEventStats()])
+      setEventos(eventsData)
+      setStats(statsData)
+    } catch (error) {
+      console.error('Erro ao carregar eventos:', error)
+      showNotification('Erro ao carregar eventos', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }, [showNotification])
+
   useEffect(() => {
     async function init() {
       const session = await getSession()
@@ -146,21 +165,7 @@ function Dashboard() {
     }
 
     init()
-  }, [navigate])
-
-  const loadEvents = async () => {
-    try {
-      setLoading(true)
-      const [eventsData, statsData] = await Promise.all([getEvents(), getEventStats()])
-      setEventos(eventsData)
-      setStats(statsData)
-    } catch (error) {
-      console.error('Erro ao carregar eventos:', error)
-      showNotification('Erro ao carregar eventos', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [navigate, loadEvents])
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode
@@ -183,11 +188,6 @@ function Dashboard() {
       console.error('Erro ao fazer logout:', error)
       showNotification('Erro ao fazer logout', 'error')
     }
-  }
-
-  const showNotification = (message, type = 'success') => {
-    setNotification({ message, type })
-    setTimeout(() => setNotification(null), 3000)
   }
 
   const openCreateModal = () => {
@@ -427,9 +427,9 @@ function Dashboard() {
           <div className="events-section">
             <div className="section-header">
               <h2>Eventos Cadastrados</h2>
-              <button className="btn-primary" onClick={openCreateModal}>
+              <button className="btn-primary" onClick={openCreateModal} aria-label="Novo Evento">
                 <Plus size={18} />
-                Novo Evento
+                <span className="btn-text">Novo Evento</span>
               </button>
             </div>
 
@@ -460,27 +460,27 @@ function Dashboard() {
                   <tbody>
                     {eventos.map((evento) => (
                       <tr key={evento.id}>
-                        <td>
+                        <td data-label="Imagem">
                           <img
                             src={evento.imagem || BgEventos}
                             alt={evento.nome}
                             className="event-thumbnail"
                           />
                         </td>
-                        <td>
+                        <td data-label="Nome do Evento">
                           <span className="event-name">{evento.nome}</span>
                           {evento.descricao && (
                             <span className="event-desc-preview">{evento.descricao}</span>
                           )}
                         </td>
-                        <td>{evento.data_evento}</td>
-                        <td>{evento.horario}</td>
-                        <td>
+                        <td data-label="Data">{evento.data_evento}</td>
+                        <td data-label="Horário">{evento.horario}</td>
+                        <td data-label="Período">
                           <span className={`badge badge-${evento.periodo?.toLowerCase()}`}>
                             {evento.periodo}
                           </span>
                         </td>
-                        <td>
+                        <td data-label="Ações">
                           <div className="action-buttons">
                             <button
                               className="btn-icon btn-view"
