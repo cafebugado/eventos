@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Dashboard from './Dashboard'
 import { renderWithRouter, createMockEvent } from '../test/utils'
@@ -172,7 +172,7 @@ describe('Dashboard', () => {
 
     // Verifica que os campos estão presentes
     expect(screen.getByPlaceholderText('Ex: Workshop de React')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Ex: 15/02/2025')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Selecione uma data')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Ex: 19:00')).toBeInTheDocument()
     expect(screen.getAllByRole('combobox').length).toBe(2)
   })
@@ -191,11 +191,13 @@ describe('Dashboard', () => {
     })
   })
 
-  it('deve exibir loading enquanto carrega eventos', () => {
+  it('deve exibir loading enquanto carrega eventos', async () => {
     eventService.getEvents.mockImplementation(() => new Promise(() => {}))
     eventService.getEventStats.mockImplementation(() => new Promise(() => {}))
 
-    renderWithRouter(<Dashboard />)
+    await act(async () => {
+      renderWithRouter(<Dashboard />)
+    })
 
     expect(screen.getByText('Carregando eventos...')).toBeInTheDocument()
   })
