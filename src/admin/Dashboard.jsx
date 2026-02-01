@@ -32,6 +32,8 @@ import {
   getEventStats,
   uploadEventImage,
 } from '../services/eventService'
+import RichText from '../components/RichText'
+import { stripRichText } from '../utils/richText'
 import './Admin.css'
 import BgEventos from '../../public/eventos.png'
 
@@ -120,8 +122,10 @@ function Dashboard() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm()
+  const descricaoValue = watch('descricao') || ''
 
   const showNotification = useCallback((message, type = 'success') => {
     setNotification({ message, type })
@@ -470,7 +474,9 @@ function Dashboard() {
                         <td data-label="Nome do Evento">
                           <span className="event-name">{evento.nome}</span>
                           {evento.descricao && (
-                            <span className="event-desc-preview">{evento.descricao}</span>
+                            <span className="event-desc-preview">
+                              {stripRichText(evento.descricao)}
+                            </span>
                           )}
                         </td>
                         <td data-label="Data">{evento.data_evento}</td>
@@ -553,6 +559,16 @@ function Dashboard() {
                     rows="3"
                     {...register('descricao')}
                   />
+                  <span className="field-helper">
+                    Suporta Markdown: **negrito**, *italico*, listas com &quot;-&quot; e links
+                    [texto](https://...)
+                  </span>
+                  {descricaoValue && (
+                    <div className="rich-text-preview">
+                      <span className="preview-label">Pré-visualização</span>
+                      <RichText content={descricaoValue} className="preview-content" />
+                    </div>
+                  )}
                 </div>
               </div>
 

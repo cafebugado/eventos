@@ -5,6 +5,7 @@ import { getEventById } from '../services/eventService'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
+import RichText from '../components/RichText'
 import BgEventos from '../../public/eventos.png'
 import './EventDetails.css'
 
@@ -83,7 +84,7 @@ function EventDetails() {
 
               {event.descricao && (
                 <div className="event-description-full">
-                  <p>{event.descricao}</p>
+                  <RichText content={event.descricao} />
                 </div>
               )}
 

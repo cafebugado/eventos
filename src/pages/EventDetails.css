@@ -210,7 +210,7 @@
   margin-bottom: 2rem;
 }
 
-.event-description-full p {
+.event-description-full .rich-text {
   font-size: 1.125rem;
   color: var(--text-secondary);
   line-height: 1.7;
@@ -342,7 +342,7 @@
     font-size: 1.25rem;
   }
 
-  .event-description-full p {
+  .event-description-full .rich-text {
     font-size: 1rem;
   }
 }

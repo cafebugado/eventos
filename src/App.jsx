@@ -6,6 +6,7 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import FloatingMenu from './components/FloatingMenu'
 import Pagination from './components/Pagination'
+import RichText from './components/RichText'
 import useMediaQuery from './hooks/useMediaQuery'
 import usePagination from './hooks/usePagination'
 import './App.css'
@@ -206,7 +207,13 @@ function App() {
                     </div>
                     <div className="card-content">
                       <h3>{item.nome}</h3>
-                      {item.descricao && <p className="event-description">{item.descricao}</p>}
+                      {item.descricao && (
+                        <RichText
+                          className="event-description"
+                          content={item.descricao}
+                          stopPropagationOnLinks
+                        />
+                      )}
                       <div className="event-info">
                         <div className="info-item">
                           <span className="icon">
