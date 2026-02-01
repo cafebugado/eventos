@@ -35,6 +35,69 @@ import {
 import './Admin.css'
 import BgEventos from '../../public/eventos.png'
 
+const DAY_NAMES = [
+  'Domingo',
+  'Segunda-feira',
+  'Terça-feira',
+  'Quarta-feira',
+  'Quinta-feira',
+  'Sexta-feira',
+  'Sábado',
+]
+
+const DATE_INPUT_REGEX = /^\d{4}-\d{2}-\d{2}$/
+const DATE_BR_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/
+
+const parseDateValue = (value) => {
+  if (!value) {
+    return null
+  }
+
+  if (DATE_INPUT_REGEX.test(value)) {
+    const [year, month, day] = value.split('-').map(Number)
+    return new Date(year, month - 1, day)
+  }
+
+  const brMatch = value.match(DATE_BR_REGEX)
+  if (brMatch) {
+    const [, day, month, year] = brMatch
+    return new Date(Number(year), Number(month) - 1, Number(day))
+  }
+
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+const formatDateToInput = (value) => {
+  const date = parseDateValue(value)
+  if (!date) {
+    return ''
+  }
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const formatDateToDisplay = (value) => {
+  const date = parseDateValue(value)
+  if (!date) {
+    return ''
+  }
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
+const getDayName = (value) => {
+  const date = parseDateValue(value)
+  if (!date) {
+    return ''
+  }
+  return DAY_NAMES[date.getDay()]
+}
+
 function Dashboard() {
   const [eventos, setEventos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -145,14 +208,16 @@ function Dashboard() {
   }
 
   const openEditModal = (evento) => {
+    const normalizedDate = formatDateToInput(evento.data_evento)
+    const dayName = getDayName(normalizedDate || evento.data_evento) || evento.dia_semana || ''
     setEditingEvent(evento)
     setImageFile(null)
     setImagePreview(evento.imagem || null)
     setValue('nome', evento.nome)
     setValue('descricao', evento.descricao || '')
-    setValue('data_evento', evento.data_evento)
+    setValue('data_evento', normalizedDate)
     setValue('horario', evento.horario)
-    setValue('dia_semana', evento.dia_semana)
+    setValue('dia_semana', dayName)
     setValue('periodo', evento.periodo)
     setValue('link', evento.link)
     setValue('imagem', evento.imagem || '')
@@ -196,6 +261,11 @@ function Dashboard() {
     }
   }
 
+  const syncDayOfWeek = (value) => {
+    const dayName = getDayName(value)
+    setValue('dia_semana', dayName, { shouldValidate: true })
+  }
+
   const onSubmit = async (data) => {
     setIsSubmitting(true)
     try {
@@ -216,12 +286,15 @@ function Dashboard() {
         setIsUploading(false)
       }
 
+      const displayDate = formatDateToDisplay(data.data_evento) || data.data_evento
+      const resolvedDayName = getDayName(data.data_evento) || data.dia_semana
+
       const eventData = {
         nome: data.nome,
         descricao: data.descricao || null,
-        data_evento: data.data_evento,
+        data_evento: displayDate,
         horario: data.horario,
-        dia_semana: data.dia_semana,
+        dia_semana: resolvedDayName,
         periodo: data.periodo,
         link: data.link,
         imagem: imageUrl,
@@ -490,9 +563,12 @@ function Dashboard() {
                     Data do Evento
                   </label>
                   <input
-                    type="text"
-                    placeholder="Ex: 15/02/2025"
-                    {...register('data_evento', { required: 'Data é obrigatória' })}
+                    type="date"
+                    placeholder="Selecione uma data"
+                    {...register('data_evento', {
+                      required: 'Data é obrigatória',
+                      onChange: (event) => syncDayOfWeek(event.target.value),
+                    })}
                   />
                   {errors.data_evento && (
                     <span className="field-error">{errors.data_evento.message}</span>
