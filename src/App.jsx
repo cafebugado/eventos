@@ -5,6 +5,9 @@ import { getEvents } from './services/eventService'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import FloatingMenu from './components/FloatingMenu'
+import Pagination from './components/Pagination'
+import useMediaQuery from './hooks/useMediaQuery'
+import usePagination from './hooks/usePagination'
 import './App.css'
 import BgEventos from '../public/eventos.png'
 
@@ -31,6 +34,7 @@ function App() {
   const [selectedPeriodo, setSelectedPeriodo] = useState('Todos')
   const [showPastEvents, setShowPastEvents] = useState(false)
   const navigate = useNavigate()
+  const isMobile = useMediaQuery('(max-width: 768px)')
 
   useEffect(() => {
     // Carrega eventos do Supabase
@@ -99,6 +103,10 @@ function App() {
       return matchesSearch && matchesPeriodo && matchesPastFilter
     })
   }, [agenda, searchTerm, selectedPeriodo, showPastEvents])
+
+  const pageSize = isMobile ? 6 : 9
+  const { currentPage, totalPages, pagedItems, goToPage } = usePagination(filteredEvents, pageSize)
+  const pageOffset = (currentPage - 1) * pageSize
 
   useEffect(() => {
     const observerOptions = {
@@ -182,12 +190,12 @@ function App() {
               <div className="spinner"></div>
               <p>Carregando eventos...</p>
             </div>
-          ) : (
-            <div className="eventos-grid">
-              {filteredEvents.length > 0 ? (
-                filteredEvents.map((item, index) => (
+          ) : filteredEvents.length > 0 ? (
+            <>
+              <div className="eventos-grid">
+                {pagedItems.map((item, index) => (
                   <div
-                    key={item.id || index}
+                    key={item.id || `event-${pageOffset + index}`}
                     className="evento-card"
                     style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
                     onClick={() => navigate(`/eventos/${item.id}`)}
@@ -232,22 +240,27 @@ function App() {
                       </div>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="no-events">
-                  <div className="empty-icon">
-                    <Calendar size={48} />
-                  </div>
-                  <h3>
-                    {agenda.length === 0 ? 'Nenhum evento no momento' : 'Nenhum evento encontrado'}
-                  </h3>
-                  <p>
-                    {agenda.length === 0
-                      ? 'Estamos preparando eventos incriveis para voce. Volte em breve!'
-                      : 'Tente ajustar os filtros de busca.'}
-                  </p>
-                </div>
-              )}
+                ))}
+              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+              />
+            </>
+          ) : (
+            <div className="no-events">
+              <div className="empty-icon">
+                <Calendar size={48} />
+              </div>
+              <h3>
+                {agenda.length === 0 ? 'Nenhum evento no momento' : 'Nenhum evento encontrado'}
+              </h3>
+              <p>
+                {agenda.length === 0
+                  ? 'Estamos preparando eventos incriveis para voce. Volte em breve!'
+                  : 'Tente ajustar os filtros de busca.'}
+              </p>
             </div>
           )}
         </section>
