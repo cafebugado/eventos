@@ -4,10 +4,15 @@ import { Calendar, Clock, CalendarDays, Search, Filter, Eye, EyeOff } from 'luci
 import { getEvents } from './services/eventService'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import Pagination from './components/Pagination'
+import useResponsivePageSize from './hooks/useResponsivePageSize'
 import './App.css'
 import BgEventos from '../public/eventos.png'
 
 const PERIODOS = ['Todos', 'Matinal', 'Diurno', 'Vespertino', 'Noturno']
+const MOBILE_BREAKPOINT = 768
+const ITEMS_PER_PAGE_DESKTOP = 9
+const ITEMS_PER_PAGE_MOBILE = 6
 
 // Funcao para converter data no formato DD/MM/YYYY para objeto Date
 function parseEventDate(dateStr) {
@@ -29,6 +34,12 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPeriodo, setSelectedPeriodo] = useState('Todos')
   const [showPastEvents, setShowPastEvents] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = useResponsivePageSize({
+    desktop: ITEMS_PER_PAGE_DESKTOP,
+    mobile: ITEMS_PER_PAGE_MOBILE,
+    breakpoint: MOBILE_BREAKPOINT,
+  })
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -98,6 +109,33 @@ function App() {
       return matchesSearch && matchesPeriodo && matchesPastFilter
     })
   }, [agenda, searchTerm, selectedPeriodo, showPastEvents])
+
+  const totalPages = Math.ceil(filteredEvents.length / itemsPerPage)
+  const safeCurrentPage = totalPages === 0 ? 1 : Math.min(currentPage, totalPages)
+
+  const paginatedEvents = useMemo(() => {
+    const startIndex = (safeCurrentPage - 1) * itemsPerPage
+    return filteredEvents.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredEvents, safeCurrentPage, itemsPerPage])
+
+  const handlePageChange = (page) => {
+    if (totalPages === 0) {
+      return
+    }
+    const nextPage = Math.min(Math.max(page, 1), totalPages)
+    setCurrentPage(nextPage)
+  }
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, selectedPeriodo, showPastEvents, itemsPerPage])
+
+  useEffect(() => {
+    if (totalPages === 0) {
+      return
+    }
+    setCurrentPage((page) => (page > totalPages ? totalPages : page))
+  }, [totalPages])
 
   useEffect(() => {
     const observerOptions = {
@@ -182,72 +220,83 @@ function App() {
               <p>Carregando eventos...</p>
             </div>
           ) : (
-            <div className="eventos-grid">
-              {filteredEvents.length > 0 ? (
-                filteredEvents.map((item, index) => (
-                  <div
-                    key={item.id || index}
-                    className="evento-card"
-                    style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
-                    onClick={() => navigate(`/eventos/${item.id}`)}
-                  >
-                    <div className="card-image">
-                      <img src={item.imagem || BgEventos} alt={item.nome} />
-                      <div className="card-badge">{item.periodo}</div>
-                    </div>
-                    <div className="card-content">
-                      <h3>{item.nome}</h3>
-                      {item.descricao && <p className="event-description">{item.descricao}</p>}
-                      <div className="event-info">
-                        <div className="info-item">
-                          <span className="icon">
-                            <Calendar size={16} />
-                          </span>
-                          <span>{item.data_evento}</span>
+            <>
+              <div className="eventos-grid">
+                {filteredEvents.length > 0 ? (
+                  paginatedEvents.map((item, index) => (
+                    <div
+                      key={item.id || index}
+                      className="evento-card"
+                      style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
+                      onClick={() => navigate(`/eventos/${item.id}`)}
+                    >
+                      <div className="card-image">
+                        <img src={item.imagem || BgEventos} alt={item.nome} />
+                        <div className="card-badge">{item.periodo}</div>
+                      </div>
+                      <div className="card-content">
+                        <h3>{item.nome}</h3>
+                        {item.descricao && <p className="event-description">{item.descricao}</p>}
+                        <div className="event-info">
+                          <div className="info-item">
+                            <span className="icon">
+                              <Calendar size={16} />
+                            </span>
+                            <span>{item.data_evento}</span>
+                          </div>
+                          <div className="info-item">
+                            <span className="icon">
+                              <Clock size={16} />
+                            </span>
+                            <span>{item.horario}</span>
+                          </div>
+                          <div className="info-item">
+                            <span className="icon">
+                              <CalendarDays size={16} />
+                            </span>
+                            <span>{item.dia_semana}</span>
+                          </div>
                         </div>
-                        <div className="info-item">
-                          <span className="icon">
-                            <Clock size={16} />
-                          </span>
-                          <span>{item.horario}</span>
-                        </div>
-                        <div className="info-item">
-                          <span className="icon">
-                            <CalendarDays size={16} />
-                          </span>
-                          <span>{item.dia_semana}</span>
+                        <div className="event-link-wrapper">
+                          <button
+                            className="event-link"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              navigate(`/eventos/${item.id}`)
+                            }}
+                          >
+                            Saber mais sobre o evento
+                          </button>
                         </div>
                       </div>
-                      <div className="event-link-wrapper">
-                        <button
-                          className="event-link"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            navigate(`/eventos/${item.id}`)
-                          }}
-                        >
-                          Saber mais sobre o evento
-                        </button>
-                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="no-events">
+                    <div className="empty-icon">
+                      <Calendar size={48} />
+                    </div>
+                    <h3>
+                      {agenda.length === 0
+                        ? 'Nenhum evento no momento'
+                        : 'Nenhum evento encontrado'}
+                    </h3>
+                    <p>
+                      {agenda.length === 0
+                        ? 'Estamos preparando eventos incriveis para voce. Volte em breve!'
+                        : 'Tente ajustar os filtros de busca.'}
+                    </p>
                   </div>
-                ))
-              ) : (
-                <div className="no-events">
-                  <div className="empty-icon">
-                    <Calendar size={48} />
-                  </div>
-                  <h3>
-                    {agenda.length === 0 ? 'Nenhum evento no momento' : 'Nenhum evento encontrado'}
-                  </h3>
-                  <p>
-                    {agenda.length === 0
-                      ? 'Estamos preparando eventos incriveis para voce. Volte em breve!'
-                      : 'Tente ajustar os filtros de busca.'}
-                  </p>
-                </div>
+                )}
+              </div>
+              {filteredEvents.length > 0 && (
+                <Pagination
+                  currentPage={safeCurrentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
               )}
-            </div>
+            </>
           )}
         </section>
       </main>
