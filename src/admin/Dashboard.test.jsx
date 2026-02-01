@@ -77,6 +77,23 @@ describe('Dashboard', () => {
     expect(screen.getByText('Evento 2')).toBeInTheDocument()
   })
 
+  it('deve filtrar eventos pelo termo de busca', async () => {
+    const user = userEvent.setup()
+    renderWithRouter(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Evento 1')).toBeInTheDocument()
+    })
+
+    const searchInput = screen.getByLabelText('Buscar eventos')
+    await user.type(searchInput, 'Evento 2')
+
+    await waitFor(() => {
+      expect(screen.queryByText('Evento 1')).not.toBeInTheDocument()
+      expect(screen.getByText('Evento 2')).toBeInTheDocument()
+    })
+  })
+
   it('deve exibir estatísticas corretas', async () => {
     renderWithRouter(<Dashboard />)
 
