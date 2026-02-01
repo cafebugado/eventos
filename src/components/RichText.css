@@ -1,0 +1,42 @@
+.rich-text {
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rich-text p {
+  margin: 0 0 0.75rem;
+}
+
+.rich-text p:last-child {
+  margin-bottom: 0;
+}
+
+.rich-text ul,
+.rich-text ol {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.rich-text li {
+  margin-bottom: 0.35rem;
+}
+
+.rich-text li:last-child {
+  margin-bottom: 0;
+}
+
+.rich-text a {
+  color: var(--primary-blue);
+  text-decoration: underline;
+}
+
+.rich-text a:hover {
+  color: var(--dark-blue);
+}
+
+.rich-text strong {
+  color: var(--text-primary);
+}

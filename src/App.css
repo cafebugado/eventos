@@ -836,11 +836,21 @@ section {
   font-size: 0.875rem;
   color: var(--text-secondary);
   margin-bottom: 1rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
   line-height: 1.5;
+  max-height: 4.5em;
+  overflow: hidden;
+}
+
+.event-description p,
+.event-description ul,
+.event-description ol {
+  margin: 0 0 0.5rem;
+}
+
+.event-description p:last-child,
+.event-description ul:last-child,
+.event-description ol:last-child {
+  margin-bottom: 0;
 }
 
 .event-info {
@@ -1403,7 +1413,7 @@ section {
 
   .event-description {
     font-size: 0.8rem;
-    -webkit-line-clamp: 3;
+    max-height: 4.8em;
   }
 
   .event-info {

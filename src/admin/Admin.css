@@ -1050,6 +1050,33 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+.field-helper {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.rich-text-preview {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.preview-label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.preview-content {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
 /* Image Upload */
 .image-upload-container {
   margin-bottom: 1rem;
