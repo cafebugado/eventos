@@ -1373,9 +1373,66 @@ section {
   }
 
   .eventos-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
     padding: 0 1rem;
+  }
+
+  .evento-card {
+    min-height: 0;
+  }
+
+  .card-image {
+    height: 140px;
+  }
+
+  .card-badge {
+    top: 0.75rem;
+    right: 0.75rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.7rem;
+  }
+
+  .card-content {
+    padding: 1rem;
+  }
+
+  .card-content h3 {
+    font-size: 1rem;
+  }
+
+  .event-description {
+    font-size: 0.8rem;
+    -webkit-line-clamp: 3;
+  }
+
+  .event-info {
+    margin-bottom: 1rem;
+  }
+
+  .info-item {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .info-item .icon {
+    margin-right: 0.5rem;
+    width: 16px;
+  }
+
+  .event-link-wrapper {
+    width: 100%;
+  }
+
+  .event-link {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    white-space: normal;
+    line-height: 1.2;
   }
 
   .features {
