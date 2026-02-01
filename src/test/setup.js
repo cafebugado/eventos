@@ -43,6 +43,20 @@ const localStorageMock = {
 }
 Object.defineProperty(window, 'localStorage', { value: localStorageMock })
 
+// Mock do matchMedia
+window.matchMedia =
+  window.matchMedia ||
+  vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }))
+
 // Mock do IntersectionObserver
 const intersectionObserverMock = vi.fn(() => ({
   observe: vi.fn(),
