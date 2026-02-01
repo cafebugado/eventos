@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   Plus,
   Calendar,
   Clock,
+  Search,
   Link as LinkIcon,
   Image,
   LogOut,
@@ -32,7 +33,11 @@ import {
   getEventStats,
   uploadEventImage,
 } from '../services/eventService'
+import Pagination from '../components/Pagination'
 import RichText from '../components/RichText'
+import useMediaQuery from '../hooks/useMediaQuery'
+import usePagination from '../hooks/usePagination'
+import { filterEventsByQuery } from '../utils/eventSearch'
 import { stripRichText } from '../utils/richText'
 import './Admin.css'
 import BgEventos from '../../public/eventos.png'
@@ -46,6 +51,11 @@ const DAY_NAMES = [
   'Sexta-feira',
   'Sábado',
 ]
+
+const PAGE_SIZES = {
+  desktop: 20,
+  mobile: 10,
+}
 
 const DATE_INPUT_REGEX = /^\d{4}-\d{2}-\d{2}$/
 const DATE_BR_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/
@@ -114,8 +124,10 @@ function Dashboard() {
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
+  const isMobile = useMediaQuery('(max-width: 768px)')
 
   const {
     register,
@@ -126,6 +138,14 @@ function Dashboard() {
     formState: { errors },
   } = useForm()
   const descricaoValue = watch('descricao') || ''
+
+  const filteredEvents = useMemo(
+    () => filterEventsByQuery(eventos, searchTerm),
+    [eventos, searchTerm]
+  )
+  const pageSize = isMobile ? PAGE_SIZES.mobile : PAGE_SIZES.desktop
+  const { currentPage, totalPages, pagedItems, goToPage } = usePagination(filteredEvents, pageSize)
+  const showSearch = !loading && eventos.length > 0
 
   const showNotification = useCallback((message, type = 'success') => {
     setNotification({ message, type })
@@ -437,6 +457,30 @@ function Dashboard() {
               </button>
             </div>
 
+            {showSearch && (
+              <div className="events-toolbar">
+                <div className="events-search">
+                  <Search size={18} className="events-search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nome, descricao ou data..."
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    aria-label="Buscar eventos"
+                  />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      className="events-search-clear"
+                      onClick={() => setSearchTerm('')}
+                    >
+                      Limpar
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             {loading ? (
               <div className="loading-state">
                 <div className="spinner"></div>
@@ -448,74 +492,87 @@ function Dashboard() {
                 <h3>Nenhum evento cadastrado</h3>
                 <p>Clique em "Novo Evento" para criar seu primeiro evento.</p>
               </div>
-            ) : (
-              <div className="events-table-container">
-                <table className="events-table">
-                  <thead>
-                    <tr>
-                      <th>Imagem</th>
-                      <th>Nome do Evento</th>
-                      <th>Data</th>
-                      <th>Horário</th>
-                      <th>Período</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {eventos.map((evento) => (
-                      <tr key={evento.id}>
-                        <td data-label="Imagem">
-                          <img
-                            src={evento.imagem || BgEventos}
-                            alt={evento.nome}
-                            className="event-thumbnail"
-                          />
-                        </td>
-                        <td data-label="Nome do Evento">
-                          <span className="event-name">{evento.nome}</span>
-                          {evento.descricao && (
-                            <span className="event-desc-preview">
-                              {stripRichText(evento.descricao)}
-                            </span>
-                          )}
-                        </td>
-                        <td data-label="Data">{evento.data_evento}</td>
-                        <td data-label="Horário">{evento.horario}</td>
-                        <td data-label="Período">
-                          <span className={`badge badge-${evento.periodo?.toLowerCase()}`}>
-                            {evento.periodo}
-                          </span>
-                        </td>
-                        <td data-label="Ações">
-                          <div className="action-buttons">
-                            <button
-                              className="btn-icon btn-view"
-                              onClick={() => window.open(evento.link, '_blank')}
-                              title="Ver evento"
-                            >
-                              <Eye size={16} />
-                            </button>
-                            <button
-                              className="btn-icon btn-edit"
-                              onClick={() => openEditModal(evento)}
-                              title="Editar"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button
-                              className="btn-icon btn-delete"
-                              onClick={() => handleDeleteEvent(evento.id)}
-                              title="Excluir"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            ) : filteredEvents.length === 0 ? (
+              <div className="empty-state">
+                <Search size={48} />
+                <h3>Nenhum evento encontrado</h3>
+                <p>Tente ajustar sua busca para encontrar o evento desejado.</p>
               </div>
+            ) : (
+              <>
+                <div className="events-table-container">
+                  <table className="events-table">
+                    <thead>
+                      <tr>
+                        <th>Imagem</th>
+                        <th>Nome do Evento</th>
+                        <th>Data</th>
+                        <th>Horário</th>
+                        <th>Período</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedItems.map((evento) => (
+                        <tr key={evento.id}>
+                          <td data-label="Imagem">
+                            <img
+                              src={evento.imagem || BgEventos}
+                              alt={evento.nome}
+                              className="event-thumbnail"
+                            />
+                          </td>
+                          <td data-label="Nome do Evento">
+                            <span className="event-name">{evento.nome}</span>
+                            {evento.descricao && (
+                              <span className="event-desc-preview">
+                                {stripRichText(evento.descricao)}
+                              </span>
+                            )}
+                          </td>
+                          <td data-label="Data">{evento.data_evento}</td>
+                          <td data-label="Horário">{evento.horario}</td>
+                          <td data-label="Período">
+                            <span className={`badge badge-${evento.periodo?.toLowerCase()}`}>
+                              {evento.periodo}
+                            </span>
+                          </td>
+                          <td data-label="Ações">
+                            <div className="action-buttons">
+                              <button
+                                className="btn-icon btn-view"
+                                onClick={() => window.open(evento.link, '_blank')}
+                                title="Ver evento"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                className="btn-icon btn-edit"
+                                onClick={() => openEditModal(evento)}
+                                title="Editar"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                className="btn-icon btn-delete"
+                                onClick={() => handleDeleteEvent(evento.id)}
+                                title="Excluir"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={goToPage}
+                />
+              </>
             )}
           </div>
         </div>
