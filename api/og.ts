@@ -110,17 +110,22 @@ function generateHtml({
 </html>`
 }
 
-export default async function middleware(request: Request): Promise<Response> {
+export const config = {
+  runtime: 'edge',
+}
+
+export default async function handler(request: Request): Promise<Response> {
   const url = new URL(request.url)
-  const pathname = url.pathname
   const userAgent = request.headers.get('user-agent')
 
-  // Only process for social media crawlers
-  if (!isCrawler(userAgent)) {
-    return fetch(request)
-  }
-
+  // Get the original path from the query parameter
+  const pathname = url.searchParams.get('path') || '/'
   const origin = url.origin
+
+  // If not a crawler, redirect to the SPA
+  if (!isCrawler(userAgent)) {
+    return Response.redirect(`${origin}${pathname}`, 302)
+  }
 
   // Check if it's an event detail page
   const eventMatch = pathname.match(/^\/eventos\/([^/]+)$/)
@@ -136,7 +141,6 @@ export default async function middleware(request: Request): Promise<Response> {
         throw new Error('Supabase credentials not configured')
       }
 
-      // Use fetch directly for Edge Runtime compatibility
       const response = await fetch(
         `${supabaseUrl}/rest/v1/eventos?id=eq.${eventId}&select=id,nome,descricao,imagem`,
         {
@@ -180,7 +184,6 @@ export default async function middleware(request: Request): Promise<Response> {
       })
     } catch (error) {
       console.error('Error fetching event:', error)
-      // Fall through to serve static page on error
     }
   }
 
@@ -205,10 +208,6 @@ export default async function middleware(request: Request): Promise<Response> {
     })
   }
 
-  // For all other requests, continue to the origin
-  return fetch(request)
-}
-
-export const config = {
-  matcher: ['/', '/eventos', '/eventos/:path*', '/sobre', '/contato'],
+  // Fallback - redirect to SPA
+  return Response.redirect(`${origin}${pathname}`, 302)
 }
