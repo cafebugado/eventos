@@ -2,11 +2,17 @@ import { Target, Zap, Globe, Handshake } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
+import SEOHead from '../components/SEOHead'
 import './About.css'
 
 function About() {
   return (
     <div className="page-container">
+      <SEOHead
+        title="Sobre"
+        description="Conheca a Comunidade Cafe Bugado. Um jeito mais simples de descobrir eventos de tecnologia. Reunimos meetups, workshops, hackathons e conferencias em um so lugar."
+        url={`${window.location.origin}/sobre`}
+      />
       <Header />
 
       {/* Main Content */}

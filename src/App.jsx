@@ -7,6 +7,7 @@ import Footer from './components/Footer'
 import FloatingMenu from './components/FloatingMenu'
 import Pagination from './components/Pagination'
 import RichText from './components/RichText'
+import SEOHead from './components/SEOHead'
 import useMediaQuery from './hooks/useMediaQuery'
 import usePagination from './hooks/usePagination'
 import './App.css'
@@ -133,6 +134,11 @@ function App() {
 
   return (
     <div className="App">
+      <SEOHead
+        title="Proximos Eventos"
+        description="Confira os proximos eventos de tecnologia. Meetups, workshops, hackathons e conferencias indicados pela comunidade Cafe Bugado."
+        url={`${window.location.origin}/eventos`}
+      />
       <Header />
 
       {/* Main Content */}
