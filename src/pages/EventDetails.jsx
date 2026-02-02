@@ -6,6 +6,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
 import RichText from '../components/RichText'
+import SEOHead from '../components/SEOHead'
 import BgEventos from '../../public/eventos.png'
 import './EventDetails.css'
 
@@ -64,6 +65,16 @@ function EventDetails() {
 
   return (
     <div className="event-details-page">
+      <SEOHead
+        title={event.nome}
+        description={event.descricao}
+        image={event.imagem || BgEventos}
+        url={`${window.location.origin}/eventos/${event.id}`}
+        type="article"
+        article={{
+          publishedTime: event.created_at,
+        }}
+      />
       <Header />
 
       <main className="details-main">

@@ -3,6 +3,7 @@ import { ArrowRight, Mail, MessageCircle, MapPin } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
+import SEOHead from '../components/SEOHead'
 import './Contact.css'
 
 function Contact() {
@@ -20,6 +21,11 @@ function Contact() {
 
   return (
     <div className="page-container">
+      <SEOHead
+        title="Contato"
+        description="Entre em contato com a Comunidade Cafe Bugado. Fale conosco para duvidas, sugestoes, parcerias ou para indicar eventos de tecnologia."
+        url={`${window.location.origin}/contato`}
+      />
       <Header />
 
       {/* Main Content */}
