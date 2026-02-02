@@ -1,3 +1,10 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "middleware.ts": {
+      "runtime": "@vercel/edge"
+    }
+  },
   "rewrites": [{ "source": "/(.*)", "destination": "/" }]
 }
