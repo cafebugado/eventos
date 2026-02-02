@@ -1,3 +1,60 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot).*"
+        }
+      ],
+      "destination": "/api/og?path=/"
+    },
+    {
+      "source": "/eventos",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot).*"
+        }
+      ],
+      "destination": "/api/og?path=/eventos"
+    },
+    {
+      "source": "/eventos/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot).*"
+        }
+      ],
+      "destination": "/api/og?path=/eventos/:id"
+    },
+    {
+      "source": "/sobre",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot).*"
+        }
+      ],
+      "destination": "/api/og?path=/sobre"
+    },
+    {
+      "source": "/contato",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot).*"
+        }
+      ],
+      "destination": "/api/og?path=/contato"
+    },
+    { "source": "/(.*)", "destination": "/" }
+  ]
 }
