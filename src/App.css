@@ -818,6 +818,11 @@ section {
   text-transform: uppercase;
 }
 
+.card-badge-today {
+  background-color: #28a745; /* Green color for "Today" badge */
+  color: #ffffff;
+}
+
 .card-content {
   padding: 1.5rem;
   display: flex;
