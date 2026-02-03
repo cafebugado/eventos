@@ -200,60 +200,71 @@ function App() {
           ) : filteredEvents.length > 0 ? (
             <>
               <div className="eventos-grid">
-                {pagedItems.map((item, index) => (
-                  <div
-                    key={item.id || `event-${pageOffset + index}`}
-                    className="evento-card"
-                    style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
-                    onClick={() => navigate(`/eventos/${item.id}`)}
-                  >
-                    <div className="card-image">
-                      <img src={item.imagem || BgEventos} alt={item.nome} />
-                      <div className="card-badge">{item.periodo}</div>
-                    </div>
-                    <div className="card-content">
-                      <h3>{item.nome}</h3>
-                      {item.descricao && (
-                        <RichText
-                          className="event-description"
-                          content={item.descricao}
-                          stopPropagationOnLinks
-                        />
-                      )}
-                      <div className="event-info">
-                        <div className="info-item">
-                          <span className="icon">
-                            <Calendar size={16} />
-                          </span>
-                          <span>{item.data_evento}</span>
+                {pagedItems.map((item, index) => {
+                  const today = new Date()
+                  today.setHours(0, 0, 0, 0)
+                  const eventDate = parseEventDate(item.data_evento)
+                  const isToday = eventDate.getTime() === today.getTime()
+
+                  return (
+                    <div
+                      key={item.id || `event-${pageOffset + index}`}
+                      className="evento-card"
+                      style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
+                      onClick={() => navigate(`/eventos/${item.id}`)}
+                    >
+                      <div className="card-image">
+                        <img src={item.imagem || BgEventos} alt={item.nome} />
+                        {isToday ? (
+                          <div className="card-badge card-badge-today">Hoje</div>
+                        ) : (
+                          <div className="card-badge">{item.periodo}</div>
+                        )}
+                      </div>
+                      <div className="card-content">
+                        <h3>{item.nome}</h3>
+                        {item.descricao && (
+                          <RichText
+                            className="event-description"
+                            content={item.descricao}
+                            stopPropagationOnLinks
+                          />
+                        )}
+                        <div className="event-info">
+                          <div className="info-item">
+                            <span className="icon">
+                              <Calendar size={16} />
+                            </span>
+                            <span>{item.data_evento}</span>
+                          </div>
+                          <div className="info-item">
+                            <span className="icon">
+                              <Clock size={16} />
+                            </span>
+                            <span>{item.horario}</span>
+                          </div>
+                          <div className="info-item">
+                            <span className="icon">
+                              <CalendarDays size={16} />
+                            </span>
+                            <span>{item.dia_semana}</span>
+                          </div>
                         </div>
-                        <div className="info-item">
-                          <span className="icon">
-                            <Clock size={16} />
-                          </span>
-                          <span>{item.horario}</span>
-                        </div>
-                        <div className="info-item">
-                          <span className="icon">
-                            <CalendarDays size={16} />
-                          </span>
-                          <span>{item.dia_semana}</span>
+                        <div className="event-link-wrapper">
+                          <button
+                            className="event-link"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              navigate(`/eventos/${item.id}`)
+                            }}
+                          >
+                            Saber mais sobre o evento
+                          </button>
                         </div>
                       </div>
-                      <div className="event-link-wrapper">
-                        <button
-                          className="event-link"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            navigate(`/eventos/${item.id}`)
-                          }}
-                        >
-                          Saber mais sobre o evento
-                        </button>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
               <Pagination
                 currentPage={currentPage}
