@@ -11,7 +11,7 @@ import SEOHead from './components/SEOHead'
 import useMediaQuery from './hooks/useMediaQuery'
 import usePagination from './hooks/usePagination'
 import './App.css'
-import BgEventos from '../public/eventos.png'
+import BgEventos from './assets/eventos.png'
 
 const PERIODOS = ['Todos', 'Matinal', 'Diurno', 'Vespertino', 'Noturno']
 
@@ -205,17 +205,20 @@ function App() {
                   today.setHours(0, 0, 0, 0)
                   const eventDate = parseEventDate(item.data_evento)
                   const isToday = eventDate.getTime() === today.getTime()
+                  const isPast = eventDate < today
 
                   return (
                     <div
                       key={item.id || `event-${pageOffset + index}`}
-                      className="evento-card"
+                      className={`evento-card ${isPast ? 'evento-encerrado' : ''}`}
                       style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
                       onClick={() => navigate(`/eventos/${item.id}`)}
                     >
                       <div className="card-image">
                         <img src={item.imagem || BgEventos} alt={item.nome} />
-                        {isToday ? (
+                        {isPast ? (
+                          <div className="card-badge card-badge-encerrado">Encerrado</div>
+                        ) : isToday ? (
                           <div className="card-badge card-badge-today">Hoje</div>
                         ) : (
                           <div className="card-badge">{item.periodo}</div>
@@ -258,7 +261,7 @@ function App() {
                               navigate(`/eventos/${item.id}`)
                             }}
                           >
-                            Saber mais sobre o evento
+                            {isPast ? 'Ver detalhes do evento' : 'Saber mais sobre o evento'}
                           </button>
                         </div>
                       </div>

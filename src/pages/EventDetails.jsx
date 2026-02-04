@@ -7,8 +7,22 @@ import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
 import RichText from '../components/RichText'
 import SEOHead from '../components/SEOHead'
-import BgEventos from '../../public/eventos.png'
+import BgEventos from '../assets/eventos.png'
 import './EventDetails.css'
+
+// Funcao para converter data no formato DD/MM/YYYY para objeto Date
+function parseEventDate(dateStr) {
+  if (!dateStr) {
+    return new Date(0)
+  }
+  const parts = dateStr.split('/')
+  if (parts.length === 3) {
+    // Formato DD/MM/YYYY
+    return new Date(parts[2], parts[1] - 1, parts[0])
+  }
+  // Tenta parse direto se estiver em outro formato
+  return new Date(dateStr)
+}
 
 function EventDetails() {
   const { id } = useParams()
@@ -63,6 +77,11 @@ function EventDetails() {
     )
   }
 
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const eventDate = parseEventDate(event.data_evento)
+  const isPast = eventDate < today
+
   return (
     <div className="event-details-page">
       <SEOHead
@@ -84,10 +103,14 @@ function EventDetails() {
             <span>Voltar para Eventos</span>
           </button>
 
-          <div className="event-details-card">
+          <div className={`event-details-card ${isPast ? 'evento-encerrado' : ''}`}>
             <div className="event-image-container">
               <img src={event.imagem || BgEventos} alt={event.nome} />
-              <div className="event-badge">{event.periodo}</div>
+              {isPast ? (
+                <div className="event-badge card-badge-encerrado">Encerrado</div>
+              ) : (
+                <div className="event-badge">{event.periodo}</div>
+              )}
             </div>
 
             <div className="event-details-content">
@@ -132,13 +155,14 @@ function EventDetails() {
               </div>
 
               <a
-                href={event.link}
+                href={isPast ? undefined : event.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="participate-button"
+                className={`participate-button ${isPast ? 'disabled' : ''}`}
+                onClick={(e) => isPast && e.preventDefault()}
               >
-                Participar do Evento
-                <ArrowUpRight size={20} />
+                {isPast ? 'Evento Encerrado' : 'Participar do Evento'}
+                {!isPast && <ArrowUpRight size={20} />}
               </a>
             </div>
           </div>
