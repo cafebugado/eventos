@@ -32,52 +32,56 @@ function parseEventDate(dateStr) {
 function App() {
   const [agenda, setAgenda] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPeriodo, setSelectedPeriodo] = useState('Todos')
   const [showPastEvents, setShowPastEvents] = useState(false)
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 768px)')
 
-  useEffect(() => {
-    // Carrega eventos do Supabase
-    async function loadEvents() {
-      try {
-        const events = await getEvents()
-        // Ordena eventos por data mais proxima primeiro
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
+  // Funcao para carregar eventos do Supabase
+  const loadEvents = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const events = await getEvents()
+      // Ordena eventos por data mais proxima primeiro
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
 
-        const sortedEvents = events.sort((a, b) => {
-          const dateA = parseEventDate(a.data_evento)
-          const dateB = parseEventDate(b.data_evento)
+      const sortedEvents = events.sort((a, b) => {
+        const dateA = parseEventDate(a.data_evento)
+        const dateB = parseEventDate(b.data_evento)
 
-          // Eventos futuros vem primeiro, ordenados por proximidade
-          const isAFuture = dateA >= today
-          const isBFuture = dateB >= today
+        // Eventos futuros vem primeiro, ordenados por proximidade
+        const isAFuture = dateA >= today
+        const isBFuture = dateB >= today
 
-          if (isAFuture && !isBFuture) {
-            return -1
-          }
-          if (!isAFuture && isBFuture) {
-            return 1
-          }
+        if (isAFuture && !isBFuture) {
+          return -1
+        }
+        if (!isAFuture && isBFuture) {
+          return 1
+        }
 
-          // Ambos futuros: mais proximo primeiro
-          if (isAFuture) {
-            return dateA - dateB
-          }
-          // Ambos passados: mais recente primeiro
-          return dateB - dateA
-        })
+        // Ambos futuros: mais proximo primeiro
+        if (isAFuture) {
+          return dateA - dateB
+        }
+        // Ambos passados: mais recente primeiro
+        return dateB - dateA
+      })
 
-        setAgenda(sortedEvents)
-      } catch (error) {
-        console.error('Erro ao carregar eventos:', error)
-      } finally {
-        setLoading(false)
-      }
+      setAgenda(sortedEvents)
+    } catch (error) {
+      console.error('Erro ao carregar eventos:', error)
+      setError('Não foi possível carregar os eventos. Verifique sua conexão e tente novamente.')
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     loadEvents()
   }, [])
 
@@ -193,9 +197,40 @@ function App() {
           </div>
 
           {loading ? (
-            <div className="loading">
-              <div className="spinner"></div>
-              <p>Carregando eventos...</p>
+            <div
+              className="eventos-grid"
+              role="status"
+              aria-busy="true"
+              aria-label="Carregando eventos"
+            >
+              {Array.from({ length: pageSize }).map((_, index) => (
+                <div key={`skeleton-${index}`} className="skeleton-card">
+                  <div className="skeleton-image"></div>
+                  <div className="skeleton-content">
+                    <div className="skeleton-title"></div>
+                    <div className="skeleton-text"></div>
+                    <div className="skeleton-text"></div>
+                    <div className="skeleton-text short"></div>
+                    <div className="skeleton-info-grid">
+                      <div className="skeleton-info"></div>
+                      <div className="skeleton-info"></div>
+                      <div className="skeleton-info"></div>
+                    </div>
+                    <div className="skeleton-button"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="error-container" role="alert" aria-live="polite">
+              <div className="error-icon">
+                <Calendar size={48} />
+              </div>
+              <h3>Erro ao carregar eventos</h3>
+              <p>{error}</p>
+              <button onClick={loadEvents} className="retry-button">
+                Tentar novamente
+              </button>
             </div>
           ) : filteredEvents.length > 0 ? (
             <>
