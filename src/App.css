@@ -823,6 +823,16 @@ section {
   color: #ffffff;
 }
 
+.card-badge-encerrado {
+  background-color: var(--text-secondary);
+  color: var(--background);
+}
+
+.evento-encerrado {
+  filter: grayscale(100%);
+  opacity: 0.7;
+}
+
 .card-content {
   padding: 1.5rem;
   display: flex;
