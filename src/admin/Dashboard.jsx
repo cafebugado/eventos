@@ -40,7 +40,7 @@ import usePagination from '../hooks/usePagination'
 import { filterEventsByQuery } from '../utils/eventSearch'
 import { stripRichText } from '../utils/richText'
 import './Admin.css'
-import BgEventos from '../../public/eventos.png'
+import BgEventos from '../assets/eventos.png'
 
 const DAY_NAMES = [
   'Domingo',

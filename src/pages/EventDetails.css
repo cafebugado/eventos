@@ -286,6 +286,13 @@
   box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
 }
 
+.participate-button.disabled {
+  background: var(--text-secondary);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .details-header .header-container {
