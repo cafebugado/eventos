@@ -31,19 +31,33 @@ function EventDetails() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    async function loadEvent() {
-      try {
-        const eventData = await getEventById(id)
+  // Funcao para carregar evento do Supabase
+  const loadEvent = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const eventData = await getEventById(id)
+      if (!eventData) {
+        setError('NOT_FOUND')
+      } else {
         setEvent(eventData)
-      } catch (err) {
-        console.error('Erro ao carregar evento:', err)
-        setError('Evento nao encontrado')
-      } finally {
-        setLoading(false)
       }
+    } catch (err) {
+      console.error('Erro ao carregar evento:', err)
+      // Diferencia tipos de erro
+      if (err.message?.includes('fetch') || err.message?.includes('network')) {
+        setError('NETWORK_ERROR')
+      } else if (err.code === 'PGRST116') {
+        setError('NOT_FOUND')
+      } else {
+        setError('SERVER_ERROR')
+      }
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     loadEvent()
   }, [id])
 
@@ -51,27 +65,89 @@ function EventDetails() {
     return (
       <div className="event-details-page">
         <Header />
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Carregando evento...</p>
-        </div>
+        <main className="details-main">
+          <div className="details-container">
+            <div className="skeleton-back-button"></div>
+            <div
+              className="skeleton-detail-card"
+              role="status"
+              aria-busy="true"
+              aria-label="Carregando detalhes do evento"
+            >
+              <div className="skeleton-detail-image"></div>
+              <div className="skeleton-detail-content">
+                <div className="skeleton-detail-title"></div>
+                <div className="skeleton-detail-description">
+                  <div className="skeleton-text"></div>
+                  <div className="skeleton-text"></div>
+                  <div className="skeleton-text"></div>
+                  <div className="skeleton-text short"></div>
+                </div>
+                <div className="skeleton-detail-info-grid">
+                  <div className="skeleton-info-card"></div>
+                  <div className="skeleton-info-card"></div>
+                  <div className="skeleton-info-card"></div>
+                </div>
+                <div className="skeleton-button large"></div>
+              </div>
+            </div>
+          </div>
+        </main>
         <Footer />
       </div>
     )
   }
 
-  if (error || !event) {
+  if (error) {
+    const errorMessages = {
+      NOT_FOUND: {
+        title: 'Evento não encontrado',
+        message: 'O evento que você está procurando não existe ou foi removido.',
+        showRetry: false,
+      },
+      NETWORK_ERROR: {
+        title: 'Erro de conexão',
+        message: 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
+        showRetry: true,
+      },
+      SERVER_ERROR: {
+        title: 'Erro no servidor',
+        message: 'Ocorreu um erro ao carregar o evento. Tente novamente em alguns instantes.',
+        showRetry: true,
+      },
+    }
+
+    const errorInfo = errorMessages[error] || errorMessages.SERVER_ERROR
+
     return (
       <div className="event-details-page">
         <Header />
-        <div className="error-container">
-          <h2>Evento nao encontrado</h2>
-          <p>O evento que voce esta procurando nao existe ou foi removido.</p>
-          <button onClick={() => navigate('/eventos')} className="back-button">
-            <ArrowLeft size={18} />
-            Voltar para Eventos
-          </button>
-        </div>
+        <main className="details-main">
+          <div className="details-container">
+            <button onClick={() => navigate('/eventos')} className="back-link">
+              <ArrowLeft size={18} />
+              <span>Voltar para Eventos</span>
+            </button>
+            <div className="error-container" role="alert" aria-live="polite">
+              <div className="error-icon">
+                <Calendar size={48} />
+              </div>
+              <h2>{errorInfo.title}</h2>
+              <p>{errorInfo.message}</p>
+              <div className="error-actions">
+                {errorInfo.showRetry && (
+                  <button onClick={loadEvent} className="retry-button">
+                    Tentar novamente
+                  </button>
+                )}
+                <button onClick={() => navigate('/eventos')} className="back-button">
+                  <ArrowLeft size={18} />
+                  Voltar para Eventos
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
         <Footer />
       </div>
     )

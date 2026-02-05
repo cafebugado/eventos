@@ -76,36 +76,33 @@
   padding: 8rem 2rem 2rem;
 }
 
-.loading-container .spinner {
-  width: 50px;
-  height: 50px;
-  border: 3px solid var(--border);
-  border-top: 3px solid var(--primary-blue);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 .error-container h2 {
   color: var(--text-primary);
   margin-bottom: 0.5rem;
+  font-size: 1.75rem;
 }
 
 .error-container p {
   color: var(--text-secondary);
   margin-bottom: 1.5rem;
+  font-size: 1rem;
 }
 
-.back-button {
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.retry-button {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -115,13 +112,133 @@
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
   font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-button:hover {
+  background: var(--dark-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.retry-button:active {
+  transform: translateY(0);
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .back-button:hover {
-  background: var(--dark-blue);
-  transform: translateY(-2px);
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+  background: rgba(37, 99, 235, 0.05);
+}
+
+/* Skeleton Loading for Details Page */
+.skeleton-back-button {
+  width: 180px;
+  height: 38px;
+  background: linear-gradient(90deg, var(--border) 0%, #cbd5e1 50%, var(--border) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.skeleton-detail-card {
+  background: var(--surface);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px var(--shadow);
+}
+
+.skeleton-detail-image {
+  width: 100%;
+  height: 400px;
+  background: linear-gradient(90deg, var(--border) 0%, #cbd5e1 50%, var(--border) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-detail-content {
+  padding: 2.5rem;
+}
+
+.skeleton-detail-title {
+  height: 2rem;
+  width: 60%;
+  background: linear-gradient(90deg, var(--border) 0%, #cbd5e1 50%, var(--border) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.skeleton-detail-description {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.skeleton-detail-description .skeleton-text {
+  height: 1.125rem;
+  width: 100%;
+  background: linear-gradient(90deg, var(--border) 0%, #cbd5e1 50%, var(--border) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.25rem;
+}
+
+.skeleton-detail-description .skeleton-text.short {
+  width: 80%;
+}
+
+.skeleton-detail-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.skeleton-info-card {
+  height: 82px;
+  background: linear-gradient(90deg, var(--border) 0%, #cbd5e1 50%, var(--border) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 1rem;
+}
+
+.skeleton-button.large {
+  height: 3.25rem;
+  width: 250px;
+  background: linear-gradient(90deg, var(--border) 0%, #cbd5e1 50%, var(--border) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.75rem;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* Main Content */
@@ -329,6 +446,18 @@
   .event-info-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .skeleton-detail-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skeleton-detail-image {
+    height: 250px;
+  }
+
+  .skeleton-button.large {
+    width: 100%;
   }
 
   .participate-button {
