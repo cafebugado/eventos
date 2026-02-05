@@ -111,6 +111,11 @@ function App() {
   const pageOffset = (currentPage - 1) * pageSize
 
   useEffect(() => {
+    // Rola a pagina para o topo sempre que a pagina atual mudar
+    window.scrollTo(0, 0)
+  }, [currentPage])
+
+  useEffect(() => {
     const observerOptions = {
       threshold: 0.3,
       rootMargin: '-50px 0px',
