@@ -14,6 +14,11 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
+// Mock do eventService para o componente UpcomingEvents
+vi.mock('../services/eventService', () => ({
+  getUpcomingEvents: vi.fn().mockResolvedValue([]),
+}))
+
 describe('Home', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -45,13 +50,10 @@ describe('Home', () => {
     expect(screen.getByText(/A comunidade indica eventos/)).toBeInTheDocument()
   })
 
-  it('deve navegar para /eventos ao clicar no botão CTA', async () => {
-    const user = userEvent.setup()
+  it('deve renderizar a seção de próximos eventos', () => {
     renderWithRouter(<Home />)
 
-    await user.click(screen.getByRole('button', { name: /Ver eventos da comunidade/i }))
-
-    expect(mockNavigate).toHaveBeenCalledWith('/eventos')
+    expect(screen.getByText('Próximos Eventos')).toBeInTheDocument()
   })
 
   it('deve alternar tema de claro para escuro', async () => {

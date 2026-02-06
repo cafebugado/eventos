@@ -108,6 +108,38 @@ export async function getEventsByPeriod(periodo) {
   return data
 }
 
+// Buscar os próximos eventos (futuros, ordenados por data, limitado)
+export async function getUpcomingEvents(limit = 3) {
+  const { data, error } = await supabase
+    .from('eventos')
+    .select('*')
+    .order('data_evento', { ascending: true })
+
+  if (error) {
+    console.error('Erro ao buscar próximos eventos:', error)
+    throw error
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const upcoming = data
+    .filter((event) => {
+      if (!event.data_evento) {
+        return false
+      }
+      const parts = event.data_evento.split('/')
+      if (parts.length === 3) {
+        const eventDate = new Date(parts[2], parts[1] - 1, parts[0])
+        return eventDate >= today
+      }
+      return new Date(event.data_evento) >= today
+    })
+    .slice(0, limit)
+
+  return upcoming
+}
+
 // Buscar estatísticas dos eventos
 export async function getEventStats() {
   const { data: allEvents, error } = await supabase.from('eventos').select('periodo')
