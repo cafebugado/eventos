@@ -7,6 +7,7 @@ import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
 import RichText from '../components/RichText'
 import SEOHead from '../components/SEOHead'
+import ShareButtons from '../components/ShareButtons'
 import BgEventos from '../assets/eventos.png'
 import './EventDetails.css'
 
@@ -240,6 +241,13 @@ function EventDetails() {
                 {isPast ? 'Evento Encerrado' : 'Participar do Evento'}
                 {!isPast && <ArrowUpRight size={20} />}
               </a>
+
+              <ShareButtons
+                eventName={event.nome}
+                eventDate={event.data_evento}
+                eventTime={event.horario}
+                eventUrl={`${window.location.origin}/eventos/${event.id}`}
+              />
             </div>
           </div>
         </div>
