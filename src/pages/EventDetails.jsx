@@ -32,6 +32,10 @@ function EventDetails() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [id])
+
   // Funcao para carregar evento do Supabase
   const loadEvent = async () => {
     setLoading(true)
