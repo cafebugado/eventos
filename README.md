@@ -1,41 +1,87 @@
 # Eventos - Comunidade Café Bugado
 
-Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e participar dos melhores eventos, com design limpo, dark mode e animações suaves.
+Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e participar dos melhores eventos, com design limpo, dark mode, painel administrativo e animações suaves.
 
 **Site:** [cafebugado.com.br](https://cafebugado.com.br)
 
-## ✨ Funcionalidades
+## Funcionalidades
 
-- 🎨 **Design Minimalista** - Interface limpa com paleta azul, branco e preto
-- 🌓 **Dark/Light Mode** - Alternância suave entre temas
-- ⚡ **Animações Fluidas** - Transições suaves entre seções
-- 📱 **Responsivo** - Funciona perfeitamente em todos os dispositivos
-- 🔄 **Tempo Real** - Sincronização automática com Google Sheets
-- 🎯 **Curadoria** - Eventos selecionados e verificados
+### Área Pública
 
-## 🚀 Tecnologias Utilizadas
+- **Design Minimalista** - Interface limpa com paleta azul, branco e preto
+- **Dark/Light Mode** - Alternância suave entre temas com persistência em localStorage
+- **Animações Fluidas** - Transições suaves baseadas em Intersection Observer
+- **Responsivo** - Design mobile-first que funciona em todos os dispositivos
+- **Tempo Real** - Sincronização automática com banco de dados Supabase
+- **Curadoria** - Eventos selecionados e verificados pela comunidade
 
-- **React** - Biblioteca JavaScript para interfaces
-- **Vite** - Build tool moderno e rápido
-- **CSS Variables** - Sistema de temas dinâmico
-- **PapaCSV** - Parser para dados CSV do Google Sheets
-- **Intersection Observer** - Animações baseadas em scroll
+### Painel Administrativo
 
-## 📦 Instalação
+- **Autenticação** - Login seguro via Supabase Auth
+- **CRUD de Eventos** - Criar, editar, visualizar e excluir eventos
+- **Upload de Imagens** - Upload direto para Supabase Storage
+- **Estatísticas** - Visualização de eventos por período
+- **Validação de Formulários** - React Hook Form com validações
+
+## Tecnologias Utilizadas
+
+### Frontend
+
+| Tecnologia       | Versão  | Descrição                    |
+| ---------------- | ------- | ---------------------------- |
+| React            | 19.1.1  | Biblioteca para interfaces   |
+| React Router DOM | 7.13.0  | Roteamento SPA               |
+| React Hook Form  | 7.54.2  | Gerenciamento de formulários |
+| Lucide React     | 0.469.0 | Biblioteca de ícones         |
+| Vite             | 7.1.2   | Build tool moderno           |
+
+### Backend & Database
+
+| Tecnologia | Versão | Descrição                  |
+| ---------- | ------ | -------------------------- |
+| Supabase   | 2.93.2 | PostgreSQL, Auth e Storage |
+
+### Qualidade de Código
+
+| Ferramenta  | Versão | Descrição                  |
+| ----------- | ------ | -------------------------- |
+| ESLint      | 9.33.0 | Linting de código          |
+| Prettier    | 3.5.0  | Formatação de código       |
+| Husky       | 9.1.0  | Git hooks                  |
+| Commitlint  | 19.8.0 | Validação de commits       |
+| lint-staged | 15.5.0 | Linting em arquivos staged |
+
+### Testes
+
+| Ferramenta      | Versão | Descrição                  |
+| --------------- | ------ | -------------------------- |
+| Vitest          | 4.0.18 | Framework de testes        |
+| Testing Library | 16.3.2 | Utilitários de teste React |
+| MSW             | 2.12.7 | Mock de APIs               |
+| jsdom           | 27.4.0 | Ambiente DOM para testes   |
+
+## Instalação
+
+### Pré-requisitos
+
+- Node.js 20+
+- pnpm (recomendado) ou npm
+
+### Passos
 
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/seu-usuario/eventos-cafe-bugado.git
-cd eventos-cafe-bugado
+git clone https://github.com/seu-usuario/agendas_eventos.git
+cd agendas_eventos
 ```
 
 2. Instale as dependências:
 
 ```bash
-npm install
-# ou
 pnpm install
+# ou
+npm install
 ```
 
 3. Configure as variáveis de ambiente:
@@ -44,40 +90,237 @@ pnpm install
 cp .env.example .env
 ```
 
-4. Edite o arquivo `.env` com a URL do seu Google Sheets:
+4. Edite o arquivo `.env`:
 
 ```env
-VITE_GOOGLE_SHEET_URL=https://docs.google.com/spreadsheets/d/SEU_ID/export?format=csv&gid=0
+# Supabase (obrigatório)
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-anon-key-aqui
+
+# Google Sheets (opcional - legado)
+VITE_GOOGLE_SHEET_URL=https://docs.google.com/spreadsheets/...
 ```
 
 5. Execute o projeto:
 
 ```bash
-npm run dev
-# ou
 pnpm dev
+# ou
+npm run dev
 ```
 
-## 🗂️ Configuração do Google Sheets
+## Scripts Disponíveis
 
-Para que a aplicação funcione, você precisa de um Google Sheets público com as seguintes colunas:
+```bash
+# Desenvolvimento
+pnpm dev              # Inicia servidor de desenvolvimento
 
-| Nome do evento | Data do evento | Horario do evento | Dia da Semana | Periodo | Link do evento   | Imagem do evento   |
-| -------------- | -------------- | ----------------- | ------------- | ------- | ---------------- | ------------------ |
-| Workshop React | 15/03/2025     | 19:00             | Sábado        | Noturno | https://link.com | https://imagem.jpg |
+# Build
+pnpm build            # Build para produção
+pnpm preview          # Preview da build
 
-### Passos para configurar:
+# Qualidade de Código
+pnpm lint             # Verifica problemas de linting
+pnpm lint:fix         # Corrige problemas automaticamente
+pnpm format           # Formata todos os arquivos
+pnpm format:check     # Verifica formatação
 
-1. Crie um Google Sheets com as colunas acima
-2. Vá em "Arquivo" → "Compartilhar" → "Publicar na web"
-3. Selecione "Valores separados por vírgula (.csv)"
-4. Copie a URL gerada e cole no arquivo `.env`
+# Testes
+pnpm test             # Executa testes em modo watch
+pnpm test:run         # Executa testes uma vez
+pnpm test:ui          # Interface visual para testes
+pnpm test:coverage    # Relatório de cobertura
+```
 
-## 🎨 Personalização
+## Estrutura do Projeto
+
+```
+agendas_eventos/
+├── src/
+│   ├── admin/                    # Painel administrativo
+│   │   ├── Login.jsx             # Página de login
+│   │   ├── Login.test.jsx        # Testes do login
+│   │   ├── Dashboard.jsx         # Dashboard de eventos
+│   │   ├── Dashboard.test.jsx    # Testes do dashboard
+│   │   └── Admin.css             # Estilos do admin
+│   │
+│   ├── pages/                    # Páginas públicas
+│   │   ├── Home.jsx              # Landing page
+│   │   ├── Home.test.jsx         # Testes da home
+│   │   ├── NotFound.jsx          # Página 404
+│   │   └── NotFound.test.jsx     # Testes do 404
+│   │
+│   ├── services/                 # Serviços e API
+│   │   ├── authService.js        # Autenticação
+│   │   ├── authService.test.js   # Testes de auth
+│   │   ├── eventService.js       # CRUD de eventos
+│   │   └── eventService.test.js  # Testes de eventos
+│   │
+│   ├── lib/                      # Configurações
+│   │   └── supabase.js           # Cliente Supabase
+│   │
+│   ├── test/                     # Infraestrutura de testes
+│   │   ├── setup.js              # Configuração global
+│   │   ├── utils.jsx             # Utilitários de teste
+│   │   └── mocks/                # Mocks de API
+│   │       ├── server.js         # Servidor MSW
+│   │       └── handlers.js       # Handlers de mock
+│   │
+│   ├── assets/                   # Assets estáticos
+│   ├── App.jsx                   # Listagem de eventos
+│   ├── App.css                   # Estilos principais
+│   └── main.jsx                  # Entrada com rotas
+│
+├── public/                       # Arquivos públicos
+│   └── eventos.png               # Imagem padrão
+│
+├── .github/
+│   ├── workflows/                # CI/CD
+│   │   ├── ci.yml                # Pipeline principal
+│   │   ├── pr-developer.yml      # PRs para developer
+│   │   └── pr-main.yml           # PRs para main
+│   └── BRANCH_PROTECTION.md      # Regras de proteção
+│
+├── supabase/                     # Configurações Supabase
+└── dist/                         # Build de produção
+```
+
+## Rotas da Aplicação
+
+| Rota               | Componente | Descrição                |
+| ------------------ | ---------- | ------------------------ |
+| `/`                | Home       | Landing page             |
+| `/eventos`         | App        | Listagem de eventos      |
+| `/admin`           | Login      | Login administrativo     |
+| `/admin/dashboard` | Dashboard  | Gerenciamento de eventos |
+| `/*`               | NotFound   | Página 404               |
+
+## Configuração do Supabase
+
+Para configurar o Supabase, consulte o guia detalhado em [SUPABASE_SETUP.md](SUPABASE_SETUP.md).
+
+### Tabela de Eventos
+
+```sql
+CREATE TABLE eventos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome VARCHAR(255) NOT NULL,
+  descricao TEXT,
+  data_evento DATE NOT NULL,
+  horario TIME NOT NULL,
+  dia_semana VARCHAR(20),
+  periodo VARCHAR(20),
+  link TEXT,
+  imagem TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Períodos Disponíveis
+
+- Matinal
+- Diurno
+- Vespertino
+- Noturno
+
+## CI/CD
+
+O projeto utiliza GitHub Actions para integração e entrega contínuas.
+
+### Workflows
+
+| Workflow           | Trigger        | Descrição                              |
+| ------------------ | -------------- | -------------------------------------- |
+| `ci.yml`           | Push/PR        | Lint, build e upload de artefatos      |
+| `pr-developer.yml` | PR → developer | Validação de origem + CI               |
+| `pr-main.yml`      | PR → main      | Validação rigorosa + análise de bundle |
+
+### Fluxo de Branches
+
+```
+feature/* ──┐
+fix/*     ──┼──► developer (1 aprovação) ──► main (2 aprovações)
+hotfix/*  ──┘
+```
+
+### Requisitos para Merge
+
+**Branch `developer`:**
+
+- Origem: `feature/*`, `fix/*` ou `hotfix/*`
+- CI passando (lint + build)
+- 1 aprovação de revisão
+
+**Branch `main` (produção):**
+
+- Origem: apenas `developer`
+- CI passando (lint + build)
+- 2 aprovações de revisão
+
+## Padrões de Código
+
+### Commits (Conventional Commits)
+
+```
+tipo(escopo): descrição
+
+Tipos: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+```
+
+Exemplos:
+
+```bash
+feat(admin): adiciona upload de imagens
+fix(eventos): corrige filtro por período
+docs(readme): atualiza instruções de instalação
+```
+
+### ESLint
+
+- Igualdade estrita (`===`)
+- Sem `console.log` em produção
+- Preferência por `const`
+- Arrow functions para callbacks
+- Validação de React Hooks
+
+### Prettier
+
+- Sem ponto e vírgula
+- Aspas simples
+- 2 espaços de indentação
+- Vírgulas trailing (ES5)
+- Máximo 100 caracteres por linha
+
+## Testes
+
+### Executando Testes
+
+```bash
+# Modo watch (desenvolvimento)
+pnpm test
+
+# Execução única
+pnpm test:run
+
+# Com interface visual
+pnpm test:ui
+
+# Com cobertura
+pnpm test:coverage
+```
+
+### Estrutura de Testes
+
+- **Unit tests**: Serviços (`authService`, `eventService`)
+- **Component tests**: Componentes React com Testing Library
+- **Mocks**: MSW para simular APIs do Supabase
+
+## Personalização
 
 ### Cores do Tema
 
-As cores estão definidas como CSS custom properties em `:root`:
+As cores estão definidas em CSS custom properties:
 
 ```css
 :root {
@@ -90,119 +333,70 @@ As cores estão definidas como CSS custom properties em `:root`:
   --text-secondary: #64748b;
   --border: #e2e8f0;
 }
-```
 
-### Dark Mode
-
-O tema escuro é ativado através do atributo `data-theme="dark"` no elemento raiz:
-
-```css
 [data-theme='dark'] {
   --primary-blue: #3b82f6;
   --background: #0f172a;
   --surface: #1e293b;
   --text-primary: #f1f5f9;
-  /* ... */
 }
 ```
 
-## 🎭 Animações
-
-O sistema de animações é baseado no `Intersection Observer`:
-
-- **Fade In Up** - Seções aparecem suavemente ao entrar na viewport
-- **Slide Up** - Cards de eventos aparecem em sequência
-- **Hover Effects** - Interações suaves nos elementos clicáveis
-- **Theme Toggle** - Transição suave entre temas
-
-## 📱 Responsividade
-
-O design é mobile-first com breakpoints:
-
-- **Desktop**: >= 768px
-- **Tablet**: 481px - 767px
-- **Mobile**: <= 480px
-
-## 🔧 Scripts Disponíveis
-
-```bash
-# Desenvolvimento
-npm run dev
-
-# Build para produção
-npm run build
-
-# Preview da build
-npm run preview
-
-# Linting
-npm run lint
-```
-
-## 📊 Estrutura do Projeto
-
-```
-src/
-├── App.jsx          # Componente principal
-├── App.css          # Estilos principais
-├── main.jsx         # Ponto de entrada
-└── assets/          # Assets estáticos
-
-public/
-├── eventos.png      # Imagem padrão para eventos
-└── vite.svg         # Favicon
-
-```
-
-## 🌟 Funcionalidades Detalhadas
-
-### Dark Mode
-
-- Toggle no header para alternar temas
-- Preferência salva no localStorage
-- Transições suaves entre temas
-- Cores otimizadas para ambos os modos
-
-### Animações
-
-- Seções animam ao entrar na tela
-- Cards de eventos aparecem em sequência
-- Hover effects nos elementos interativos
-- Transições suaves nos botões
-
-### Navegação
-
-- Scroll suave entre seções
-- Indicador visual da seção ativa
-- Menu fixo com backdrop blur
-- Navegação por teclado acessível
-
 ### Responsividade
 
-- Layout grid adaptativo
-- Imagens responsivas
-- Tipografia escalável
-- Touch-friendly em mobile
+| Breakpoint | Tamanho       |
+| ---------- | ------------- |
+| Desktop    | >= 768px      |
+| Tablet     | 481px - 767px |
+| Mobile     | <= 480px      |
 
-## 🤝 Contribuindo
+## Deploy
+
+O projeto está configurado para deploy na Vercel.
+
+### Configuração (vercel.json)
+
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+}
+```
+
+### Deploy Manual
+
+```bash
+pnpm build
+# Upload da pasta dist/ para sua plataforma
+```
+
+## Contribuindo
+
+Consulte o guia completo em [CONTRIBUTING.md](CONTRIBUTING.md).
+
+### Resumo
 
 1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+2. Crie uma branch (`git checkout -b feature/nova-funcionalidade`)
+3. Faça commits seguindo o padrão Conventional Commits
+4. Abra um Pull Request para `developer`
+5. Aguarde revisão e aprovação
 
-## 📄 Licença
+## Documentação Adicional
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Guia de contribuição
+- [SUPABASE_SETUP.md](SUPABASE_SETUP.md) - Configuração do Supabase
+- [BRANCH_PROTECTION.md](.github/BRANCH_PROTECTION.md) - Regras de proteção de branches
+
+## Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## 👥 Autores
+## Autores
 
 - **Dario Reis** - _Desenvolvedor Front-end_ - [@darioreisjr](https://github.com/darioreisjr)
 
-## 🙏 Agradecimentos
+## Agradecimentos
 
 - Design inspirado nas melhores práticas de UX/UI
 - Cores baseadas na paleta Tailwind CSS
-- Animações inspiradas no Framer Motion
-- Ícones emoji para manter a simplicidade
+- Comunidade Café Bugado pelo apoio e feedback

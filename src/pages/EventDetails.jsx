@@ -1,0 +1,254 @@
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Calendar, Clock, CalendarDays, ArrowUpRight } from 'lucide-react'
+import { getEventById } from '../services/eventService'
+import Header from '../components/Header'
+import Footer from '../components/Footer'
+import FloatingMenu from '../components/FloatingMenu'
+import RichText from '../components/RichText'
+import SEOHead from '../components/SEOHead'
+import BgEventos from '../assets/eventos.png'
+import './EventDetails.css'
+
+// Funcao para converter data no formato DD/MM/YYYY para objeto Date
+function parseEventDate(dateStr) {
+  if (!dateStr) {
+    return new Date(0)
+  }
+  const parts = dateStr.split('/')
+  if (parts.length === 3) {
+    // Formato DD/MM/YYYY
+    return new Date(parts[2], parts[1] - 1, parts[0])
+  }
+  // Tenta parse direto se estiver em outro formato
+  return new Date(dateStr)
+}
+
+function EventDetails() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [event, setEvent] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  // Funcao para carregar evento do Supabase
+  const loadEvent = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const eventData = await getEventById(id)
+      if (!eventData) {
+        setError('NOT_FOUND')
+      } else {
+        setEvent(eventData)
+      }
+    } catch (err) {
+      console.error('Erro ao carregar evento:', err)
+      // Diferencia tipos de erro
+      if (err.message?.includes('fetch') || err.message?.includes('network')) {
+        setError('NETWORK_ERROR')
+      } else if (err.code === 'PGRST116') {
+        setError('NOT_FOUND')
+      } else {
+        setError('SERVER_ERROR')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadEvent()
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="event-details-page">
+        <Header />
+        <main className="details-main">
+          <div className="details-container">
+            <div className="skeleton-back-button"></div>
+            <div
+              className="skeleton-detail-card"
+              role="status"
+              aria-busy="true"
+              aria-label="Carregando detalhes do evento"
+            >
+              <div className="skeleton-detail-image"></div>
+              <div className="skeleton-detail-content">
+                <div className="skeleton-detail-title"></div>
+                <div className="skeleton-detail-description">
+                  <div className="skeleton-text"></div>
+                  <div className="skeleton-text"></div>
+                  <div className="skeleton-text"></div>
+                  <div className="skeleton-text short"></div>
+                </div>
+                <div className="skeleton-detail-info-grid">
+                  <div className="skeleton-info-card"></div>
+                  <div className="skeleton-info-card"></div>
+                  <div className="skeleton-info-card"></div>
+                </div>
+                <div className="skeleton-button large"></div>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (error) {
+    const errorMessages = {
+      NOT_FOUND: {
+        title: 'Evento não encontrado',
+        message: 'O evento que você está procurando não existe ou foi removido.',
+        showRetry: false,
+      },
+      NETWORK_ERROR: {
+        title: 'Erro de conexão',
+        message: 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
+        showRetry: true,
+      },
+      SERVER_ERROR: {
+        title: 'Erro no servidor',
+        message: 'Ocorreu um erro ao carregar o evento. Tente novamente em alguns instantes.',
+        showRetry: true,
+      },
+    }
+
+    const errorInfo = errorMessages[error] || errorMessages.SERVER_ERROR
+
+    return (
+      <div className="event-details-page">
+        <Header />
+        <main className="details-main">
+          <div className="details-container">
+            <button onClick={() => navigate('/eventos')} className="back-link">
+              <ArrowLeft size={18} />
+              <span>Voltar para Eventos</span>
+            </button>
+            <div className="error-container" role="alert" aria-live="polite">
+              <div className="error-icon">
+                <Calendar size={48} />
+              </div>
+              <h2>{errorInfo.title}</h2>
+              <p>{errorInfo.message}</p>
+              <div className="error-actions">
+                {errorInfo.showRetry && (
+                  <button onClick={loadEvent} className="retry-button">
+                    Tentar novamente
+                  </button>
+                )}
+                <button onClick={() => navigate('/eventos')} className="back-button">
+                  <ArrowLeft size={18} />
+                  Voltar para Eventos
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const eventDate = parseEventDate(event.data_evento)
+  const isPast = eventDate < today
+
+  return (
+    <div className="event-details-page">
+      <SEOHead
+        title={event.nome}
+        description={event.descricao}
+        image={event.imagem || BgEventos}
+        url={`${window.location.origin}/eventos/${event.id}`}
+        type="article"
+        article={{
+          publishedTime: event.created_at,
+        }}
+      />
+      <Header />
+
+      <main className="details-main">
+        <div className="details-container">
+          <button onClick={() => navigate('/eventos')} className="back-link">
+            <ArrowLeft size={18} />
+            <span>Voltar para Eventos</span>
+          </button>
+
+          <div className={`event-details-card ${isPast ? 'evento-encerrado' : ''}`}>
+            <div className="event-image-container">
+              <img src={event.imagem || BgEventos} alt={event.nome} />
+              {isPast ? (
+                <div className="event-badge card-badge-encerrado">Encerrado</div>
+              ) : (
+                <div className="event-badge">{event.periodo}</div>
+              )}
+            </div>
+
+            <div className="event-details-content">
+              <h1>{event.nome}</h1>
+
+              {event.descricao && (
+                <div className="event-description-full">
+                  <RichText content={event.descricao} />
+                </div>
+              )}
+
+              <div className="event-info-grid">
+                <div className="info-card">
+                  <div className="info-icon">
+                    <Calendar size={24} />
+                  </div>
+                  <div className="info-text">
+                    <span className="info-label">Data</span>
+                    <span className="info-value">{event.data_evento}</span>
+                  </div>
+                </div>
+
+                <div className="info-card">
+                  <div className="info-icon">
+                    <Clock size={24} />
+                  </div>
+                  <div className="info-text">
+                    <span className="info-label">Horario</span>
+                    <span className="info-value">{event.horario}</span>
+                  </div>
+                </div>
+
+                <div className="info-card">
+                  <div className="info-icon">
+                    <CalendarDays size={24} />
+                  </div>
+                  <div className="info-text">
+                    <span className="info-label">Dia da Semana</span>
+                    <span className="info-value">{event.dia_semana}</span>
+                  </div>
+                </div>
+              </div>
+
+              <a
+                href={isPast ? undefined : event.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`participate-button ${isPast ? 'disabled' : ''}`}
+                onClick={(e) => isPast && e.preventDefault()}
+              >
+                {isPast ? 'Evento Encerrado' : 'Participar do Evento'}
+                {!isPast && <ArrowUpRight size={20} />}
+              </a>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+      <FloatingMenu />
+    </div>
+  )
+}
+
+export default EventDetails

@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   Plus,
   Calendar,
   Clock,
+  Search,
   Link as LinkIcon,
   Image,
   LogOut,
@@ -32,8 +33,82 @@ import {
   getEventStats,
   uploadEventImage,
 } from '../services/eventService'
+import Pagination from '../components/Pagination'
+import RichText from '../components/RichText'
+import useMediaQuery from '../hooks/useMediaQuery'
+import usePagination from '../hooks/usePagination'
+import { filterEventsByQuery } from '../utils/eventSearch'
+import { stripRichText } from '../utils/richText'
 import './Admin.css'
-import BgEventos from '../../public/eventos.png'
+import BgEventos from '../assets/eventos.png'
+
+const DAY_NAMES = [
+  'Domingo',
+  'Segunda-feira',
+  'Terça-feira',
+  'Quarta-feira',
+  'Quinta-feira',
+  'Sexta-feira',
+  'Sábado',
+]
+
+const PAGE_SIZES = {
+  desktop: 20,
+  mobile: 10,
+}
+
+const DATE_INPUT_REGEX = /^\d{4}-\d{2}-\d{2}$/
+const DATE_BR_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/
+
+const parseDateValue = (value) => {
+  if (!value) {
+    return null
+  }
+
+  if (DATE_INPUT_REGEX.test(value)) {
+    const [year, month, day] = value.split('-').map(Number)
+    return new Date(year, month - 1, day)
+  }
+
+  const brMatch = value.match(DATE_BR_REGEX)
+  if (brMatch) {
+    const [, day, month, year] = brMatch
+    return new Date(Number(year), Number(month) - 1, Number(day))
+  }
+
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+const formatDateToInput = (value) => {
+  const date = parseDateValue(value)
+  if (!date) {
+    return ''
+  }
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const formatDateToDisplay = (value) => {
+  const date = parseDateValue(value)
+  if (!date) {
+    return ''
+  }
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
+const getDayName = (value) => {
+  const date = parseDateValue(value)
+  if (!date) {
+    return ''
+  }
+  return DAY_NAMES[date.getDay()]
+}
 
 function Dashboard() {
   const [eventos, setEventos] = useState([])
@@ -49,16 +124,47 @@ function Dashboard() {
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
+  const isMobile = useMediaQuery('(max-width: 768px)')
 
   const {
     register,
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm()
+  const descricaoValue = watch('descricao') || ''
+
+  const filteredEvents = useMemo(
+    () => filterEventsByQuery(eventos, searchTerm),
+    [eventos, searchTerm]
+  )
+  const pageSize = isMobile ? PAGE_SIZES.mobile : PAGE_SIZES.desktop
+  const { currentPage, totalPages, pagedItems, goToPage } = usePagination(filteredEvents, pageSize)
+  const showSearch = !loading && eventos.length > 0
+
+  const showNotification = useCallback((message, type = 'success') => {
+    setNotification({ message, type })
+    setTimeout(() => setNotification(null), 3000)
+  }, [])
+
+  const loadEvents = useCallback(async () => {
+    try {
+      setLoading(true)
+      const [eventsData, statsData] = await Promise.all([getEvents(), getEventStats()])
+      setEventos(eventsData)
+      setStats(statsData)
+    } catch (error) {
+      console.error('Erro ao carregar eventos:', error)
+      showNotification('Erro ao carregar eventos', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }, [showNotification])
 
   useEffect(() => {
     async function init() {
@@ -83,21 +189,7 @@ function Dashboard() {
     }
 
     init()
-  }, [navigate])
-
-  const loadEvents = async () => {
-    try {
-      setLoading(true)
-      const [eventsData, statsData] = await Promise.all([getEvents(), getEventStats()])
-      setEventos(eventsData)
-      setStats(statsData)
-    } catch (error) {
-      console.error('Erro ao carregar eventos:', error)
-      showNotification('Erro ao carregar eventos', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [navigate, loadEvents])
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode
@@ -122,11 +214,6 @@ function Dashboard() {
     }
   }
 
-  const showNotification = (message, type = 'success') => {
-    setNotification({ message, type })
-    setTimeout(() => setNotification(null), 3000)
-  }
-
   const openCreateModal = () => {
     setEditingEvent(null)
     setImageFile(null)
@@ -145,14 +232,16 @@ function Dashboard() {
   }
 
   const openEditModal = (evento) => {
+    const normalizedDate = formatDateToInput(evento.data_evento)
+    const dayName = getDayName(normalizedDate || evento.data_evento) || evento.dia_semana || ''
     setEditingEvent(evento)
     setImageFile(null)
     setImagePreview(evento.imagem || null)
     setValue('nome', evento.nome)
     setValue('descricao', evento.descricao || '')
-    setValue('data_evento', evento.data_evento)
+    setValue('data_evento', normalizedDate)
     setValue('horario', evento.horario)
-    setValue('dia_semana', evento.dia_semana)
+    setValue('dia_semana', dayName)
     setValue('periodo', evento.periodo)
     setValue('link', evento.link)
     setValue('imagem', evento.imagem || '')
@@ -196,6 +285,11 @@ function Dashboard() {
     }
   }
 
+  const syncDayOfWeek = (value) => {
+    const dayName = getDayName(value)
+    setValue('dia_semana', dayName, { shouldValidate: true })
+  }
+
   const onSubmit = async (data) => {
     setIsSubmitting(true)
     try {
@@ -216,12 +310,15 @@ function Dashboard() {
         setIsUploading(false)
       }
 
+      const displayDate = formatDateToDisplay(data.data_evento) || data.data_evento
+      const resolvedDayName = getDayName(data.data_evento) || data.dia_semana
+
       const eventData = {
         nome: data.nome,
         descricao: data.descricao || null,
-        data_evento: data.data_evento,
+        data_evento: displayDate,
         horario: data.horario,
-        dia_semana: data.dia_semana,
+        dia_semana: resolvedDayName,
         periodo: data.periodo,
         link: data.link,
         imagem: imageUrl,
@@ -354,11 +451,35 @@ function Dashboard() {
           <div className="events-section">
             <div className="section-header">
               <h2>Eventos Cadastrados</h2>
-              <button className="btn-primary" onClick={openCreateModal}>
+              <button className="btn-primary" onClick={openCreateModal} aria-label="Novo Evento">
                 <Plus size={18} />
-                Novo Evento
+                <span className="btn-text">Novo Evento</span>
               </button>
             </div>
+
+            {showSearch && (
+              <div className="events-toolbar">
+                <div className="events-search">
+                  <Search size={18} className="events-search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nome, descricao ou data..."
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    aria-label="Buscar eventos"
+                  />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      className="events-search-clear"
+                      onClick={() => setSearchTerm('')}
+                    >
+                      Limpar
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             {loading ? (
               <div className="loading-state">
@@ -371,72 +492,87 @@ function Dashboard() {
                 <h3>Nenhum evento cadastrado</h3>
                 <p>Clique em "Novo Evento" para criar seu primeiro evento.</p>
               </div>
-            ) : (
-              <div className="events-table-container">
-                <table className="events-table">
-                  <thead>
-                    <tr>
-                      <th>Imagem</th>
-                      <th>Nome do Evento</th>
-                      <th>Data</th>
-                      <th>Horário</th>
-                      <th>Período</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {eventos.map((evento) => (
-                      <tr key={evento.id}>
-                        <td>
-                          <img
-                            src={evento.imagem || BgEventos}
-                            alt={evento.nome}
-                            className="event-thumbnail"
-                          />
-                        </td>
-                        <td>
-                          <span className="event-name">{evento.nome}</span>
-                          {evento.descricao && (
-                            <span className="event-desc-preview">{evento.descricao}</span>
-                          )}
-                        </td>
-                        <td>{evento.data_evento}</td>
-                        <td>{evento.horario}</td>
-                        <td>
-                          <span className={`badge badge-${evento.periodo?.toLowerCase()}`}>
-                            {evento.periodo}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="action-buttons">
-                            <button
-                              className="btn-icon btn-view"
-                              onClick={() => window.open(evento.link, '_blank')}
-                              title="Ver evento"
-                            >
-                              <Eye size={16} />
-                            </button>
-                            <button
-                              className="btn-icon btn-edit"
-                              onClick={() => openEditModal(evento)}
-                              title="Editar"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button
-                              className="btn-icon btn-delete"
-                              onClick={() => handleDeleteEvent(evento.id)}
-                              title="Excluir"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            ) : filteredEvents.length === 0 ? (
+              <div className="empty-state">
+                <Search size={48} />
+                <h3>Nenhum evento encontrado</h3>
+                <p>Tente ajustar sua busca para encontrar o evento desejado.</p>
               </div>
+            ) : (
+              <>
+                <div className="events-table-container">
+                  <table className="events-table">
+                    <thead>
+                      <tr>
+                        <th>Imagem</th>
+                        <th>Nome do Evento</th>
+                        <th>Data</th>
+                        <th>Horário</th>
+                        <th>Período</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagedItems.map((evento) => (
+                        <tr key={evento.id}>
+                          <td data-label="Imagem">
+                            <img
+                              src={evento.imagem || BgEventos}
+                              alt={evento.nome}
+                              className="event-thumbnail"
+                            />
+                          </td>
+                          <td data-label="Nome do Evento">
+                            <span className="event-name">{evento.nome}</span>
+                            {evento.descricao && (
+                              <span className="event-desc-preview">
+                                {stripRichText(evento.descricao)}
+                              </span>
+                            )}
+                          </td>
+                          <td data-label="Data">{evento.data_evento}</td>
+                          <td data-label="Horário">{evento.horario}</td>
+                          <td data-label="Período">
+                            <span className={`badge badge-${evento.periodo?.toLowerCase()}`}>
+                              {evento.periodo}
+                            </span>
+                          </td>
+                          <td data-label="Ações">
+                            <div className="action-buttons">
+                              <button
+                                className="btn-icon btn-view"
+                                onClick={() => window.open(evento.link, '_blank')}
+                                title="Ver evento"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                className="btn-icon btn-edit"
+                                onClick={() => openEditModal(evento)}
+                                title="Editar"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                className="btn-icon btn-delete"
+                                onClick={() => handleDeleteEvent(evento.id)}
+                                title="Excluir"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={goToPage}
+                />
+              </>
             )}
           </div>
         </div>
@@ -480,6 +616,16 @@ function Dashboard() {
                     rows="3"
                     {...register('descricao')}
                   />
+                  <span className="field-helper">
+                    Suporta Markdown: **negrito**, *italico*, listas com &quot;-&quot; e links
+                    [texto](https://...)
+                  </span>
+                  {descricaoValue && (
+                    <div className="rich-text-preview">
+                      <span className="preview-label">Pré-visualização</span>
+                      <RichText content={descricaoValue} className="preview-content" />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -490,9 +636,12 @@ function Dashboard() {
                     Data do Evento
                   </label>
                   <input
-                    type="text"
-                    placeholder="Ex: 15/02/2025"
-                    {...register('data_evento', { required: 'Data é obrigatória' })}
+                    type="date"
+                    placeholder="Selecione uma data"
+                    {...register('data_evento', {
+                      required: 'Data é obrigatória',
+                      onChange: (event) => syncDayOfWeek(event.target.value),
+                    })}
                   />
                   {errors.data_evento && (
                     <span className="field-error">{errors.data_evento.message}</span>

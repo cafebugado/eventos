@@ -24,16 +24,16 @@ describe('Home', () => {
   it('deve renderizar o conteúdo principal', () => {
     renderWithRouter(<Home />)
 
-    expect(screen.getByRole('heading', { name: 'Eventos' })).toBeInTheDocument()
-    expect(screen.getAllByText('Comunidade Café Bugado').length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('heading', { name: 'Eventos' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Cafe Bugado').length).toBeGreaterThan(0)
     expect(screen.getByText(/Eventos de/)).toBeInTheDocument()
-    expect(screen.getByText('Tecnologia')).toBeInTheDocument()
+    expect(screen.getAllByText(/tecnologia/i).length).toBeGreaterThan(0)
   })
 
   it('deve renderizar as features', () => {
     renderWithRouter(<Home />)
 
-    expect(screen.getByText('Meetups & Workshops')).toBeInTheDocument()
+    expect(screen.getByText('Meetups e Workshops')).toBeInTheDocument()
     expect(screen.getByText('Hackathons')).toBeInTheDocument()
     expect(screen.getByText('Conferências')).toBeInTheDocument()
   })
@@ -41,15 +41,15 @@ describe('Home', () => {
   it('deve renderizar a caixa informativa', () => {
     renderWithRouter(<Home />)
 
-    expect(screen.getByText(/Como funciona:/)).toBeInTheDocument()
-    expect(screen.getByText(/Reunimos eventos de diversas comunidades/)).toBeInTheDocument()
+    expect(screen.getByText(/Como funciona/)).toBeInTheDocument()
+    expect(screen.getByText(/A comunidade indica eventos/)).toBeInTheDocument()
   })
 
   it('deve navegar para /eventos ao clicar no botão CTA', async () => {
     const user = userEvent.setup()
     renderWithRouter(<Home />)
 
-    await user.click(screen.getByRole('button', { name: /Ver Eventos/i }))
+    await user.click(screen.getByRole('button', { name: /Ver eventos da comunidade/i }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/eventos')
   })
@@ -107,13 +107,13 @@ describe('Home', () => {
 
     const currentYear = new Date().getFullYear()
     expect(screen.getByText(new RegExp(currentYear.toString()))).toBeInTheDocument()
-    expect(screen.getByText(/Todos os direitos reservados/)).toBeInTheDocument()
+    expect(screen.getByText(/Um projeto da comunidade/)).toBeInTheDocument()
   })
 
   it('deve ter link externo para cafebugado.com.br', () => {
     renderWithRouter(<Home />)
 
-    const links = screen.getAllByRole('link', { name: /Comunidade Café Bugado/i })
+    const links = screen.getAllByRole('link', { name: /Cafe Bugado/i })
     links.forEach((link) => {
       expect(link).toHaveAttribute('href', 'https://cafebugado.com.br')
       expect(link).toHaveAttribute('target', '_blank')

@@ -1,0 +1,229 @@
+/* Footer Principal */
+.main-footer {
+  position: relative;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: auto;
+}
+
+[data-theme='light'] .main-footer {
+  background: rgba(255, 255, 255, 0.95);
+  border-top: 1px solid rgba(30, 41, 59, 0.1);
+}
+
+.footer-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+}
+
+/* Footer Content - Layout Horizontal Centralizado */
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 2rem;
+}
+
+.footer-logo-link {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.footer-logo-text {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.footer-logo-text h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+[data-theme='light'] .footer-logo-text h3 {
+  color: #1e293b;
+}
+
+.footer-logo-text span {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+[data-theme='light'] .footer-logo-text span {
+  color: rgba(30, 41, 59, 0.5);
+}
+
+.footer-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.footer-description {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+[data-theme='light'] .footer-description {
+  color: rgba(30, 41, 59, 0.6);
+}
+
+.footer-tagline {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.7rem;
+  margin: 0;
+}
+
+[data-theme='light'] .footer-tagline {
+  color: rgba(30, 41, 59, 0.5);
+}
+
+/* Social Links */
+.social-links {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.social-link {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.social-link svg {
+  width: 15px;
+  height: 15px;
+}
+
+[data-theme='light'] .social-link {
+  color: rgba(30, 41, 59, 0.5);
+}
+
+.social-link:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='light'] .social-link:hover {
+  color: #1e293b;
+  background: rgba(30, 41, 59, 0.1);
+}
+
+/* Tooltip */
+.social-link::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #1e293b;
+  color: white;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+[data-theme='light'] .social-link::before {
+  background: #1e293b;
+  color: white;
+}
+
+.social-link:hover::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Footer Copyright */
+.footer-copyright {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+[data-theme='light'] .footer-copyright {
+  color: rgba(30, 41, 59, 0.5);
+}
+
+.footer-copyright a {
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+[data-theme='light'] .footer-copyright a {
+  color: rgba(30, 41, 59, 0.6);
+}
+
+.footer-copyright a:hover {
+  color: var(--primary-blue);
+}
+
+/* Responsive - Mobile */
+@media (max-width: 900px) {
+  .footer-content {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.75rem;
+  }
+
+  .footer-logo-link {
+    justify-content: center;
+  }
+
+  .footer-logo-text {
+    justify-content: center;
+  }
+
+  .social-links {
+    justify-content: center;
+  }
+
+  .footer-text {
+    align-items: center;
+  }
+
+  .footer-copyright {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-container {
+    padding: 0.875rem 1rem;
+  }
+
+  .footer-description {
+    font-size: 0.75rem;
+  }
+}
