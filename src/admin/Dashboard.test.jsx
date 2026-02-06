@@ -36,9 +36,19 @@ vi.mock('react-router-dom', async () => {
 vi.mock('../../public/eventos.png', () => ({ default: 'mock-image.png' }))
 
 describe('Dashboard', () => {
+  const futureDate = (() => {
+    const d = new Date()
+    d.setFullYear(d.getFullYear() + 1)
+    const day = String(d.getDate()).padStart(2, '0')
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    return `${day}/${month}/${d.getFullYear()}`
+  })()
+
+  const pastDate = '15/01/2024'
+
   const mockEvents = [
-    createMockEvent({ id: '1', nome: 'Evento 1', periodo: 'Noturno' }),
-    createMockEvent({ id: '2', nome: 'Evento 2', periodo: 'Diurno' }),
+    createMockEvent({ id: '1', nome: 'Evento 1', periodo: 'Noturno', data_evento: futureDate }),
+    createMockEvent({ id: '2', nome: 'Evento 2', periodo: 'Diurno', data_evento: futureDate }),
   ]
 
   const mockStats = { total: 2, noturno: 1, diurno: 1 }
@@ -309,5 +319,54 @@ describe('Dashboard', () => {
 
     expect(windowOpen).toHaveBeenCalledWith('https://evento.com', '_blank')
     windowOpen.mockRestore()
+  })
+
+  it('deve exibir somente botão excluir para eventos passados', async () => {
+    const pastEvents = [createMockEvent({ id: '1', nome: 'Evento Passado', data_evento: pastDate })]
+    eventService.getEvents.mockResolvedValue(pastEvents)
+    eventService.getEventStats.mockResolvedValue({ total: 1, noturno: 1, diurno: 0 })
+
+    renderWithRouter(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Evento Passado')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByTitle('Ver evento')).not.toBeInTheDocument()
+    expect(screen.queryByTitle('Editar')).not.toBeInTheDocument()
+    expect(screen.getByTitle('Excluir')).toBeInTheDocument()
+  })
+
+  it('deve exibir badge Encerrado para eventos passados', async () => {
+    const pastEvents = [createMockEvent({ id: '1', nome: 'Evento Passado', data_evento: pastDate })]
+    eventService.getEvents.mockResolvedValue(pastEvents)
+    eventService.getEventStats.mockResolvedValue({ total: 1, noturno: 1, diurno: 0 })
+
+    renderWithRouter(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Encerrado')).toBeInTheDocument()
+    })
+  })
+
+  it('deve ordenar eventos futuros antes dos passados', async () => {
+    const mixedEvents = [
+      createMockEvent({ id: '1', nome: 'Evento Passado', data_evento: pastDate }),
+      createMockEvent({ id: '2', nome: 'Evento Futuro', data_evento: futureDate }),
+    ]
+    eventService.getEvents.mockResolvedValue(mixedEvents)
+    eventService.getEventStats.mockResolvedValue({ total: 2, noturno: 1, diurno: 1 })
+
+    renderWithRouter(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Evento Futuro')).toBeInTheDocument()
+      expect(screen.getByText('Evento Passado')).toBeInTheDocument()
+    })
+
+    const rows = screen.getAllByRole('row')
+    const dataRows = rows.slice(1)
+    expect(dataRows[0]).toHaveTextContent('Evento Futuro')
+    expect(dataRows[1]).toHaveTextContent('Evento Passado')
   })
 })

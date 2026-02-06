@@ -139,9 +139,32 @@ function Dashboard() {
   } = useForm()
   const descricaoValue = watch('descricao') || ''
 
+  const sortedEvents = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    return [...eventos].sort((a, b) => {
+      const dateA = parseDateValue(a.data_evento)
+      const dateB = parseDateValue(b.data_evento)
+      const isAFuture = dateA && dateA >= today
+      const isBFuture = dateB && dateB >= today
+
+      if (isAFuture && !isBFuture) {
+        return -1
+      }
+      if (!isAFuture && isBFuture) {
+        return 1
+      }
+      if (isAFuture) {
+        return dateA - dateB
+      }
+      return dateB - dateA
+    })
+  }, [eventos])
+
   const filteredEvents = useMemo(
-    () => filterEventsByQuery(eventos, searchTerm),
-    [eventos, searchTerm]
+    () => filterEventsByQuery(sortedEvents, searchTerm),
+    [sortedEvents, searchTerm]
   )
   const pageSize = isMobile ? PAGE_SIZES.mobile : PAGE_SIZES.desktop
   const { currentPage, totalPages, pagedItems, goToPage } = usePagination(filteredEvents, pageSize)
@@ -513,57 +536,69 @@ function Dashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {pagedItems.map((evento) => (
-                        <tr key={evento.id}>
-                          <td data-label="Imagem">
-                            <img
-                              src={evento.imagem || BgEventos}
-                              alt={evento.nome}
-                              className="event-thumbnail"
-                            />
-                          </td>
-                          <td data-label="Nome do Evento">
-                            <span className="event-name">{evento.nome}</span>
-                            {evento.descricao && (
-                              <span className="event-desc-preview">
-                                {stripRichText(evento.descricao)}
+                      {pagedItems.map((evento) => {
+                        const eventDate = parseDateValue(evento.data_evento)
+                        const today = new Date()
+                        today.setHours(0, 0, 0, 0)
+                        const isPast = eventDate && eventDate < today
+
+                        return (
+                          <tr key={evento.id} className={isPast ? 'event-row-past' : ''}>
+                            <td data-label="Imagem">
+                              <img
+                                src={evento.imagem || BgEventos}
+                                alt={evento.nome}
+                                className="event-thumbnail"
+                              />
+                            </td>
+                            <td data-label="Nome do Evento">
+                              <span className="event-name">{evento.nome}</span>
+                              {evento.descricao && (
+                                <span className="event-desc-preview">
+                                  {stripRichText(evento.descricao)}
+                                </span>
+                              )}
+                              {isPast && <span className="badge badge-encerrado">Encerrado</span>}
+                            </td>
+                            <td data-label="Data">{evento.data_evento}</td>
+                            <td data-label="Horário">{evento.horario}</td>
+                            <td data-label="Período">
+                              <span className={`badge badge-${evento.periodo?.toLowerCase()}`}>
+                                {evento.periodo}
                               </span>
-                            )}
-                          </td>
-                          <td data-label="Data">{evento.data_evento}</td>
-                          <td data-label="Horário">{evento.horario}</td>
-                          <td data-label="Período">
-                            <span className={`badge badge-${evento.periodo?.toLowerCase()}`}>
-                              {evento.periodo}
-                            </span>
-                          </td>
-                          <td data-label="Ações">
-                            <div className="action-buttons">
-                              <button
-                                className="btn-icon btn-view"
-                                onClick={() => window.open(evento.link, '_blank')}
-                                title="Ver evento"
-                              >
-                                <Eye size={16} />
-                              </button>
-                              <button
-                                className="btn-icon btn-edit"
-                                onClick={() => openEditModal(evento)}
-                                title="Editar"
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                              <button
-                                className="btn-icon btn-delete"
-                                onClick={() => handleDeleteEvent(evento.id)}
-                                title="Excluir"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td data-label="Ações">
+                              <div className="action-buttons">
+                                {!isPast && (
+                                  <>
+                                    <button
+                                      className="btn-icon btn-view"
+                                      onClick={() => window.open(evento.link, '_blank')}
+                                      title="Ver evento"
+                                    >
+                                      <Eye size={16} />
+                                    </button>
+                                    <button
+                                      className="btn-icon btn-edit"
+                                      onClick={() => openEditModal(evento)}
+                                      title="Editar"
+                                    >
+                                      <Edit2 size={16} />
+                                    </button>
+                                  </>
+                                )}
+                                <button
+                                  className="btn-icon btn-delete"
+                                  onClick={() => handleDeleteEvent(evento.id)}
+                                  title="Excluir"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
