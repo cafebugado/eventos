@@ -410,6 +410,13 @@
   box-shadow: none;
 }
 
+/* Share Buttons Section */
+.event-details-content .share-buttons {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .details-header .header-container {

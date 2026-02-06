@@ -931,6 +931,17 @@ section {
   transform: translateX(2px) translateY(-2px);
 }
 
+/* Share buttons in event cards */
+.card-share-wrapper {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.card-share-wrapper .share-buttons {
+  justify-content: center;
+}
+
 .no-events {
   text-align: center;
   padding: 4rem 2rem;

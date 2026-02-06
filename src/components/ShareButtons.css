@@ -1,0 +1,115 @@
+/* Share Buttons Component */
+.share-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.share-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.share-icons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.share-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+/* WhatsApp */
+.share-btn.share-whatsapp:hover {
+  background: #25d366;
+  color: white;
+  border-color: #25d366;
+}
+
+/* Telegram */
+.share-btn.share-telegram:hover {
+  background: #0088cc;
+  color: white;
+  border-color: #0088cc;
+}
+
+/* Twitter/X */
+.share-btn.share-twitter:hover {
+  background: #000000;
+  color: white;
+  border-color: #000000;
+}
+
+[data-theme='dark'] .share-btn.share-twitter:hover {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+/* LinkedIn */
+.share-btn.share-linkedin:hover {
+  background: #0a66c2;
+  color: white;
+  border-color: #0a66c2;
+}
+
+/* Copy Link */
+.share-btn.share-copy:hover {
+  background: var(--primary-blue);
+  color: white;
+  border-color: var(--primary-blue);
+}
+
+.share-btn.share-copy.copied {
+  background: #22c55e;
+  color: white;
+  border-color: #22c55e;
+}
+
+/* Variant: compact (for event cards) */
+.share-buttons.share-compact .share-label {
+  display: none;
+}
+
+.share-buttons.share-compact .share-btn {
+  width: 32px;
+  height: 32px;
+}
+
+.share-buttons.share-compact .share-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .share-buttons {
+    justify-content: center;
+  }
+
+  .share-btn {
+    width: 40px;
+    height: 40px;
+  }
+}

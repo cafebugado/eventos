@@ -3,6 +3,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
 import UpcomingEvents from '../components/UpcomingEvents'
+import Testimonials from '../components/Testimonials'
 import SEOHead from '../components/SEOHead'
 import './Home.css'
 
@@ -65,6 +66,7 @@ function Home() {
         </section>
 
         <UpcomingEvents />
+        <Testimonials />
       </main>
 
       <Footer />
