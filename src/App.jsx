@@ -8,6 +8,7 @@ import FloatingMenu from './components/FloatingMenu'
 import Pagination from './components/Pagination'
 import RichText from './components/RichText'
 import SEOHead from './components/SEOHead'
+import ShareButtons from './components/ShareButtons'
 import useMediaQuery from './hooks/useMediaQuery'
 import usePagination from './hooks/usePagination'
 import './App.css'
@@ -303,6 +304,15 @@ function App() {
                           >
                             {isPast ? 'Ver detalhes do evento' : 'Saber mais sobre o evento'}
                           </button>
+                        </div>
+                        <div className="card-share-wrapper" onClick={(e) => e.stopPropagation()}>
+                          <ShareButtons
+                            className="share-compact"
+                            eventName={item.nome}
+                            eventDate={item.data_evento}
+                            eventTime={item.horario}
+                            eventUrl={`${window.location.origin}/eventos/${item.id}`}
+                          />
                         </div>
                       </div>
                     </div>

@@ -7,6 +7,7 @@ import {
   updateEvent,
   deleteEvent,
   getEventsByPeriod,
+  getUpcomingEvents,
   getEventStats,
   uploadEventImage,
   deleteEventImage,
@@ -284,6 +285,79 @@ describe('eventService', () => {
       supabase.from.mockReturnValue(mockChain)
 
       const result = await getEventsByPeriod('Matinal')
+
+      expect(result).toEqual([])
+    })
+  })
+
+  describe('getUpcomingEvents', () => {
+    it('deve retornar apenas eventos futuros limitados a 3', async () => {
+      const today = new Date()
+      const futureDate1 = new Date(today)
+      futureDate1.setDate(today.getDate() + 1)
+      const futureDate2 = new Date(today)
+      futureDate2.setDate(today.getDate() + 5)
+      const futureDate3 = new Date(today)
+      futureDate3.setDate(today.getDate() + 10)
+      const futureDate4 = new Date(today)
+      futureDate4.setDate(today.getDate() + 15)
+      const pastDate = new Date(today)
+      pastDate.setDate(today.getDate() - 5)
+
+      const fmt = (d) =>
+        `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+
+      const mockEvents = [
+        { id: '0', nome: 'Passado', data_evento: fmt(pastDate) },
+        { id: '1', nome: 'Futuro 1', data_evento: fmt(futureDate1) },
+        { id: '2', nome: 'Futuro 2', data_evento: fmt(futureDate2) },
+        { id: '3', nome: 'Futuro 3', data_evento: fmt(futureDate3) },
+        { id: '4', nome: 'Futuro 4', data_evento: fmt(futureDate4) },
+      ]
+
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
+      }
+
+      supabase.from.mockReturnValue(mockChain)
+
+      const result = await getUpcomingEvents(3)
+
+      expect(result).toHaveLength(3)
+      expect(result[0].nome).toBe('Futuro 1')
+      expect(result[2].nome).toBe('Futuro 3')
+    })
+
+    it('deve lançar erro quando a busca falha', async () => {
+      const mockError = new Error('Database error')
+
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: null, error: mockError }),
+      }
+
+      supabase.from.mockReturnValue(mockChain)
+
+      await expect(getUpcomingEvents()).rejects.toThrow('Database error')
+    })
+
+    it('deve retornar array vazio quando não há eventos futuros', async () => {
+      const pastDate = new Date()
+      pastDate.setDate(pastDate.getDate() - 10)
+      const fmt = (d) =>
+        `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+
+      const mockEvents = [{ id: '1', nome: 'Passado', data_evento: fmt(pastDate) }]
+
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
+      }
+
+      supabase.from.mockReturnValue(mockChain)
+
+      const result = await getUpcomingEvents()
 
       expect(result).toEqual([])
     })

@@ -1,14 +1,13 @@
-import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Info } from 'lucide-react'
+import { Info } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
+import UpcomingEvents from '../components/UpcomingEvents'
+import Testimonials from '../components/Testimonials'
 import SEOHead from '../components/SEOHead'
 import './Home.css'
 
 function Home() {
-  const navigate = useNavigate()
-
   return (
     <div className="home-page">
       <SEOHead
@@ -63,13 +62,11 @@ function Home() {
                 </p>
               </div>
             </div>
-
-            <button className="home-cta" onClick={() => navigate('/eventos')}>
-              Ver eventos da comunidade
-              <ArrowRight size={18} />
-            </button>
           </div>
         </section>
+
+        <UpcomingEvents />
+        <Testimonials />
       </main>
 
       <Footer />
