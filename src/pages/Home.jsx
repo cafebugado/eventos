@@ -3,6 +3,7 @@ import { ArrowRight, Info } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
+import Testimonials from '../components/Testimonials'
 import SEOHead from '../components/SEOHead'
 import './Home.css'
 
@@ -70,6 +71,8 @@ function Home() {
             </button>
           </div>
         </section>
+
+        <Testimonials />
       </main>
 
       <Footer />
