@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Target, Zap, Globe, Handshake, Github, Linkedin, ExternalLink } from 'lucide-react'
+import {
+  Target,
+  Zap,
+  Globe,
+  Handshake,
+  Github,
+  Linkedin,
+  ExternalLink,
+  BookOpen,
+  Heart,
+} from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
@@ -105,6 +115,28 @@ function About() {
                     Conecte-se com pessoas que participam ativamente da comunidade de tecnologia.
                     Aqui você encontra quem aprende, compartilha eventos, troca experiências e ajuda
                     outros a crescer na área.
+                  </p>
+                </div>
+                <div className="feature">
+                  <div className="feature-icon">
+                    <BookOpen size={40} />
+                  </div>
+                  <h4>Conteúdo Acessível</h4>
+                  <p>
+                    Acreditamos que o conhecimento deve ser para todos. Priorizamos eventos
+                    gratuitos e acessíveis, para que qualquer pessoa possa aprender e se desenvolver
+                    na área de tecnologia.
+                  </p>
+                </div>
+                <div className="feature">
+                  <div className="feature-icon">
+                    <Heart size={40} />
+                  </div>
+                  <h4>Projeto Colaborativo</h4>
+                  <p>
+                    Mantido por voluntários apaixonados por tecnologia. Qualquer pessoa pode sugerir
+                    eventos, contribuir com melhorias e ajudar a fortalecer o ecossistema tech da
+                    comunidade.
                   </p>
                 </div>
               </div>

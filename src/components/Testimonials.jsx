@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Quote, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Quote } from 'lucide-react'
 import './Testimonials.css'
 
 const testimonials = [
@@ -65,10 +65,6 @@ function Testimonials() {
     goToSlide((currentIndex + 1) % testimonials.length)
   }, [currentIndex, goToSlide])
 
-  const prevSlide = useCallback(() => {
-    goToSlide((currentIndex - 1 + testimonials.length) % testimonials.length)
-  }, [currentIndex, goToSlide])
-
   useEffect(() => {
     const interval = setInterval(nextSlide, 5000)
     return () => clearInterval(interval)
@@ -85,14 +81,6 @@ function Testimonials() {
         </div>
 
         <div className="testimonials-carousel">
-          <button
-            className="carousel-arrow carousel-arrow-left"
-            onClick={prevSlide}
-            aria-label="Depoimento anterior"
-          >
-            <ChevronLeft size={20} />
-          </button>
-
           <div className="testimonial-card-wrapper">
             <div className="testimonial-card" key={current.id}>
               <div className="testimonial-quote-icon">
@@ -110,25 +98,6 @@ function Testimonials() {
               </div>
             </div>
           </div>
-
-          <button
-            className="carousel-arrow carousel-arrow-right"
-            onClick={nextSlide}
-            aria-label="Próximo depoimento"
-          >
-            <ChevronRight size={20} />
-          </button>
-        </div>
-
-        <div className="testimonials-dots">
-          {testimonials.map((_, index) => (
-            <button
-              key={index}
-              className={`testimonial-dot ${index === currentIndex ? 'active' : ''}`}
-              onClick={() => goToSlide(index)}
-              aria-label={`Ir para depoimento ${index + 1}`}
-            />
-          ))}
         </div>
       </div>
     </section>
