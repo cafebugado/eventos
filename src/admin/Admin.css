@@ -1277,3 +1277,144 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ================================
+   Contributors Admin Styles
+   ================================ */
+
+.contributors-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.contributor-admin-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.contributor-admin-card:hover {
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.contributor-admin-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary-blue);
+  flex-shrink: 0;
+}
+
+.contributor-admin-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.contributor-admin-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contributor-admin-username {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.contributor-admin-links {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.contributor-admin-links a {
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.contributor-admin-links a:hover {
+  color: var(--primary-blue);
+}
+
+/* GitHub Search Row */
+.github-search-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.github-search-row input {
+  flex: 1;
+}
+
+.btn-fetch-github {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* GitHub Preview */
+.github-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+
+.github-preview-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary-blue);
+}
+
+.github-preview-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.github-preview-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.github-preview-username {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Spinning animation for loader */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Contributors responsive */
+@media (max-width: 768px) {
+  .contributors-admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .github-search-row {
+    flex-direction: column;
+  }
+
+  .btn-fetch-github {
+    width: 100%;
+    justify-content: center;
+  }
+}

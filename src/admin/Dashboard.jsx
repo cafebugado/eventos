@@ -22,6 +22,11 @@ import {
   CheckCircle,
   Upload,
   FileText,
+  Users,
+  Github,
+  Linkedin,
+  ExternalLink,
+  Loader2,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { getSession, signOut, getCurrentUser } from '../services/authService'
@@ -33,6 +38,16 @@ import {
   getEventStats,
   uploadEventImage,
 } from '../services/eventService'
+import {
+  getContributors,
+  createContributor,
+  updateContributor,
+  deleteContributor as deleteContributorService,
+  fetchGitHubUser,
+  isValidLinkedInUrl,
+  isValidPortfolioUrl,
+  isValidGitHubUsername,
+} from '../services/contributorService'
 import Pagination from '../components/Pagination'
 import RichText from '../components/RichText'
 import useMediaQuery from '../hooks/useMediaQuery'
@@ -125,6 +140,13 @@ function Dashboard() {
   const [imagePreview, setImagePreview] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [contributors, setContributors] = useState([])
+  const [loadingContributors, setLoadingContributors] = useState(true)
+  const [showContributorModal, setShowContributorModal] = useState(false)
+  const [editingContributor, setEditingContributor] = useState(null)
+  const [isSubmittingContributor, setIsSubmittingContributor] = useState(false)
+  const [isFetchingGitHub, setIsFetchingGitHub] = useState(false)
+  const [gitHubPreview, setGitHubPreview] = useState(null)
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 768px)')
@@ -138,6 +160,14 @@ function Dashboard() {
     formState: { errors },
   } = useForm()
   const descricaoValue = watch('descricao') || ''
+
+  const {
+    register: registerContributor,
+    handleSubmit: handleSubmitContributor,
+    reset: resetContributor,
+    setValue: setContributorValue,
+    formState: { errors: contributorErrors },
+  } = useForm()
 
   const sortedEvents = useMemo(() => {
     const today = new Date()
@@ -379,6 +409,140 @@ function Dashboard() {
     }
   }
 
+  // === Contributor Functions ===
+  const loadContributors = useCallback(async () => {
+    try {
+      setLoadingContributors(true)
+      const data = await getContributors()
+      setContributors(data)
+    } catch (error) {
+      console.error('Erro ao carregar contribuintes:', error)
+      showNotification('Erro ao carregar contribuintes', 'error')
+    } finally {
+      setLoadingContributors(false)
+    }
+  }, [showNotification])
+
+  useEffect(() => {
+    if (activeTab === 'contribuintes') {
+      loadContributors()
+    }
+  }, [activeTab, loadContributors])
+
+  const handleFetchGitHub = async (username) => {
+    if (!username || !isValidGitHubUsername(username)) {
+      setGitHubPreview(null)
+      return
+    }
+
+    setIsFetchingGitHub(true)
+    try {
+      const userData = await fetchGitHubUser(username)
+      setGitHubPreview(userData)
+      setContributorValue('nome', userData.nome)
+    } catch (error) {
+      showNotification(error.message || 'Erro ao buscar usuário do GitHub', 'error')
+      setGitHubPreview(null)
+    } finally {
+      setIsFetchingGitHub(false)
+    }
+  }
+
+  const openCreateContributorModal = () => {
+    setEditingContributor(null)
+    setGitHubPreview(null)
+    resetContributor({
+      github_username: '',
+      nome: '',
+      linkedin_url: '',
+      portfolio_url: '',
+    })
+    setShowContributorModal(true)
+  }
+
+  const openEditContributorModal = (contributor) => {
+    setEditingContributor(contributor)
+    setGitHubPreview({
+      github_username: contributor.github_username,
+      nome: contributor.nome,
+      avatar_url: contributor.avatar_url,
+      github_url: contributor.github_url,
+    })
+    setContributorValue('github_username', contributor.github_username)
+    setContributorValue('nome', contributor.nome)
+    setContributorValue('linkedin_url', contributor.linkedin_url || '')
+    setContributorValue('portfolio_url', contributor.portfolio_url || '')
+    setShowContributorModal(true)
+  }
+
+  const closeContributorModal = () => {
+    setShowContributorModal(false)
+    setEditingContributor(null)
+    setGitHubPreview(null)
+    resetContributor()
+  }
+
+  const onSubmitContributor = async (data) => {
+    if (!gitHubPreview) {
+      showNotification('Busque um usuário do GitHub antes de salvar', 'error')
+      return
+    }
+
+    if (data.linkedin_url && !isValidLinkedInUrl(data.linkedin_url)) {
+      showNotification(
+        'URL do LinkedIn inválida. Use o formato: https://linkedin.com/in/usuario',
+        'error'
+      )
+      return
+    }
+
+    if (data.portfolio_url && !isValidPortfolioUrl(data.portfolio_url)) {
+      showNotification('URL do portfólio inválida. Use uma URL válida com https://', 'error')
+      return
+    }
+
+    setIsSubmittingContributor(true)
+    try {
+      const contributorData = {
+        github_username: gitHubPreview.github_username,
+        nome: data.nome || gitHubPreview.nome,
+        avatar_url: gitHubPreview.avatar_url,
+        github_url: gitHubPreview.github_url,
+        linkedin_url: data.linkedin_url || null,
+        portfolio_url: data.portfolio_url || null,
+      }
+
+      if (editingContributor) {
+        await updateContributor(editingContributor.id, contributorData)
+        showNotification('Contribuinte atualizado com sucesso!')
+      } else {
+        await createContributor(contributorData)
+        showNotification('Contribuinte adicionado com sucesso!')
+      }
+
+      closeContributorModal()
+      await loadContributors()
+    } catch (error) {
+      console.error('Erro ao salvar contribuinte:', error)
+      showNotification(error.message || 'Erro ao salvar contribuinte', 'error')
+    } finally {
+      setIsSubmittingContributor(false)
+    }
+  }
+
+  const handleDeleteContributor = async (id) => {
+    if (window.confirm('Tem certeza que deseja excluir este contribuinte?')) {
+      try {
+        await deleteContributorService(id)
+        showNotification('Contribuinte excluído com sucesso!')
+        await loadContributors()
+      } catch (error) {
+        console.error('Erro ao excluir contribuinte:', error)
+        showNotification('Erro ao excluir contribuinte', 'error')
+      }
+    }
+  }
+
   return (
     <div className="admin-dashboard">
       {/* Sidebar */}
@@ -405,6 +569,13 @@ function Dashboard() {
           >
             <Plus size={20} />
             <span>Criar Evento</span>
+          </button>
+          <button
+            className={`menu-item ${activeTab === 'contribuintes' ? 'active' : ''}`}
+            onClick={() => setActiveTab('contribuintes')}
+          >
+            <Users size={20} />
+            <span>Contribuintes</span>
           </button>
         </nav>
 
@@ -439,177 +610,283 @@ function Dashboard() {
 
         {/* Content */}
         <div className="admin-content">
-          {/* Stats */}
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon blue">
-                <Calendar size={24} />
-              </div>
-              <div className="stat-info">
-                <span className="stat-value">{stats.total}</span>
-                <span className="stat-label">Total de Eventos</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon green">
-                <CheckCircle size={24} />
-              </div>
-              <div className="stat-info">
-                <span className="stat-value">{stats.noturno}</span>
-                <span className="stat-label">Eventos Noturnos</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon orange">
-                <Sun size={24} />
-              </div>
-              <div className="stat-info">
-                <span className="stat-value">{stats.diurno}</span>
-                <span className="stat-label">Eventos Diurnos</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Events Section */}
-          <div className="events-section">
-            <div className="section-header">
-              <h2>Eventos Cadastrados</h2>
-              <button className="btn-primary" onClick={openCreateModal} aria-label="Novo Evento">
-                <Plus size={18} />
-                <span className="btn-text">Novo Evento</span>
-              </button>
-            </div>
-
-            {showSearch && (
-              <div className="events-toolbar">
-                <div className="events-search">
-                  <Search size={18} className="events-search-icon" />
-                  <input
-                    type="text"
-                    placeholder="Buscar por nome, descricao ou data..."
-                    value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                    aria-label="Buscar eventos"
-                  />
-                  {searchTerm && (
-                    <button
-                      type="button"
-                      className="events-search-clear"
-                      onClick={() => setSearchTerm('')}
-                    >
-                      Limpar
-                    </button>
-                  )}
+          {activeTab !== 'contribuintes' && (
+            <>
+              {/* Stats */}
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div className="stat-icon blue">
+                    <Calendar size={24} />
+                  </div>
+                  <div className="stat-info">
+                    <span className="stat-value">{stats.total}</span>
+                    <span className="stat-label">Total de Eventos</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-icon green">
+                    <CheckCircle size={24} />
+                  </div>
+                  <div className="stat-info">
+                    <span className="stat-value">{stats.noturno}</span>
+                    <span className="stat-label">Eventos Noturnos</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-icon orange">
+                    <Sun size={24} />
+                  </div>
+                  <div className="stat-info">
+                    <span className="stat-value">{stats.diurno}</span>
+                    <span className="stat-label">Eventos Diurnos</span>
+                  </div>
                 </div>
               </div>
-            )}
 
-            {loading ? (
-              <div className="loading-state">
-                <div className="spinner"></div>
-                <p>Carregando eventos...</p>
-              </div>
-            ) : eventos.length === 0 ? (
-              <div className="empty-state">
-                <Calendar size={48} />
-                <h3>Nenhum evento cadastrado</h3>
-                <p>Clique em "Novo Evento" para criar seu primeiro evento.</p>
-              </div>
-            ) : filteredEvents.length === 0 ? (
-              <div className="empty-state">
-                <Search size={48} />
-                <h3>Nenhum evento encontrado</h3>
-                <p>Tente ajustar sua busca para encontrar o evento desejado.</p>
-              </div>
-            ) : (
-              <>
-                <div className="events-table-container">
-                  <table className="events-table">
-                    <thead>
-                      <tr>
-                        <th>Imagem</th>
-                        <th>Nome do Evento</th>
-                        <th>Data</th>
-                        <th>Horário</th>
-                        <th>Período</th>
-                        <th>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pagedItems.map((evento) => {
-                        const eventDate = parseDateValue(evento.data_evento)
-                        const today = new Date()
-                        today.setHours(0, 0, 0, 0)
-                        const isPast = eventDate && eventDate < today
+              {/* Events Section */}
+              <div className="events-section">
+                <div className="section-header">
+                  <h2>Eventos Cadastrados</h2>
+                  <button
+                    className="btn-primary"
+                    onClick={openCreateModal}
+                    aria-label="Novo Evento"
+                  >
+                    <Plus size={18} />
+                    <span className="btn-text">Novo Evento</span>
+                  </button>
+                </div>
 
-                        return (
-                          <tr key={evento.id} className={isPast ? 'event-row-past' : ''}>
-                            <td data-label="Imagem">
-                              <img
-                                src={evento.imagem || BgEventos}
-                                alt={evento.nome}
-                                className="event-thumbnail"
-                              />
-                            </td>
-                            <td data-label="Nome do Evento">
-                              <span className="event-name">{evento.nome}</span>
-                              {evento.descricao && (
-                                <span className="event-desc-preview">
-                                  {stripRichText(evento.descricao)}
-                                </span>
-                              )}
-                              {isPast && <span className="badge badge-encerrado">Encerrado</span>}
-                            </td>
-                            <td data-label="Data">{evento.data_evento}</td>
-                            <td data-label="Horário">{evento.horario}</td>
-                            <td data-label="Período">
-                              <span className={`badge badge-${evento.periodo?.toLowerCase()}`}>
-                                {evento.periodo}
-                              </span>
-                            </td>
-                            <td data-label="Ações">
-                              <div className="action-buttons">
-                                {!isPast && (
-                                  <>
-                                    <button
-                                      className="btn-icon btn-view"
-                                      onClick={() => window.open(evento.link, '_blank')}
-                                      title="Ver evento"
-                                    >
-                                      <Eye size={16} />
-                                    </button>
-                                    <button
-                                      className="btn-icon btn-edit"
-                                      onClick={() => openEditModal(evento)}
-                                      title="Editar"
-                                    >
-                                      <Edit2 size={16} />
-                                    </button>
-                                  </>
-                                )}
-                                <button
-                                  className="btn-icon btn-delete"
-                                  onClick={() => handleDeleteEvent(evento.id)}
-                                  title="Excluir"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-                            </td>
+                {showSearch && (
+                  <div className="events-toolbar">
+                    <div className="events-search">
+                      <Search size={18} className="events-search-icon" />
+                      <input
+                        type="text"
+                        placeholder="Buscar por nome, descricao ou data..."
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                        aria-label="Buscar eventos"
+                      />
+                      {searchTerm && (
+                        <button
+                          type="button"
+                          className="events-search-clear"
+                          onClick={() => setSearchTerm('')}
+                        >
+                          Limpar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {loading ? (
+                  <div className="loading-state">
+                    <div className="spinner"></div>
+                    <p>Carregando eventos...</p>
+                  </div>
+                ) : eventos.length === 0 ? (
+                  <div className="empty-state">
+                    <Calendar size={48} />
+                    <h3>Nenhum evento cadastrado</h3>
+                    <p>Clique em "Novo Evento" para criar seu primeiro evento.</p>
+                  </div>
+                ) : filteredEvents.length === 0 ? (
+                  <div className="empty-state">
+                    <Search size={48} />
+                    <h3>Nenhum evento encontrado</h3>
+                    <p>Tente ajustar sua busca para encontrar o evento desejado.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="events-table-container">
+                      <table className="events-table">
+                        <thead>
+                          <tr>
+                            <th>Imagem</th>
+                            <th>Nome do Evento</th>
+                            <th>Data</th>
+                            <th>Horário</th>
+                            <th>Período</th>
+                            <th>Ações</th>
                           </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
+                        </thead>
+                        <tbody>
+                          {pagedItems.map((evento) => {
+                            const eventDate = parseDateValue(evento.data_evento)
+                            const today = new Date()
+                            today.setHours(0, 0, 0, 0)
+                            const isPast = eventDate && eventDate < today
+
+                            return (
+                              <tr key={evento.id} className={isPast ? 'event-row-past' : ''}>
+                                <td data-label="Imagem">
+                                  <img
+                                    src={evento.imagem || BgEventos}
+                                    alt={evento.nome}
+                                    className="event-thumbnail"
+                                  />
+                                </td>
+                                <td data-label="Nome do Evento">
+                                  <span className="event-name">{evento.nome}</span>
+                                  {evento.descricao && (
+                                    <span className="event-desc-preview">
+                                      {stripRichText(evento.descricao)}
+                                    </span>
+                                  )}
+                                  {isPast && (
+                                    <span className="badge badge-encerrado">Encerrado</span>
+                                  )}
+                                </td>
+                                <td data-label="Data">{evento.data_evento}</td>
+                                <td data-label="Horário">{evento.horario}</td>
+                                <td data-label="Período">
+                                  <span className={`badge badge-${evento.periodo?.toLowerCase()}`}>
+                                    {evento.periodo}
+                                  </span>
+                                </td>
+                                <td data-label="Ações">
+                                  <div className="action-buttons">
+                                    {!isPast && (
+                                      <>
+                                        <button
+                                          className="btn-icon btn-view"
+                                          onClick={() => window.open(evento.link, '_blank')}
+                                          title="Ver evento"
+                                        >
+                                          <Eye size={16} />
+                                        </button>
+                                        <button
+                                          className="btn-icon btn-edit"
+                                          onClick={() => openEditModal(evento)}
+                                          title="Editar"
+                                        >
+                                          <Edit2 size={16} />
+                                        </button>
+                                      </>
+                                    )}
+                                    <button
+                                      className="btn-icon btn-delete"
+                                      onClick={() => handleDeleteEvent(evento.id)}
+                                      title="Excluir"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={goToPage}
+                    />
+                  </>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Contributors Section */}
+          {activeTab === 'contribuintes' && (
+            <div className="events-section">
+              <div className="section-header">
+                <h2>Contribuintes do Projeto</h2>
+                <button
+                  className="btn-primary"
+                  onClick={openCreateContributorModal}
+                  aria-label="Novo Contribuinte"
+                >
+                  <Plus size={18} />
+                  <span className="btn-text">Novo Contribuinte</span>
+                </button>
+              </div>
+
+              {loadingContributors ? (
+                <div className="loading-state">
+                  <div className="spinner"></div>
+                  <p>Carregando contribuintes...</p>
                 </div>
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={goToPage}
-                />
-              </>
-            )}
-          </div>
+              ) : contributors.length === 0 ? (
+                <div className="empty-state">
+                  <Users size={48} />
+                  <h3>Nenhum contribuinte cadastrado</h3>
+                  <p>
+                    Clique em &quot;Novo Contribuinte&quot; para adicionar o primeiro contribuinte.
+                  </p>
+                </div>
+              ) : (
+                <div className="contributors-admin-grid">
+                  {contributors.map((contributor) => (
+                    <div key={contributor.id} className="contributor-admin-card">
+                      <img
+                        src={contributor.avatar_url}
+                        alt={contributor.nome}
+                        className="contributor-admin-avatar"
+                      />
+                      <div className="contributor-admin-info">
+                        <span className="contributor-admin-name">{contributor.nome}</span>
+                        <span className="contributor-admin-username">
+                          @{contributor.github_username}
+                        </span>
+                        <div className="contributor-admin-links">
+                          <a
+                            href={contributor.github_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="GitHub"
+                          >
+                            <Github size={14} />
+                          </a>
+                          {contributor.linkedin_url && (
+                            <a
+                              href={contributor.linkedin_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="LinkedIn"
+                            >
+                              <Linkedin size={14} />
+                            </a>
+                          )}
+                          {contributor.portfolio_url && (
+                            <a
+                              href={contributor.portfolio_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Portfólio"
+                            >
+                              <ExternalLink size={14} />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                      <div className="action-buttons">
+                        <button
+                          className="btn-icon btn-edit"
+                          onClick={() => openEditContributorModal(contributor)}
+                          title="Editar"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          className="btn-icon btn-delete"
+                          onClick={() => handleDeleteContributor(contributor.id)}
+                          title="Excluir"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
@@ -811,6 +1088,163 @@ function Dashboard() {
                     <>
                       <Save size={18} />
                       {editingEvent ? 'Salvar Alterações' : 'Criar Evento'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Contributor Modal */}
+      {showContributorModal && (
+        <div className="modal-overlay" onClick={closeContributorModal}>
+          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{editingContributor ? 'Editar Contribuinte' : 'Adicionar Contribuinte'}</h2>
+              <button className="modal-close" onClick={closeContributorModal}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitContributor(onSubmitContributor)} className="modal-form">
+              <div className="form-row">
+                <div className="form-field">
+                  <label>
+                    <Github size={16} />
+                    Username do GitHub
+                  </label>
+                  <div className="github-search-row">
+                    <input
+                      type="text"
+                      placeholder="Ex: octocat"
+                      {...registerContributor('github_username', {
+                        required: 'Username do GitHub é obrigatório',
+                        validate: (value) =>
+                          isValidGitHubUsername(value) || 'Username do GitHub inválido',
+                      })}
+                    />
+                    <button
+                      type="button"
+                      className="btn-primary btn-fetch-github"
+                      onClick={() => {
+                        const input = document.querySelector('input[name="github_username"]')
+                        if (input) {
+                          handleFetchGitHub(input.value)
+                        }
+                      }}
+                      disabled={isFetchingGitHub}
+                    >
+                      {isFetchingGitHub ? (
+                        <Loader2 size={16} className="spinning" />
+                      ) : (
+                        <Search size={16} />
+                      )}
+                      Buscar
+                    </button>
+                  </div>
+                  {contributorErrors.github_username && (
+                    <span className="field-error">{contributorErrors.github_username.message}</span>
+                  )}
+                </div>
+              </div>
+
+              {gitHubPreview && (
+                <div className="github-preview">
+                  <img
+                    src={gitHubPreview.avatar_url}
+                    alt={gitHubPreview.nome}
+                    className="github-preview-avatar"
+                  />
+                  <div className="github-preview-info">
+                    <span className="github-preview-name">{gitHubPreview.nome}</span>
+                    <span className="github-preview-username">
+                      @{gitHubPreview.github_username}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label>
+                    <Users size={16} />
+                    Nome Completo
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Nome do contribuinte (preenchido pelo GitHub)"
+                    {...registerContributor('nome', { required: 'Nome é obrigatório' })}
+                  />
+                  {contributorErrors.nome && (
+                    <span className="field-error">{contributorErrors.nome.message}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label>
+                    <Linkedin size={16} />
+                    LinkedIn (opcional)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://linkedin.com/in/usuario"
+                    {...registerContributor('linkedin_url', {
+                      validate: (value) =>
+                        !value ||
+                        isValidLinkedInUrl(value) ||
+                        'URL do LinkedIn inválida. Use: https://linkedin.com/in/usuario',
+                    })}
+                  />
+                  {contributorErrors.linkedin_url && (
+                    <span className="field-error">{contributorErrors.linkedin_url.message}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label>
+                    <ExternalLink size={16} />
+                    Portfólio (opcional)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://meusite.com"
+                    {...registerContributor('portfolio_url', {
+                      validate: (value) =>
+                        !value ||
+                        isValidPortfolioUrl(value) ||
+                        'URL do portfólio inválida. Use uma URL válida com https://',
+                    })}
+                  />
+                  {contributorErrors.portfolio_url && (
+                    <span className="field-error">{contributorErrors.portfolio_url.message}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={closeContributorModal}>
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={isSubmittingContributor || !gitHubPreview}
+                >
+                  {isSubmittingContributor ? (
+                    <>
+                      <span className="button-spinner"></span>
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      {editingContributor ? 'Salvar Alterações' : 'Adicionar Contribuinte'}
                     </>
                   )}
                 </button>

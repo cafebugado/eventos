@@ -55,6 +55,21 @@ export function createMockSession(overrides = {}) {
   }
 }
 
+// Mock de contribuinte
+export function createMockContributor(overrides = {}) {
+  return {
+    id: 'contrib-1',
+    github_username: 'octocat',
+    nome: 'The Octocat',
+    avatar_url: 'https://avatars.githubusercontent.com/u/583231',
+    github_url: 'https://github.com/octocat',
+    linkedin_url: 'https://linkedin.com/in/octocat',
+    portfolio_url: 'https://octocat.dev',
+    created_at: '2024-01-01T00:00:00Z',
+    ...overrides,
+  }
+}
+
 // Helper para aguardar elemento
 export async function waitForElement(callback, options = {}) {
   const { timeout = 1000, interval = 50 } = options
