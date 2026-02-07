@@ -361,6 +361,184 @@
   line-height: 1.5;
 }
 
+/* Contributors Section */
+.contributors-section {
+  text-align: center;
+  margin-top: 4rem;
+  padding-top: 4rem;
+  border-top: 1px solid var(--border);
+}
+
+.contributors-section h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.contributors-description {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto 3rem;
+}
+
+.contributors-empty {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  padding: 2rem 0;
+}
+
+.contributors-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  justify-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.contributor-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.contributor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px var(--shadow);
+}
+
+.contributor-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary-blue);
+  margin-bottom: 1rem;
+}
+
+.contributor-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.contributor-links {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.contributor-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.contributor-link-github {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--text-primary);
+}
+
+.contributor-link-github:hover {
+  background: #333;
+  color: white;
+  transform: scale(1.1);
+}
+
+[data-theme='dark'] .contributor-link-github {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .contributor-link-github:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.contributor-link-linkedin {
+  background: rgba(0, 119, 181, 0.1);
+  color: #0077b5;
+}
+
+.contributor-link-linkedin:hover {
+  background: #0077b5;
+  color: white;
+  transform: scale(1.1);
+}
+
+.contributor-link-portfolio {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.contributor-link-portfolio:hover {
+  background: #10b981;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Contributor Skeleton Loading */
+.contributor-card-skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 240px;
+}
+
+.skeleton-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 1rem;
+}
+
+.skeleton-name {
+  width: 120px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-links {
+  width: 80px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 /* Responsive */
 @media (min-width: 1025px) {
   .main-nav {
@@ -409,6 +587,10 @@
   .about-stats {
     gap: 2rem;
   }
+
+  .contributors-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 480px) {
@@ -424,5 +606,23 @@
   .mobile-fab {
     bottom: 1.5rem;
     right: 1.5rem;
+  }
+
+  .contributors-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .contributors-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .contributor-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .contributor-avatar {
+    width: 64px;
+    height: 64px;
   }
 }
