@@ -577,6 +577,10 @@ function Dashboard() {
             <Users size={20} />
             <span>Contribuintes</span>
           </button>
+          <button className="menu-item" onClick={() => window.open('/', '_blank')}>
+            <ExternalLink size={20} />
+            <span>Ver Site</span>
+          </button>
         </nav>
 
         <div className="sidebar-footer">
