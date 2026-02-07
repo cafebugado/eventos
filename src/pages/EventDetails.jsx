@@ -246,12 +246,14 @@ function EventDetails() {
                 {!isPast && <ArrowUpRight size={20} />}
               </a>
 
-              <ShareButtons
-                eventName={event.nome}
-                eventDate={event.data_evento}
-                eventTime={event.horario}
-                eventUrl={`${window.location.origin}/eventos/${event.id}`}
-              />
+              {!isPast && (
+                <ShareButtons
+                  eventName={event.nome}
+                  eventDate={event.data_evento}
+                  eventTime={event.horario}
+                  eventUrl={`${window.location.origin}/eventos/${event.id}`}
+                />
+              )}
             </div>
           </div>
         </div>
