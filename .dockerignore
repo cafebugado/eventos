@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.github
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+coverage
+.vscode
+.idea
+.husky

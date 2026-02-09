@@ -66,8 +66,9 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 
 - Node.js 20+
 - pnpm (recomendado) ou npm
+- Docker e Docker Compose (opcional)
 
-### Passos
+### Passos (Tradicional)
 
 1. Clone o repositório:
 
@@ -109,6 +110,32 @@ pnpm dev
 npm run dev
 ```
 
+### Passos (Docker)
+
+1. Clone o repositório:
+
+```bash
+git clone https://github.com/seu-usuario/agendas_eventos.git
+cd agendas_eventos
+```
+
+2. Configure as variáveis de ambiente:
+
+```bash
+cp .env.example .env
+# Edite o .env com suas credenciais do Supabase
+```
+
+3. Inicie o ambiente de desenvolvimento:
+
+```bash
+docker-compose up app-dev
+```
+
+4. Acesse no navegador: `http://localhost:5173`
+
+> **Nota:** Não é necessário ter Node.js ou pnpm instalados localmente ao usar Docker.
+
 ## Scripts Disponíveis
 
 ```bash
@@ -130,6 +157,55 @@ pnpm test             # Executa testes em modo watch
 pnpm test:run         # Executa testes uma vez
 pnpm test:ui          # Interface visual para testes
 pnpm test:coverage    # Relatório de cobertura
+```
+
+## Docker
+
+### Desenvolvimento
+
+```bash
+# Inicia o ambiente de desenvolvimento com hot reload
+docker-compose up app-dev
+
+# Inicia em segundo plano
+docker-compose up app-dev -d
+
+# Acesse: http://localhost:5173
+```
+
+### Produção
+
+```bash
+# Build e inicia o ambiente de produção
+docker-compose --profile production up app-prod
+
+# Em segundo plano
+docker-compose --profile production up app-prod -d
+
+# Acesse: http://localhost
+```
+
+### Comandos Docker
+
+```bash
+# Rebuild após mudanças no Dockerfile
+docker-compose up app-dev --build
+
+# Ver logs em tempo real
+docker-compose logs -f app-dev
+
+# Executar comandos dentro do container
+docker-compose exec app-dev pnpm test
+docker-compose exec app-dev pnpm lint
+
+# Parar todos os containers
+docker-compose down
+
+# Parar e remover volumes
+docker-compose down -v
+
+# Build sem cache
+docker-compose build --no-cache
 ```
 
 ## Estrutura do Projeto
@@ -182,6 +258,11 @@ agendas_eventos/
 │   └── BRANCH_PROTECTION.md      # Regras de proteção
 │
 ├── supabase/                     # Configurações Supabase
+├── Dockerfile                    # Build de produção (multi-stage)
+├── Dockerfile.dev                # Build de desenvolvimento
+├── docker-compose.yml            # Orquestração dos containers
+├── nginx.conf                    # Configuração do Nginx (produção)
+├── .dockerignore                 # Arquivos ignorados pelo Docker
 └── dist/                         # Build de produção
 ```
 
@@ -385,6 +466,7 @@ Consulte o guia completo em [CONTRIBUTING.md](CONTRIBUTING.md).
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Guia de contribuição
 - [SUPABASE_SETUP.md](SUPABASE_SETUP.md) - Configuração do Supabase
+- [DOCKER_SETUP.md](DOCKER_SETUP.md) - Instalação e configuração do Docker
 - [BRANCH_PROTECTION.md](.github/BRANCH_PROTECTION.md) - Regras de proteção de branches
 
 ## Licença
@@ -393,7 +475,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 ## Autores
 
-- **Dario Reis** - _Desenvolvedor Front-end_ - [@darioreisjr](https://github.com/darioreisjr)
+- **Dario Reis** - _Desenvolvedor Full Stack | Criando soluções com React, Node.js, AWS e IA_ - [@darioreisjr](https://github.com/darioreisjr)
+- **Julia Krisnarane** - _Back-end | Java | Spring Boot | AWS Cloud & IA_ - [@krisnarane](https://github.com/krisnarane)
 
 ## Agradecimentos
 
