@@ -475,7 +475,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 ## Autores
 
-- **Dario Reis** - _Desenvolvedor Front-end_ - [@darioreisjr](https://github.com/darioreisjr)
+- **Dario Reis** - _Desenvolvedor Full Stack | Criando soluções com React, Node.js, AWS e IA_ - [@darioreisjr](https://github.com/darioreisjr)
+- **Julia Krisnarane** - _Back-end | Java | Spring Boot | AWS Cloud & IA_ - [@krisnarane](https://github.com/krisnarane)
 
 ## Agradecimentos
 
