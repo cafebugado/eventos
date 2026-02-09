@@ -1,0 +1,25 @@
+# =============================================
+# Dockerfile.dev - Desenvolvimento
+# Eventos - Comunidade Café Bugado
+# =============================================
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instala pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copia arquivos de dependências
+COPY package.json pnpm-lock.yaml ./
+
+# Instala dependências
+RUN pnpm install
+
+# Copia o restante do código
+COPY . .
+
+EXPOSE 5173
+
+# Inicia servidor de desenvolvimento com hot reload
+CMD ["pnpm", "dev", "--host", "0.0.0.0"]
