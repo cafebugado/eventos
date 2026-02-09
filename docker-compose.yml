@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # Ambiente de Desenvolvimento
+  # Uso: docker-compose up app-dev
+  # Acesse: http://localhost:5173
+  # ==========================================
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: eventos-cafe-dev
+    ports:
+      - '5173:5173'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    networks:
+      - eventos-network
+
+  # ==========================================
+  # Ambiente de Produção
+  # Uso: docker-compose --profile production up app-prod
+  # Acesse: http://localhost
+  # ==========================================
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+    container_name: eventos-cafe-prod
+    ports:
+      - '80:80'
+    networks:
+      - eventos-network
+    profiles:
+      - production
+    restart: unless-stopped
+
+networks:
+  eventos-network:
+    driver: bridge
