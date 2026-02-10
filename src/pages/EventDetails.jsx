@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Calendar, Clock, CalendarDays, ArrowUpRight } from 'lucide-react'
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  CalendarDays,
+  ArrowUpRight,
+  MapPin,
+  Monitor,
+  Video,
+  Wifi,
+} from 'lucide-react'
 import { getEventById } from '../services/eventService'
+import { getEventTags } from '../services/tagService'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
@@ -31,6 +42,7 @@ function EventDetails() {
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [eventTags, setEventTags] = useState([])
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -46,6 +58,12 @@ function EventDetails() {
         setError('NOT_FOUND')
       } else {
         setEvent(eventData)
+        try {
+          const tags = await getEventTags(eventData.id)
+          setEventTags(tags)
+        } catch {
+          setEventTags([])
+        }
       }
     } catch (err) {
       console.error('Erro ao carregar evento:', err)
@@ -192,6 +210,19 @@ function EventDetails() {
               ) : (
                 <div className="event-badge">{event.periodo}</div>
               )}
+              {eventTags.length > 0 && (
+                <div className="card-image-tags">
+                  {eventTags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="card-image-tag"
+                      style={{ '--tag-color': tag.cor || '#2563eb' }}
+                    >
+                      {tag.nome}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="event-details-content">
@@ -233,7 +264,76 @@ function EventDetails() {
                     <span className="info-value">{event.dia_semana}</span>
                   </div>
                 </div>
+
+                {event.modalidade && (
+                  <div className="info-card">
+                    <div className="info-icon">
+                      {event.modalidade === 'Online' ? (
+                        <Wifi size={24} />
+                      ) : event.modalidade === 'Híbrido' ? (
+                        <Video size={24} />
+                      ) : (
+                        <Monitor size={24} />
+                      )}
+                    </div>
+                    <div className="info-text">
+                      <span className="info-label">Modalidade</span>
+                      <span className="info-value">{event.modalidade}</span>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {event.endereco && event.modalidade !== 'Online' && (
+                <div className="event-location">
+                  <div className="location-info">
+                    <MapPin size={20} />
+                    <div className="location-text">
+                      <span className="location-address">{event.endereco}</span>
+                      {(event.cidade || event.estado) && (
+                        <span className="location-city">
+                          {[event.cidade, event.estado].filter(Boolean).join(' - ')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      [event.endereco, event.cidade, event.estado].filter(Boolean).join(', ')
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="location-map-link"
+                  >
+                    <MapPin size={16} />
+                    Ver no Google Maps
+                  </a>
+                </div>
+              )}
+
+              {!event.endereco && event.cidade && event.modalidade !== 'Online' && (
+                <div className="event-location">
+                  <div className="location-info">
+                    <MapPin size={20} />
+                    <div className="location-text">
+                      <span className="location-city">
+                        {[event.cidade, event.estado].filter(Boolean).join(' - ')}
+                      </span>
+                    </div>
+                  </div>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      [event.cidade, event.estado].filter(Boolean).join(', ')
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="location-map-link"
+                  >
+                    <MapPin size={16} />
+                    Ver no Google Maps
+                  </a>
+                </div>
+              )}
 
               <a
                 href={isPast ? undefined : event.link}

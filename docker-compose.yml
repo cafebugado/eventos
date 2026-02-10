@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ==========================================
   # Ambiente de Desenvolvimento
@@ -18,6 +16,10 @@ services:
       - /app/node_modules
     env_file:
       - .env
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    stdin_open: true
+    tty: true
     networks:
       - eventos-network
 

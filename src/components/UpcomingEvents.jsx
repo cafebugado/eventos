@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar, Clock, CalendarDays, ArrowRight } from 'lucide-react'
+import { Calendar, Clock, CalendarDays, ArrowRight, Monitor, Wifi, Video } from 'lucide-react'
 import { getUpcomingEvents } from '../services/eventService'
 import BgEventos from '../assets/eventos.png'
 import './UpcomingEvents.css'
@@ -78,6 +78,18 @@ function UpcomingEvents() {
                       <CalendarDays size={14} />
                       <span>{event.dia_semana}</span>
                     </div>
+                    {event.modalidade && (
+                      <div className="upcoming-info-item">
+                        {event.modalidade === 'Online' ? (
+                          <Wifi size={14} />
+                        ) : event.modalidade === 'Híbrido' ? (
+                          <Video size={14} />
+                        ) : (
+                          <Monitor size={14} />
+                        )}
+                        <span>{event.modalidade}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
