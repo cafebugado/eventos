@@ -75,6 +75,7 @@ import { stripRichText } from '../utils/richText'
 import './Admin.css'
 import BgEventos from '../assets/eventos.png'
 import AdminSidebar from '../components/admin/AdminSidebar'
+import AdminTopbar from '../components/admin/AdminTopbar'
 
 const PAGE_SIZES = {
   desktop: 20,
@@ -676,18 +677,7 @@ function Dashboard() {
       {/* Main Content */}
       <main className="admin-main">
         {/* Top Bar */}
-        <header className="admin-topbar">
-          <div className="topbar-left">
-            <LayoutDashboard size={24} />
-            <h1>Dashboard</h1>
-          </div>
-          <div className="topbar-right">
-            <button className="theme-btn" onClick={toggleTheme}>
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-          </div>
-        </header>
-
+        <AdminTopbar isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />
         {/* Content */}
         <div className="admin-content">
           {activeTab !== 'contribuintes' && activeTab !== 'tags' && (
