@@ -10,12 +10,7 @@ import {
   deleteTag as deleteTagService,
   getEventTags,
 } from '../services/tagService'
-import {
-  parseDateValue,
-  formatDateToInput,
-  formatDateToDisplay,
-  getDayName,
-} from './utils/dateUtils'
+import { parseDateValue, formatDateToInput, getDayName } from './utils/dateUtils'
 import useMediaQuery from '../hooks/useMediaQuery'
 import usePagination from '../hooks/usePagination'
 import { filterEventsByQuery } from '../utils/eventSearch'
@@ -30,6 +25,7 @@ import EventsSection from '../components/admin/EventsSection'
 import useEvents from '../hooks/useEvents'
 import useContributors from '../hooks/useContributors'
 import { isValidLinkedInUrl, isValidPortfolioUrl } from '../services/contributorService'
+import useEventForm from '../hooks/useEventForm'
 
 const PAGE_SIZES = {
   desktop: 20,
@@ -59,7 +55,7 @@ function Dashboard() {
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 768px)')
-
+  const { buildEventData } = useEventForm()
   const {
     register,
     handleSubmit,
@@ -281,23 +277,7 @@ function Dashboard() {
   const onSubmit = async (data) => {
     setIsSubmitting(true)
     try {
-      const displayDate = formatDateToDisplay(data.data_evento) || data.data_evento
-      const resolvedDayName = getDayName(data.data_evento) || data.dia_semana
-
-      const eventData = {
-        nome: data.nome,
-        descricao: data.descricao || null,
-        data_evento: displayDate,
-        horario: data.horario,
-        dia_semana: resolvedDayName,
-        periodo: data.periodo,
-        link: data.link,
-        imagem: data.imagem || null,
-        modalidade: data.modalidade || null,
-        endereco: data.modalidade === 'Online' ? null : data.endereco || null,
-        cidade: data.modalidade === 'Online' ? null : data.cidade || null,
-        estado: data.modalidade === 'Online' ? null : data.estado || null,
-      }
+      const eventData = buildEventData(data)
       await saveEvent({
         id: editingEvent?.id,
         data: eventData,
