@@ -41,6 +41,10 @@ export async function createEvent(event) {
         periodo: event.periodo,
         link: event.link,
         imagem: event.imagem || null,
+        modalidade: event.modalidade || null,
+        endereco: event.endereco || null,
+        cidade: event.cidade || null,
+        estado: event.estado || null,
       },
     ])
     .select()
@@ -67,6 +71,10 @@ export async function updateEvent(id, event) {
       periodo: event.periodo,
       link: event.link,
       imagem: event.imagem || null,
+      modalidade: event.modalidade || null,
+      endereco: event.endereco || null,
+      cidade: event.cidade || null,
+      estado: event.estado || null,
     })
     .eq('id', id)
     .select()

@@ -1,7 +1,20 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar, Clock, CalendarDays, Search, Filter, Eye, EyeOff } from 'lucide-react'
+import {
+  Calendar,
+  Clock,
+  CalendarDays,
+  Search,
+  Filter,
+  Eye,
+  EyeOff,
+  MapPin,
+  Monitor,
+  Wifi,
+  Video,
+} from 'lucide-react'
 import { getEvents } from './services/eventService'
+import { getAllEventTags } from './services/tagService'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import FloatingMenu from './components/FloatingMenu'
@@ -36,6 +49,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPeriodo, setSelectedPeriodo] = useState('Todos')
   const [showPastEvents, setShowPastEvents] = useState(false)
+  const [eventTagsMap, setEventTagsMap] = useState({})
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 768px)')
 
@@ -73,6 +87,14 @@ function App() {
       })
 
       setAgenda(sortedEvents)
+
+      // Carrega tags de todos os eventos
+      try {
+        const tagsMap = await getAllEventTags()
+        setEventTagsMap(tagsMap)
+      } catch {
+        setEventTagsMap({})
+      }
     } catch (error) {
       console.error('Erro ao carregar eventos:', error)
       setError('Não foi possível carregar os eventos. Verifique sua conexão e tente novamente.')
@@ -263,6 +285,19 @@ function App() {
                         ) : (
                           <div className="card-badge">{item.periodo}</div>
                         )}
+                        {eventTagsMap[item.id] && eventTagsMap[item.id].length > 0 && (
+                          <div className="card-image-tags">
+                            {eventTagsMap[item.id].map((tag) => (
+                              <span
+                                key={tag.id}
+                                className="card-image-tag"
+                                style={{ '--tag-color': tag.cor || '#2563eb' }}
+                              >
+                                {tag.nome}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="card-content">
                         <h3>{item.nome}</h3>
@@ -292,6 +327,28 @@ function App() {
                             </span>
                             <span>{item.dia_semana}</span>
                           </div>
+                          {item.modalidade && (
+                            <div className="info-item">
+                              <span className="icon">
+                                {item.modalidade === 'Online' ? (
+                                  <Wifi size={16} />
+                                ) : item.modalidade === 'Híbrido' ? (
+                                  <Video size={16} />
+                                ) : (
+                                  <Monitor size={16} />
+                                )}
+                              </span>
+                              <span>{item.modalidade}</span>
+                            </div>
+                          )}
+                          {item.cidade && item.modalidade !== 'Online' && (
+                            <div className="info-item">
+                              <span className="icon">
+                                <MapPin size={16} />
+                              </span>
+                              <span>{[item.cidade, item.estado].filter(Boolean).join(' - ')}</span>
+                            </div>
+                          )}
                         </div>
                         <div className="event-link-wrapper">
                           <button

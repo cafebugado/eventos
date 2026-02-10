@@ -27,6 +27,10 @@ import {
   Linkedin,
   ExternalLink,
   Loader2,
+  MapPin,
+  Monitor,
+  Video,
+  Palette,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { getSession, signOut, getCurrentUser } from '../services/authService'
@@ -48,6 +52,14 @@ import {
   isValidPortfolioUrl,
   isValidGitHubUsername,
 } from '../services/contributorService'
+import {
+  getTags,
+  createTag,
+  updateTag,
+  deleteTag as deleteTagService,
+  getEventTags,
+  setEventTags,
+} from '../services/tagService'
 import Pagination from '../components/Pagination'
 import RichText from '../components/RichText'
 import useMediaQuery from '../hooks/useMediaQuery'
@@ -147,6 +159,12 @@ function Dashboard() {
   const [isSubmittingContributor, setIsSubmittingContributor] = useState(false)
   const [isFetchingGitHub, setIsFetchingGitHub] = useState(false)
   const [gitHubPreview, setGitHubPreview] = useState(null)
+  const [tags, setTags] = useState([])
+  const [loadingTags, setLoadingTags] = useState(true)
+  const [showTagModal, setShowTagModal] = useState(false)
+  const [editingTag, setEditingTag] = useState(null)
+  const [isSubmittingTag, setIsSubmittingTag] = useState(false)
+  const [selectedTags, setSelectedTags] = useState([])
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 768px)')
@@ -167,6 +185,15 @@ function Dashboard() {
     reset: resetContributor,
     setValue: setContributorValue,
     formState: { errors: contributorErrors },
+  } = useForm()
+
+  const {
+    register: registerTag,
+    handleSubmit: handleSubmitTag,
+    reset: resetTag,
+    setValue: setTagValue,
+    watch: watchTag,
+    formState: { errors: tagErrors },
   } = useForm()
 
   const sortedEvents = useMemo(() => {
@@ -271,6 +298,7 @@ function Dashboard() {
     setEditingEvent(null)
     setImageFile(null)
     setImagePreview(null)
+    setSelectedTags([])
     reset({
       nome: '',
       descricao: '',
@@ -280,11 +308,15 @@ function Dashboard() {
       periodo: '',
       link: '',
       imagem: '',
+      modalidade: '',
+      endereco: '',
+      cidade: '',
+      estado: '',
     })
     setShowModal(true)
   }
 
-  const openEditModal = (evento) => {
+  const openEditModal = async (evento) => {
     const normalizedDate = formatDateToInput(evento.data_evento)
     const dayName = getDayName(normalizedDate || evento.data_evento) || evento.dia_semana || ''
     setEditingEvent(evento)
@@ -298,6 +330,17 @@ function Dashboard() {
     setValue('periodo', evento.periodo)
     setValue('link', evento.link)
     setValue('imagem', evento.imagem || '')
+    setValue('modalidade', evento.modalidade || '')
+    setValue('endereco', evento.endereco || '')
+    setValue('cidade', evento.cidade || '')
+    setValue('estado', evento.estado || '')
+    // Carregar tags do evento
+    try {
+      const eventTags = await getEventTags(evento.id)
+      setSelectedTags(eventTags.map((t) => t.id))
+    } catch {
+      setSelectedTags([])
+    }
     setShowModal(true)
   }
 
@@ -306,6 +349,7 @@ function Dashboard() {
     setEditingEvent(null)
     setImageFile(null)
     setImagePreview(null)
+    setSelectedTags([])
     reset()
   }
 
@@ -375,13 +419,22 @@ function Dashboard() {
         periodo: data.periodo,
         link: data.link,
         imagem: imageUrl,
+        modalidade: data.modalidade || null,
+        endereco: data.modalidade === 'Online' ? null : data.endereco || null,
+        cidade: data.modalidade === 'Online' ? null : data.cidade || null,
+        estado: data.modalidade === 'Online' ? null : data.estado || null,
       }
 
+      let savedEvent
       if (editingEvent) {
-        await updateEvent(editingEvent.id, eventData)
+        savedEvent = await updateEvent(editingEvent.id, eventData)
+        await setEventTags(editingEvent.id, selectedTags)
         showNotification('Evento atualizado com sucesso!')
       } else {
-        await createEvent(eventData)
+        savedEvent = await createEvent(eventData)
+        if (selectedTags.length > 0) {
+          await setEventTags(savedEvent.id, selectedTags)
+        }
         showNotification('Evento criado com sucesso!')
       }
 
@@ -543,6 +596,127 @@ function Dashboard() {
     }
   }
 
+  // === Tag Functions ===
+  const loadTags = useCallback(async () => {
+    try {
+      setLoadingTags(true)
+      const data = await getTags()
+      setTags(data)
+    } catch (error) {
+      console.error('Erro ao carregar tags:', error)
+      showNotification('Erro ao carregar tags', 'error')
+    } finally {
+      setLoadingTags(false)
+    }
+  }, [showNotification])
+
+  useEffect(() => {
+    if (activeTab === 'tags') {
+      loadTags()
+    }
+  }, [activeTab, loadTags])
+
+  // Carrega tags quando abre o modal de evento (para o select de tags)
+  useEffect(() => {
+    if (showModal) {
+      loadTags()
+    }
+  }, [showModal, loadTags])
+
+  const openCreateTagModal = () => {
+    setEditingTag(null)
+    resetTag({ nome: '', cor: '#2563eb' })
+    setShowTagModal(true)
+  }
+
+  const openEditTagModal = (tag) => {
+    setEditingTag(tag)
+    setTagValue('nome', tag.nome)
+    setTagValue('cor', tag.cor || '#2563eb')
+    setShowTagModal(true)
+  }
+
+  const closeTagModal = () => {
+    setShowTagModal(false)
+    setEditingTag(null)
+    resetTag()
+  }
+
+  const onSubmitTag = async (data) => {
+    setIsSubmittingTag(true)
+    try {
+      if (editingTag) {
+        await updateTag(editingTag.id, data)
+        showNotification('Tag atualizada com sucesso!')
+      } else {
+        await createTag(data)
+        showNotification('Tag criada com sucesso!')
+      }
+      closeTagModal()
+      await loadTags()
+    } catch (error) {
+      console.error('Erro ao salvar tag:', error)
+      showNotification(error.message || 'Erro ao salvar tag', 'error')
+    } finally {
+      setIsSubmittingTag(false)
+    }
+  }
+
+  const handleDeleteTag = async (id) => {
+    if (
+      window.confirm(
+        'Tem certeza que deseja excluir esta tag? Ela será removida de todos os eventos.'
+      )
+    ) {
+      try {
+        await deleteTagService(id)
+        showNotification('Tag excluída com sucesso!')
+        await loadTags()
+      } catch (error) {
+        console.error('Erro ao excluir tag:', error)
+        showNotification('Erro ao excluir tag', 'error')
+      }
+    }
+  }
+
+  const toggleTagSelection = (tagId) => {
+    setSelectedTags((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+    )
+  }
+
+  const watchModalidade = watch('modalidade')
+
+  const ESTADOS_BR = [
+    'AC',
+    'AL',
+    'AP',
+    'AM',
+    'BA',
+    'CE',
+    'DF',
+    'ES',
+    'GO',
+    'MA',
+    'MT',
+    'MS',
+    'MG',
+    'PA',
+    'PB',
+    'PR',
+    'PE',
+    'PI',
+    'RJ',
+    'RN',
+    'RS',
+    'RO',
+    'RR',
+    'SC',
+    'SP',
+    'SE',
+    'TO',
+  ]
+
   return (
     <div className="admin-dashboard">
       {/* Sidebar */}
@@ -569,6 +743,13 @@ function Dashboard() {
           >
             <Plus size={20} />
             <span>Criar Evento</span>
+          </button>
+          <button
+            className={`menu-item ${activeTab === 'tags' ? 'active' : ''}`}
+            onClick={() => setActiveTab('tags')}
+          >
+            <Tag size={20} />
+            <span>Tags</span>
           </button>
           <button
             className={`menu-item ${activeTab === 'contribuintes' ? 'active' : ''}`}
@@ -614,7 +795,7 @@ function Dashboard() {
 
         {/* Content */}
         <div className="admin-content">
-          {activeTab !== 'contribuintes' && (
+          {activeTab !== 'contribuintes' && activeTab !== 'tags' && (
             <>
               {/* Stats */}
               <div className="stats-grid">
@@ -794,6 +975,62 @@ function Dashboard() {
                 )}
               </div>
             </>
+          )}
+
+          {/* Tags Section */}
+          {activeTab === 'tags' && (
+            <div className="events-section">
+              <div className="section-header">
+                <h2>Tags de Tecnologia</h2>
+                <button className="btn-primary" onClick={openCreateTagModal} aria-label="Nova Tag">
+                  <Plus size={18} />
+                  <span className="btn-text">Nova Tag</span>
+                </button>
+              </div>
+
+              {loadingTags ? (
+                <div className="loading-state">
+                  <div className="spinner"></div>
+                  <p>Carregando tags...</p>
+                </div>
+              ) : tags.length === 0 ? (
+                <div className="empty-state">
+                  <Tag size={48} />
+                  <h3>Nenhuma tag cadastrada</h3>
+                  <p>Clique em &quot;Nova Tag&quot; para criar a primeira tag de tecnologia.</p>
+                </div>
+              ) : (
+                <div className="tags-admin-grid">
+                  {tags.map((tag) => (
+                    <div key={tag.id} className="tag-admin-card">
+                      <div
+                        className="tag-admin-color"
+                        style={{ backgroundColor: tag.cor || '#2563eb' }}
+                      />
+                      <div className="tag-admin-info">
+                        <span className="tag-admin-name">{tag.nome}</span>
+                      </div>
+                      <div className="action-buttons">
+                        <button
+                          className="btn-icon btn-edit"
+                          onClick={() => openEditTagModal(tag)}
+                          title="Editar"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          className="btn-icon btn-delete"
+                          onClick={() => handleDeleteTag(tag.id)}
+                          title="Excluir"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* Contributors Section */}
@@ -1031,6 +1268,94 @@ function Dashboard() {
               <div className="form-row">
                 <div className="form-field">
                   <label>
+                    <Monitor size={16} />
+                    Modalidade
+                  </label>
+                  <select {...register('modalidade')}>
+                    <option value="">Selecione...</option>
+                    <option value="Presencial">Presencial</option>
+                    <option value="Online">Online</option>
+                    <option value="Híbrido">Híbrido</option>
+                  </select>
+                </div>
+              </div>
+
+              {watchModalidade && watchModalidade !== 'Online' && (
+                <>
+                  <div className="form-row">
+                    <div className="form-field">
+                      <label>
+                        <MapPin size={16} />
+                        Endereço
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Av. Paulista, 1000 - Bela Vista"
+                        {...register('endereco')}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row two-cols">
+                    <div className="form-field">
+                      <label>
+                        <MapPin size={16} />
+                        Cidade
+                      </label>
+                      <input type="text" placeholder="Ex: São Paulo" {...register('cidade')} />
+                    </div>
+                    <div className="form-field">
+                      <label>
+                        <MapPin size={16} />
+                        Estado
+                      </label>
+                      <select {...register('estado')}>
+                        <option value="">Selecione...</option>
+                        {ESTADOS_BR.map((uf) => (
+                          <option key={uf} value={uf}>
+                            {uf}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label>
+                    <Tag size={16} />
+                    Tags de Tecnologia
+                  </label>
+                  {tags.length === 0 ? (
+                    <span className="field-helper">
+                      Nenhuma tag cadastrada. Crie tags na aba &quot;Tags&quot; primeiro.
+                    </span>
+                  ) : (
+                    <div className="tags-selector">
+                      {tags.map((tag) => (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          className={`tag-selector-item ${selectedTags.includes(tag.id) ? 'selected' : ''}`}
+                          style={{
+                            '--tag-color': tag.cor || '#2563eb',
+                          }}
+                          onClick={() => toggleTagSelection(tag.id)}
+                        >
+                          {tag.nome}
+                          {selectedTags.includes(tag.id) && <CheckCircle size={14} />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label>
                     <Image size={16} />
                     Imagem do Evento
                   </label>
@@ -1249,6 +1574,99 @@ function Dashboard() {
                     <>
                       <Save size={18} />
                       {editingContributor ? 'Salvar Alterações' : 'Adicionar Contribuinte'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Tag Modal */}
+      {showTagModal && (
+        <div className="modal-overlay" onClick={closeTagModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{editingTag ? 'Editar Tag' : 'Criar Nova Tag'}</h2>
+              <button className="modal-close" onClick={closeTagModal}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitTag(onSubmitTag)} className="modal-form">
+              <div className="form-row">
+                <div className="form-field">
+                  <label>
+                    <Tag size={16} />
+                    Nome da Tag
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: React, Node.js, Python"
+                    {...registerTag('nome', { required: 'Nome é obrigatório' })}
+                  />
+                  {tagErrors.nome && <span className="field-error">{tagErrors.nome.message}</span>}
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-field form-field-color">
+                  <label>
+                    <Palette size={16} />
+                    Cor da Tag
+                  </label>
+                  <div className="color-picker-row">
+                    <input
+                      type="color"
+                      className="color-picker-input"
+                      value={watchTag('cor') || '#2563eb'}
+                      onChange={(e) => setTagValue('cor', e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="#2563eb"
+                      {...registerTag('cor')}
+                      style={{
+                        borderLeftWidth: '4px',
+                        borderLeftColor: watchTag('cor') || '#2563eb',
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Tag Preview */}
+              <div className="form-row">
+                <div className="form-field">
+                  <span className="preview-label">Preview</span>
+                  <div className="tag-preview-container">
+                    <span
+                      className="tag-preview-badge"
+                      style={{
+                        '--tag-color': watchTag('cor') || '#2563eb',
+                      }}
+                    >
+                      {watchTag('nome') || 'Nome da Tag'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={closeTagModal}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn-primary" disabled={isSubmittingTag}>
+                  {isSubmittingTag ? (
+                    <>
+                      <span className="button-spinner"></span>
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      {editingTag ? 'Salvar Alterações' : 'Criar Tag'}
                     </>
                   )}
                 </button>

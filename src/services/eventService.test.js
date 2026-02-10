@@ -124,6 +124,10 @@ describe('eventService', () => {
           periodo: newEvent.periodo,
           link: newEvent.link,
           imagem: newEvent.imagem,
+          modalidade: null,
+          endereco: null,
+          cidade: null,
+          estado: null,
         },
       ])
       expect(result).toEqual(createdEvent)

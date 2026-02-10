@@ -172,7 +172,7 @@ INSERT INTO eventos (nome, descricao, data_evento, horario, dia_semana, periodo,
   ('Conferência de Tech', 'O maior evento de tecnologia do ano com palestrantes internacionais.', '01/03/2025', '09:00', 'Sábado', 'Matinal', 'https://exemplo.com/tech', NULL);
 ```
 
-## Estrutura da Tabela
+## Estrutura da Tabela `eventos`
 
 | Campo       | Tipo      | Descrição                                    |
 | ----------- | --------- | -------------------------------------------- |
@@ -185,8 +185,29 @@ INSERT INTO eventos (nome, descricao, data_evento, horario, dia_semana, periodo,
 | periodo     | TEXT      | Matinal, Diurno, Vespertino ou Noturno       |
 | link        | TEXT      | URL para participação/inscrição              |
 | imagem      | TEXT      | URL da imagem do evento (opcional)           |
+| modalidade  | TEXT      | Presencial, Online ou Híbrido (opcional)     |
+| endereco    | TEXT      | Endereço do evento (opcional)                |
+| cidade      | TEXT      | Cidade do evento (opcional)                  |
+| estado      | TEXT      | Estado (UF) do evento (opcional)             |
 | created_at  | TIMESTAMP | Data de criação (automático)                 |
 | updated_at  | TIMESTAMP | Data de atualização (automático)             |
+
+## Estrutura da Tabela `tags`
+
+| Campo      | Tipo      | Descrição                                    |
+| ---------- | --------- | -------------------------------------------- |
+| id         | UUID      | Identificador único (gerado automaticamente) |
+| nome       | TEXT      | Nome da tag (ex: React, Node.js)             |
+| cor        | TEXT      | Cor em hexadecimal (ex: #2563eb)             |
+| created_at | TIMESTAMP | Data de criação (automático)                 |
+| updated_at | TIMESTAMP | Data de atualização (automático)             |
+
+## Estrutura da Tabela `evento_tags`
+
+| Campo     | Tipo | Descrição                                 |
+| --------- | ---- | ----------------------------------------- |
+| evento_id | UUID | Referência ao evento (CASCADE ao deletar) |
+| tag_id    | UUID | Referência à tag (CASCADE ao deletar)     |
 
 ## Storage de Imagens
 
@@ -215,7 +236,9 @@ src/
 │   └── supabase.js          # Cliente Supabase
 ├── services/
 │   ├── authService.js       # Serviço de autenticação
-│   └── eventService.js      # Serviço de eventos (CRUD + Upload)
+│   ├── eventService.js      # Serviço de eventos (CRUD + Upload)
+│   ├── contributorService.js # Serviço de contribuintes
+│   └── tagService.js        # Serviço de tags (CRUD + associação)
 ├── admin/
 │   ├── Login.jsx            # Login com Supabase Auth
 │   ├── Dashboard.jsx        # Dashboard com CRUD e Upload
@@ -229,6 +252,9 @@ src/
 - **URL de Imagem**: Também pode colar URL externa de imagem
 - **Descrição**: Campo de texto para descrever o evento
 - **Preview**: Visualização da imagem antes de salvar
+- **Tags de Tecnologia**: CRUD de tags com cor customizada e associação N:N com eventos
+- **Modalidade**: Presencial, Online ou Híbrido para cada evento
+- **Localização**: Endereço, cidade e estado com link para Google Maps
 
 ## Comandos Úteis
 
