@@ -77,6 +77,7 @@ import AdminSidebar from '../components/admin/AdminSidebar'
 import AdminTopbar from '../components/admin/AdminTopbar'
 import EventStats from '../components/admin/EventStats'
 import EventsTable from '../components/admin/EventsTable'
+import ContributorsSection from '../components/admin/ContributorsSection'
 
 const PAGE_SIZES = {
   desktop: 20,
@@ -817,98 +818,13 @@ function Dashboard() {
 
           {/* Contributors Section */}
           {activeTab === 'contribuintes' && (
-            <div className="events-section">
-              <div className="section-header">
-                <h2>Contribuintes do Projeto</h2>
-                <button
-                  className="btn-primary"
-                  onClick={openCreateContributorModal}
-                  aria-label="Novo Contribuinte"
-                >
-                  <Plus size={18} />
-                  <span className="btn-text">Novo Contribuinte</span>
-                </button>
-              </div>
-
-              {loadingContributors ? (
-                <div className="loading-state">
-                  <div className="spinner"></div>
-                  <p>Carregando contribuintes...</p>
-                </div>
-              ) : contributors.length === 0 ? (
-                <div className="empty-state">
-                  <Users size={48} />
-                  <h3>Nenhum contribuinte cadastrado</h3>
-                  <p>
-                    Clique em &quot;Novo Contribuinte&quot; para adicionar o primeiro contribuinte.
-                  </p>
-                </div>
-              ) : (
-                <div className="contributors-admin-grid">
-                  {contributors.map((contributor) => (
-                    <div key={contributor.id} className="contributor-admin-card">
-                      <img
-                        src={contributor.avatar_url}
-                        alt={contributor.nome}
-                        className="contributor-admin-avatar"
-                      />
-                      <div className="contributor-admin-info">
-                        <span className="contributor-admin-name">{contributor.nome}</span>
-                        <span className="contributor-admin-username">
-                          @{contributor.github_username}
-                        </span>
-                        <div className="contributor-admin-links">
-                          <a
-                            href={contributor.github_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="GitHub"
-                          >
-                            <Github size={14} />
-                          </a>
-                          {contributor.linkedin_url && (
-                            <a
-                              href={contributor.linkedin_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="LinkedIn"
-                            >
-                              <Linkedin size={14} />
-                            </a>
-                          )}
-                          {contributor.portfolio_url && (
-                            <a
-                              href={contributor.portfolio_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="Portfólio"
-                            >
-                              <ExternalLink size={14} />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                      <div className="action-buttons">
-                        <button
-                          className="btn-icon btn-edit"
-                          onClick={() => openEditContributorModal(contributor)}
-                          title="Editar"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          className="btn-icon btn-delete"
-                          onClick={() => handleDeleteContributor(contributor.id)}
-                          title="Excluir"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ContributorsSection
+              contributors={contributors}
+              handleDeleteContributor={handleDeleteContributor}
+              loadingContributors={loadingContributors}
+              onOpenCreateContributorModal={openCreateContributorModal}
+              onOpenEditContributorModal={openEditContributorModal}
+            />
           )}
         </div>
       </main>
