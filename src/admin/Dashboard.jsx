@@ -1,45 +1,12 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  LayoutDashboard,
-  Plus,
-  Calendar,
-  Clock,
-  Search,
-  Link as LinkIcon,
-  Image,
-  LogOut,
-  X,
-  Sun,
-  Moon,
-  CalendarDays,
-  Tag,
-  Trash2,
-  Eye,
-  Edit2,
-  Save,
-  AlertCircle,
-  CheckCircle,
-  Upload,
-  FileText,
-  Users,
-  Github,
-  Linkedin,
-  ExternalLink,
-  Loader2,
-  MapPin,
-  Monitor,
-  Video,
-  Palette,
-} from 'lucide-react'
+import { Plus, X, Tag, Trash2, Edit2, Save, AlertCircle, CheckCircle, Palette } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { getSession, signOut, getCurrentUser } from '../services/authService'
 import {
-  getEvents,
   createEvent,
   updateEvent,
   deleteEvent as deleteEventService,
-  getEventStats,
   uploadEventImage,
 } from '../services/eventService'
 import {
@@ -81,6 +48,7 @@ import ContributorsSection from '../components/admin/ContributorsSection'
 import AdminEventModal from '../components/admin/AdminEventModal'
 import ContributorModal from '../components/admin/ContributorModal'
 import EventsSection from '../components/admin/EventsSection'
+import useEvents from '../hooks/useEvents'
 
 const PAGE_SIZES = {
   desktop: 20,
@@ -88,14 +56,11 @@ const PAGE_SIZES = {
 }
 
 function Dashboard() {
-  const [eventos, setEventos] = useState([])
-  const [loading, setLoading] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const [notification, setNotification] = useState(null)
   const [activeTab, setActiveTab] = useState('eventos')
-  const [stats, setStats] = useState({ total: 0, noturno: 0, diurno: 0 })
   const [userEmail, setUserEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imageFile, setImageFile] = useState(null)
@@ -145,6 +110,12 @@ function Dashboard() {
     watch: watchTag,
     formState: { errors: tagErrors },
   } = useForm()
+  const showNotification = useCallback((message, type = 'success') => {
+    setNotification({ message, type })
+    setTimeout(() => setNotification(null), 3000)
+  }, [])
+
+  const { eventos, stats, loading, loadEvents } = useEvents(showNotification)
 
   const sortedEvents = useMemo(() => {
     const today = new Date()
@@ -176,25 +147,6 @@ function Dashboard() {
   const pageSize = isMobile ? PAGE_SIZES.mobile : PAGE_SIZES.desktop
   const { currentPage, totalPages, pagedItems, goToPage } = usePagination(filteredEvents, pageSize)
   const showSearch = !loading && eventos.length > 0
-
-  const showNotification = useCallback((message, type = 'success') => {
-    setNotification({ message, type })
-    setTimeout(() => setNotification(null), 3000)
-  }, [])
-
-  const loadEvents = useCallback(async () => {
-    try {
-      setLoading(true)
-      const [eventsData, statsData] = await Promise.all([getEvents(), getEventStats()])
-      setEventos(eventsData)
-      setStats(statsData)
-    } catch (error) {
-      console.error('Erro ao carregar eventos:', error)
-      showNotification('Erro ao carregar eventos', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }, [showNotification])
 
   useEffect(() => {
     async function init() {
@@ -636,36 +588,6 @@ function Dashboard() {
   }
 
   const watchModalidade = watch('modalidade')
-
-  const ESTADOS_BR = [
-    'AC',
-    'AL',
-    'AP',
-    'AM',
-    'BA',
-    'CE',
-    'DF',
-    'ES',
-    'GO',
-    'MA',
-    'MT',
-    'MS',
-    'MG',
-    'PA',
-    'PB',
-    'PR',
-    'PE',
-    'PI',
-    'RJ',
-    'RN',
-    'RS',
-    'RO',
-    'RR',
-    'SC',
-    'SP',
-    'SE',
-    'TO',
-  ]
 
   return (
     <div className="admin-dashboard">
