@@ -8,7 +8,6 @@ import {
   createTag,
   updateTag,
   deleteTag as deleteTagService,
-  getEventTags,
 } from '../services/tagService'
 import { parseDateValue, formatDateToInput, getDayName } from './utils/dateUtils'
 import useMediaQuery from '../hooks/useMediaQuery'
@@ -26,6 +25,7 @@ import useEvents from '../hooks/useEvents'
 import useContributors from '../hooks/useContributors'
 import { isValidLinkedInUrl, isValidPortfolioUrl } from '../services/contributorService'
 import useEventForm from '../hooks/useEventForm'
+import useEventTags from '../hooks/useEventTags'
 
 const PAGE_SIZES = {
   desktop: 20,
@@ -51,11 +51,11 @@ function Dashboard() {
   const [showTagModal, setShowTagModal] = useState(false)
   const [editingTag, setEditingTag] = useState(null)
   const [isSubmittingTag, setIsSubmittingTag] = useState(false)
-  const [selectedTags, setSelectedTags] = useState([])
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 768px)')
   const { buildEventData } = useEventForm()
+  const { selectedTags, setSelectedTags, loadTagsByEvent, resetTags } = useEventTags()
   const {
     register,
     handleSubmit,
@@ -222,22 +222,17 @@ function Dashboard() {
     setValue('cidade', evento.cidade || '')
     setValue('estado', evento.estado || '')
     // Carregar tags do evento
-    try {
-      const eventTags = await getEventTags(evento.id)
-      setSelectedTags(eventTags.map((t) => t.id))
-    } catch {
-      setSelectedTags([])
-    }
+    await loadTagsByEvent(evento.id)
     setShowModal(true)
   }
 
   const closeModal = () => {
-    setShowModal(false)
+    resetTags()
+    reset()
     setEditingEvent(null)
+    setShowModal(false)
     setImageFile(null)
     setImagePreview(null)
-    setSelectedTags([])
-    reset()
   }
 
   const handleImageSelect = (e) => {
