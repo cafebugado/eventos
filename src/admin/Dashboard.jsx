@@ -60,6 +60,12 @@ import {
   getEventTags,
   setEventTags,
 } from '../services/tagService'
+import {
+  parseDateValue,
+  formatDateToInput,
+  formatDateToDisplay,
+  getDayName,
+} from './utils/dateUtils'
 import Pagination from '../components/Pagination'
 import RichText from '../components/RichText'
 import useMediaQuery from '../hooks/useMediaQuery'
@@ -69,72 +75,9 @@ import { stripRichText } from '../utils/richText'
 import './Admin.css'
 import BgEventos from '../assets/eventos.png'
 
-const DAY_NAMES = [
-  'Domingo',
-  'Segunda-feira',
-  'Terça-feira',
-  'Quarta-feira',
-  'Quinta-feira',
-  'Sexta-feira',
-  'Sábado',
-]
-
 const PAGE_SIZES = {
   desktop: 20,
   mobile: 10,
-}
-
-const DATE_INPUT_REGEX = /^\d{4}-\d{2}-\d{2}$/
-const DATE_BR_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/
-
-const parseDateValue = (value) => {
-  if (!value) {
-    return null
-  }
-
-  if (DATE_INPUT_REGEX.test(value)) {
-    const [year, month, day] = value.split('-').map(Number)
-    return new Date(year, month - 1, day)
-  }
-
-  const brMatch = value.match(DATE_BR_REGEX)
-  if (brMatch) {
-    const [, day, month, year] = brMatch
-    return new Date(Number(year), Number(month) - 1, Number(day))
-  }
-
-  const parsed = new Date(value)
-  return Number.isNaN(parsed.getTime()) ? null : parsed
-}
-
-const formatDateToInput = (value) => {
-  const date = parseDateValue(value)
-  if (!date) {
-    return ''
-  }
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-const formatDateToDisplay = (value) => {
-  const date = parseDateValue(value)
-  if (!date) {
-    return ''
-  }
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  return `${day}/${month}/${year}`
-}
-
-const getDayName = (value) => {
-  const date = parseDateValue(value)
-  if (!date) {
-    return ''
-  }
-  return DAY_NAMES[date.getDay()]
 }
 
 function Dashboard() {
