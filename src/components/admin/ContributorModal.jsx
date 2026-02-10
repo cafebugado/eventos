@@ -1,5 +1,10 @@
 import React from 'react'
 import { X, Github, Loader2, Search, Users, Linkedin, ExternalLink, Save } from 'lucide-react'
+import {
+  isValidGitHubUsername,
+  isValidPortfolioUrl,
+  isValidLinkedInUrl,
+} from '../../services/contributorService'
 
 const ContributorModal = ({
   closeContributorModal,
@@ -8,9 +13,6 @@ const ContributorModal = ({
   onSubmitContributor,
   registerContributor,
   isEditingContributor,
-  isValidGitHubUsername,
-  isValidPortfolioUrl,
-  isValidLinkedInUrl,
   isFetchingGitHub,
   isSubmittingContributor,
   contributorErrors,

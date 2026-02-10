@@ -4,26 +4,11 @@ import { Plus, X, Tag, Trash2, Edit2, Save, AlertCircle, CheckCircle, Palette } 
 import { useForm } from 'react-hook-form'
 import { getSession, signOut, getCurrentUser } from '../services/authService'
 import {
-  createEvent,
-  updateEvent,
-  deleteEvent as deleteEventService,
-  uploadEventImage,
-} from '../services/eventService'
-import {
-  createContributor,
-  updateContributor,
-  deleteContributor as deleteContributorService,
-  isValidLinkedInUrl,
-  isValidPortfolioUrl,
-  isValidGitHubUsername,
-} from '../services/contributorService'
-import {
   getTags,
   createTag,
   updateTag,
   deleteTag as deleteTagService,
   getEventTags,
-  setEventTags,
 } from '../services/tagService'
 import {
   parseDateValue,
@@ -44,6 +29,7 @@ import ContributorModal from '../components/admin/ContributorModal'
 import EventsSection from '../components/admin/EventsSection'
 import useEvents from '../hooks/useEvents'
 import useContributors from '../hooks/useContributors'
+import { isValidLinkedInUrl, isValidPortfolioUrl } from '../services/contributorService'
 
 const PAGE_SIZES = {
   desktop: 20,
@@ -60,7 +46,6 @@ function Dashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
-  const [isUploading, setIsUploading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [showContributorModal, setShowContributorModal] = useState(false)
   const [editingContributor, setEditingContributor] = useState(null)
@@ -106,7 +91,8 @@ function Dashboard() {
     setTimeout(() => setNotification(null), 3000)
   }, [])
 
-  const { eventos, stats, loading, loadEvents } = useEvents(showNotification)
+  const { eventos, stats, loading, isUploading, loadEvents, saveEvent, deleteEventById } =
+    useEvents(showNotification)
 
   const {
     contributors,
@@ -116,6 +102,8 @@ function Dashboard() {
     loadContributors,
     fetchGitHub,
     setGitHubPreview,
+    saveContributor,
+    deleteContributorById,
   } = useContributors(showNotification)
 
   const sortedEvents = useMemo(() => {
@@ -293,23 +281,6 @@ function Dashboard() {
   const onSubmit = async (data) => {
     setIsSubmitting(true)
     try {
-      let imageUrl = data.imagem || null
-
-      // Se tem arquivo de imagem, faz upload
-      if (imageFile) {
-        setIsUploading(true)
-        try {
-          imageUrl = await uploadEventImage(imageFile)
-        } catch (uploadError) {
-          console.error('Erro no upload:', uploadError)
-          showNotification('Erro ao fazer upload da imagem', 'error')
-          setIsSubmitting(false)
-          setIsUploading(false)
-          return
-        }
-        setIsUploading(false)
-      }
-
       const displayDate = formatDateToDisplay(data.data_evento) || data.data_evento
       const resolvedDayName = getDayName(data.data_evento) || data.dia_semana
 
@@ -321,43 +292,40 @@ function Dashboard() {
         dia_semana: resolvedDayName,
         periodo: data.periodo,
         link: data.link,
-        imagem: imageUrl,
+        imagem: data.imagem || null,
         modalidade: data.modalidade || null,
         endereco: data.modalidade === 'Online' ? null : data.endereco || null,
         cidade: data.modalidade === 'Online' ? null : data.cidade || null,
         estado: data.modalidade === 'Online' ? null : data.estado || null,
       }
-
-      let savedEvent
-      if (editingEvent) {
-        savedEvent = await updateEvent(editingEvent.id, eventData)
-        await setEventTags(editingEvent.id, selectedTags)
-        showNotification('Evento atualizado com sucesso!')
-      } else {
-        savedEvent = await createEvent(eventData)
-        if (selectedTags.length > 0) {
-          await setEventTags(savedEvent.id, selectedTags)
-        }
-        showNotification('Evento criado com sucesso!')
-      }
-
+      await saveEvent({
+        id: editingEvent?.id,
+        data: eventData,
+        imageFile,
+        selectedTags,
+      })
+      showNotification(
+        editingEvent ? 'Evento atualizado com sucesso!' : 'Evento criado com sucesso!'
+      )
       closeModal()
-      await loadEvents()
     } catch (error) {
-      console.error('Erro ao salvar evento:', error)
-      showNotification('Erro ao salvar evento', 'error')
+      if (error.message.includes('UPLOAD_ERROR')) {
+        console.error(error)
+        showNotification('Erro ao fazer upload da imagem', 'error')
+      } else {
+        console.error('Erro ao salvar evento:', error)
+        showNotification('Erro ao salvar evento', 'error')
+      }
     } finally {
       setIsSubmitting(false)
-      setIsUploading(false)
     }
   }
 
   const handleDeleteEvent = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este evento?')) {
       try {
-        await deleteEventService(id)
+        await deleteEventById(id)
         showNotification('Evento excluído com sucesso!')
-        await loadEvents()
       } catch (error) {
         console.error('Erro ao excluir evento:', error)
         showNotification('Erro ao excluir evento', 'error')
@@ -435,15 +403,12 @@ function Dashboard() {
         linkedin_url: data.linkedin_url || null,
         portfolio_url: data.portfolio_url || null,
       }
-
-      if (editingContributor) {
-        await updateContributor(editingContributor.id, contributorData)
-        showNotification('Contribuinte atualizado com sucesso!')
+      if (editingContributor !== null) {
+        await saveContributor(editingContributor.id, contributorData)
       } else {
-        await createContributor(contributorData)
-        showNotification('Contribuinte adicionado com sucesso!')
+        await saveContributor(null, contributorData)
       }
-
+      showNotification('Contribuinte salvo com sucesso!')
       closeContributorModal()
       await loadContributors()
     } catch (error) {
@@ -457,7 +422,7 @@ function Dashboard() {
   const handleDeleteContributor = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este contribuinte?')) {
       try {
-        await deleteContributorService(id)
+        await deleteContributorById(id)
         showNotification('Contribuinte excluído com sucesso!')
         await loadContributors()
       } catch (error) {
@@ -701,9 +666,6 @@ function Dashboard() {
           handleSubmitContributor={handleSubmitContributor}
           fetchGitHub={fetchGitHub}
           isEditingContributor={editingContributor}
-          isValidGitHubUsername={isValidGitHubUsername}
-          isValidLinkedInUrl={isValidLinkedInUrl}
-          isValidPortfolioUrl={isValidPortfolioUrl}
           isFetchingGitHub={isFetchingGitHub}
           isSubmittingContributor={isSubmittingContributor}
           onSubmitContributor={onSubmitContributor}

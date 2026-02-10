@@ -47,7 +47,7 @@ export default function useContributors(showNotification) {
     }
   }
 
-  const saveContributor = async ({ id, data }) => {
+  const saveContributor = async (id, data) => {
     if (id) {
       await updateContributor(id, data)
     } else {
