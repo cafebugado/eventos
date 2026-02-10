@@ -76,6 +76,7 @@ import './Admin.css'
 import BgEventos from '../assets/eventos.png'
 import AdminSidebar from '../components/admin/AdminSidebar'
 import AdminTopbar from '../components/admin/AdminTopbar'
+import EventStats from '../components/admin/EventStats'
 
 const PAGE_SIZES = {
   desktop: 20,
@@ -683,35 +684,7 @@ function Dashboard() {
           {activeTab !== 'contribuintes' && activeTab !== 'tags' && (
             <>
               {/* Stats */}
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-icon blue">
-                    <Calendar size={24} />
-                  </div>
-                  <div className="stat-info">
-                    <span className="stat-value">{stats.total}</span>
-                    <span className="stat-label">Total de Eventos</span>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon green">
-                    <CheckCircle size={24} />
-                  </div>
-                  <div className="stat-info">
-                    <span className="stat-value">{stats.noturno}</span>
-                    <span className="stat-label">Eventos Noturnos</span>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon orange">
-                    <Sun size={24} />
-                  </div>
-                  <div className="stat-info">
-                    <span className="stat-value">{stats.diurno}</span>
-                    <span className="stat-label">Eventos Diurnos</span>
-                  </div>
-                </div>
-              </div>
+              <EventStats stats={stats} />
 
               {/* Events Section */}
               <div className="events-section">
