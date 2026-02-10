@@ -9,7 +9,7 @@ import {
   updateTag,
   deleteTag as deleteTagService,
 } from '../services/tagService'
-import { parseDateValue, formatDateToInput, getDayName } from './utils/dateUtils'
+import { parseDateValue, getDayName } from './utils/dateUtils'
 import useMediaQuery from '../hooks/useMediaQuery'
 import usePagination from '../hooks/usePagination'
 import { filterEventsByQuery } from '../utils/eventSearch'
@@ -26,6 +26,7 @@ import useContributors from '../hooks/useContributors'
 import { isValidLinkedInUrl, isValidPortfolioUrl } from '../services/contributorService'
 import useEventForm from '../hooks/useEventForm'
 import useEventTags from '../hooks/useEventTags'
+import useEventModal from '../hooks/useEventModal'
 
 const PAGE_SIZES = {
   desktop: 20,
@@ -34,8 +35,6 @@ const PAGE_SIZES = {
 
 function Dashboard() {
   const [isDarkMode, setIsDarkMode] = useState(false)
-  const [showModal, setShowModal] = useState(false)
-  const [editingEvent, setEditingEvent] = useState(null)
   const [notification, setNotification] = useState(null)
   const [activeTab, setActiveTab] = useState('eventos')
   const [userEmail, setUserEmail] = useState('')
@@ -64,6 +63,21 @@ function Dashboard() {
     watch,
     formState: { errors },
   } = useForm()
+  const {
+    isOpen: showModal,
+    editingEvent,
+    openCreateModal,
+    openEditModal,
+    closeModal,
+  } = useEventModal({
+    resetForm: reset,
+    setValue,
+    resetTags,
+    loadTagsByEvent,
+    setImageFile,
+    setImagePreview,
+  })
+
   const descricaoValue = watch('descricao') || ''
 
   const {
@@ -179,60 +193,6 @@ function Dashboard() {
       console.error('Erro ao fazer logout:', error)
       showNotification('Erro ao fazer logout', 'error')
     }
-  }
-
-  const openCreateModal = () => {
-    setEditingEvent(null)
-    setImageFile(null)
-    setImagePreview(null)
-    setSelectedTags([])
-    reset({
-      nome: '',
-      descricao: '',
-      data_evento: '',
-      horario: '',
-      dia_semana: '',
-      periodo: '',
-      link: '',
-      imagem: '',
-      modalidade: '',
-      endereco: '',
-      cidade: '',
-      estado: '',
-    })
-    setShowModal(true)
-  }
-
-  const openEditModal = async (evento) => {
-    const normalizedDate = formatDateToInput(evento.data_evento)
-    const dayName = getDayName(normalizedDate || evento.data_evento) || evento.dia_semana || ''
-    setEditingEvent(evento)
-    setImageFile(null)
-    setImagePreview(evento.imagem || null)
-    setValue('nome', evento.nome)
-    setValue('descricao', evento.descricao || '')
-    setValue('data_evento', normalizedDate)
-    setValue('horario', evento.horario)
-    setValue('dia_semana', dayName)
-    setValue('periodo', evento.periodo)
-    setValue('link', evento.link)
-    setValue('imagem', evento.imagem || '')
-    setValue('modalidade', evento.modalidade || '')
-    setValue('endereco', evento.endereco || '')
-    setValue('cidade', evento.cidade || '')
-    setValue('estado', evento.estado || '')
-    // Carregar tags do evento
-    await loadTagsByEvent(evento.id)
-    setShowModal(true)
-  }
-
-  const closeModal = () => {
-    resetTags()
-    reset()
-    setEditingEvent(null)
-    setShowModal(false)
-    setImageFile(null)
-    setImagePreview(null)
   }
 
   const handleImageSelect = (e) => {
