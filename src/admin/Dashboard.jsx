@@ -10,11 +10,9 @@ import {
   uploadEventImage,
 } from '../services/eventService'
 import {
-  getContributors,
   createContributor,
   updateContributor,
   deleteContributor as deleteContributorService,
-  fetchGitHubUser,
   isValidLinkedInUrl,
   isValidPortfolioUrl,
   isValidGitHubUsername,
@@ -33,22 +31,19 @@ import {
   formatDateToDisplay,
   getDayName,
 } from './utils/dateUtils'
-import Pagination from '../components/Pagination'
-import RichText from '../components/RichText'
 import useMediaQuery from '../hooks/useMediaQuery'
 import usePagination from '../hooks/usePagination'
 import { filterEventsByQuery } from '../utils/eventSearch'
 import './Admin.css'
-import BgEventos from '../assets/eventos.png'
 import AdminSidebar from '../components/admin/AdminSidebar'
 import AdminTopbar from '../components/admin/AdminTopbar'
 import EventStats from '../components/admin/EventStats'
-import EventsTable from '../components/admin/EventsTable'
 import ContributorsSection from '../components/admin/ContributorsSection'
 import AdminEventModal from '../components/admin/AdminEventModal'
 import ContributorModal from '../components/admin/ContributorModal'
 import EventsSection from '../components/admin/EventsSection'
 import useEvents from '../hooks/useEvents'
+import useContributors from '../hooks/useContributors'
 
 const PAGE_SIZES = {
   desktop: 20,
@@ -67,13 +62,9 @@ function Dashboard() {
   const [imagePreview, setImagePreview] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [contributors, setContributors] = useState([])
-  const [loadingContributors, setLoadingContributors] = useState(true)
   const [showContributorModal, setShowContributorModal] = useState(false)
   const [editingContributor, setEditingContributor] = useState(null)
   const [isSubmittingContributor, setIsSubmittingContributor] = useState(false)
-  const [isFetchingGitHub, setIsFetchingGitHub] = useState(false)
-  const [gitHubPreview, setGitHubPreview] = useState(null)
   const [tags, setTags] = useState([])
   const [loadingTags, setLoadingTags] = useState(true)
   const [showTagModal, setShowTagModal] = useState(false)
@@ -116,6 +107,16 @@ function Dashboard() {
   }, [])
 
   const { eventos, stats, loading, loadEvents } = useEvents(showNotification)
+
+  const {
+    contributors,
+    loading: loadingContributors,
+    gitHubPreview,
+    isFetchingGitHub,
+    loadContributors,
+    fetchGitHub,
+    setGitHubPreview,
+  } = useContributors(showNotification)
 
   const sortedEvents = useMemo(() => {
     const today = new Date()
@@ -365,43 +366,11 @@ function Dashboard() {
   }
 
   // === Contributor Functions ===
-  const loadContributors = useCallback(async () => {
-    try {
-      setLoadingContributors(true)
-      const data = await getContributors()
-      setContributors(data)
-    } catch (error) {
-      console.error('Erro ao carregar contribuintes:', error)
-      showNotification('Erro ao carregar contribuintes', 'error')
-    } finally {
-      setLoadingContributors(false)
-    }
-  }, [showNotification])
-
   useEffect(() => {
     if (activeTab === 'contribuintes') {
       loadContributors()
     }
   }, [activeTab, loadContributors])
-
-  const handleFetchGitHub = async (username) => {
-    if (!username || !isValidGitHubUsername(username)) {
-      setGitHubPreview(null)
-      return
-    }
-
-    setIsFetchingGitHub(true)
-    try {
-      const userData = await fetchGitHubUser(username)
-      setGitHubPreview(userData)
-      setContributorValue('nome', userData.nome)
-    } catch (error) {
-      showNotification(error.message || 'Erro ao buscar usuário do GitHub', 'error')
-      setGitHubPreview(null)
-    } finally {
-      setIsFetchingGitHub(false)
-    }
-  }
 
   const openCreateContributorModal = () => {
     setEditingContributor(null)
@@ -730,7 +699,7 @@ function Dashboard() {
         <ContributorModal
           closeContributorModal={closeContributorModal}
           handleSubmitContributor={handleSubmitContributor}
-          handleFetchGitHub={handleFetchGitHub}
+          fetchGitHub={fetchGitHub}
           isEditingContributor={editingContributor}
           isValidGitHubUsername={isValidGitHubUsername}
           isValidLinkedInUrl={isValidLinkedInUrl}

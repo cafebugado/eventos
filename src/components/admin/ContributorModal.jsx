@@ -4,7 +4,7 @@ import { X, Github, Loader2, Search, Users, Linkedin, ExternalLink, Save } from 
 const ContributorModal = ({
   closeContributorModal,
   handleSubmitContributor,
-  handleFetchGitHub,
+  fetchGitHub,
   onSubmitContributor,
   registerContributor,
   isEditingContributor,
@@ -49,7 +49,7 @@ const ContributorModal = ({
                   onClick={() => {
                     const input = document.querySelector('input[name="github_username"]')
                     if (input) {
-                      handleFetchGitHub(input.value)
+                      fetchGitHub(input.value)
                     }
                   }}
                   disabled={isFetchingGitHub}
