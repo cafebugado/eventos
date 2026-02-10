@@ -19,6 +19,9 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 
 - **Autenticação** - Login seguro via Supabase Auth
 - **CRUD de Eventos** - Criar, editar, visualizar e excluir eventos
+- **Tags de Tecnologia** - CRUD de tags com cor customizada e preview em tempo real
+- **Modalidade** - Presencial, Online ou Híbrido para cada evento
+- **Localização** - Endereço, cidade e estado com link para Google Maps
 - **Upload de Imagens** - Upload direto para Supabase Storage
 - **Estatísticas** - Visualização de eventos por período
 - **Validação de Formulários** - React Hook Form com validações
@@ -230,7 +233,9 @@ agendas_eventos/
 │   │   ├── authService.js        # Autenticação
 │   │   ├── authService.test.js   # Testes de auth
 │   │   ├── eventService.js       # CRUD de eventos
-│   │   └── eventService.test.js  # Testes de eventos
+│   │   ├── eventService.test.js  # Testes de eventos
+│   │   ├── contributorService.js # CRUD de contribuintes
+│   │   └── tagService.js         # CRUD de tags e associação
 │   │
 │   ├── lib/                      # Configurações
 │   │   └── supabase.js           # Cliente Supabase
@@ -268,13 +273,14 @@ agendas_eventos/
 
 ## Rotas da Aplicação
 
-| Rota               | Componente | Descrição                |
-| ------------------ | ---------- | ------------------------ |
-| `/`                | Home       | Landing page             |
-| `/eventos`         | App        | Listagem de eventos      |
-| `/admin`           | Login      | Login administrativo     |
-| `/admin/dashboard` | Dashboard  | Gerenciamento de eventos |
-| `/*`               | NotFound   | Página 404               |
+| Rota               | Componente   | Descrição                |
+| ------------------ | ------------ | ------------------------ |
+| `/`                | Home         | Landing page             |
+| `/eventos`         | App          | Listagem de eventos      |
+| `/evento/:id`      | EventDetails | Detalhes do evento       |
+| `/admin`           | Login        | Login administrativo     |
+| `/admin/dashboard` | Dashboard    | Gerenciamento de eventos |
+| `/*`               | NotFound     | Página 404               |
 
 ## Configuração do Supabase
 
@@ -293,8 +299,34 @@ CREATE TABLE eventos (
   periodo VARCHAR(20),
   link TEXT,
   imagem TEXT,
+  modalidade TEXT,
+  endereco TEXT,
+  cidade TEXT,
+  estado TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Tabela de Tags
+
+```sql
+CREATE TABLE tags (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome TEXT NOT NULL UNIQUE,
+  cor TEXT DEFAULT '#2563eb',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Tabela de Associação Evento-Tags
+
+```sql
+CREATE TABLE evento_tags (
+  evento_id UUID REFERENCES eventos(id) ON DELETE CASCADE,
+  tag_id UUID REFERENCES tags(id) ON DELETE CASCADE,
+  PRIMARY KEY (evento_id, tag_id)
 );
 ```
 
@@ -304,6 +336,12 @@ CREATE TABLE eventos (
 - Diurno
 - Vespertino
 - Noturno
+
+### Modalidades Disponíveis
+
+- Presencial
+- Online
+- Híbrido
 
 ## CI/CD
 
