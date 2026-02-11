@@ -134,7 +134,7 @@ jobs:
         run: pnpm test:coverage
 
       - name: Upload cobertura para Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: ./coverage/coverage-final.json
           fail_ci_if_error: false
