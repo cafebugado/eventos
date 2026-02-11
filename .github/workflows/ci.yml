@@ -1,5 +1,5 @@
-# CI Pipeline - Lint e Testes
-# Este workflow executa em todas as branches para garantir qualidade do código
+# CI Pipeline - Lint, Testes e Segurança
+# Este workflow executa em todas as branches para garantir qualidade e segurança do código
 
 name: CI
 
@@ -18,6 +18,7 @@ on:
 
 env:
   NODE_VERSION: '20'
+  PNPM_VERSION: '9'
 
 jobs:
   lint:
@@ -31,7 +32,7 @@ jobs:
       - name: Instalar pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
@@ -48,6 +49,43 @@ jobs:
       - name: Executar ESLint
         run: pnpm lint
 
+  security:
+    name: Auditoria de Segurança
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Auditoria de dependências (pnpm audit)
+        run: pnpm audit --prod
+        continue-on-error: true
+
+      - name: Verificar secrets expostas no código
+        run: |
+          echo "Verificando padrões de secrets no código..."
+          PATTERNS='(sk_live|sk_test|AKIA[0-9A-Z]{16}|-----BEGIN (RSA |EC )?PRIVATE KEY-----|ghp_[a-zA-Z0-9]{36}|gho_[a-zA-Z0-9]{36})'
+          if grep -rEn "$PATTERNS" --include="*.js" --include="*.jsx" --include="*.ts" --include="*.tsx" --include="*.json" --exclude-dir=node_modules --exclude-dir=.git . ; then
+            echo "::error::Possíveis secrets encontradas no código!"
+            exit 1
+          else
+            echo "Nenhuma secret encontrada."
+          fi
+
   test:
     name: Testes
     runs-on: ubuntu-latest
@@ -60,7 +98,7 @@ jobs:
       - name: Instalar pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
@@ -82,12 +120,11 @@ jobs:
         with:
           files: ./coverage/coverage-final.json
           fail_ci_if_error: false
-        continue-on-error: true
 
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, security]
 
     steps:
       - name: Checkout código
@@ -96,7 +133,7 @@ jobs:
       - name: Instalar pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4

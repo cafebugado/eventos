@@ -22,6 +22,43 @@ services:
     tty: true
     networks:
       - eventos-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ==========================================
+  # Ambiente de Staging (Validação pré-produção)
+  # Uso: docker-compose --profile staging up app-staging
+  # Acesse: http://localhost:3000
+  # ==========================================
+  app-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+    container_name: eventos-cafe-staging
+    ports:
+      - '3000:80'
+    networks:
+      - eventos-network
+    profiles:
+      - staging
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
 
   # ==========================================
   # Ambiente de Produção
@@ -43,6 +80,14 @@ services:
     profiles:
       - production
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
 
 networks:
   eventos-network:
