@@ -1,53 +1,65 @@
 import { supabase } from '../lib/supabase'
+import { withRetry } from '../lib/apiClient'
 
 const GITHUB_API_URL = 'https://api.github.com/users'
 
-// Buscar informações do GitHub pelo username
+// Buscar informações do GitHub pelo username (com retry automático)
 export async function fetchGitHubUser(username) {
-  const response = await fetch(`${GITHUB_API_URL}/${encodeURIComponent(username)}`)
+  return withRetry(
+    async () => {
+      const response = await fetch(`${GITHUB_API_URL}/${encodeURIComponent(username)}`)
 
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error('Usuário do GitHub não encontrado')
-    }
-    throw new Error('Erro ao buscar dados do GitHub')
-  }
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Usuário do GitHub não encontrado')
+        }
+        throw new Error('Erro ao buscar dados do GitHub')
+      }
 
-  const data = await response.json()
+      const data = await response.json()
 
-  return {
-    github_username: data.login,
-    nome: data.name || data.login,
-    avatar_url: data.avatar_url,
-    github_url: data.html_url,
-  }
+      return {
+        github_username: data.login,
+        nome: data.name || data.login,
+        avatar_url: data.avatar_url,
+        github_url: data.html_url,
+      }
+    },
+    { context: 'fetchGitHubUser' }
+  )
 }
 
-// Buscar todos os contribuintes
+// Buscar todos os contribuintes (com retry automático)
 export async function getContributors() {
-  const { data, error } = await supabase
-    .from('contribuintes')
-    .select('*')
-    .order('nome', { ascending: true })
+  return withRetry(
+    async () => {
+      const { data, error } = await supabase
+        .from('contribuintes')
+        .select('*')
+        .order('nome', { ascending: true })
 
-  if (error) {
-    console.error('Erro ao buscar contribuintes:', error)
-    throw error
-  }
-
-  return data
+      if (error) {
+        throw error
+      }
+      return data
+    },
+    { context: 'getContributors' }
+  )
 }
 
-// Buscar contribuinte por ID
+// Buscar contribuinte por ID (com retry automático)
 export async function getContributorById(id) {
-  const { data, error } = await supabase.from('contribuintes').select('*').eq('id', id).single()
+  return withRetry(
+    async () => {
+      const { data, error } = await supabase.from('contribuintes').select('*').eq('id', id).single()
 
-  if (error) {
-    console.error('Erro ao buscar contribuinte:', error)
-    throw error
-  }
-
-  return data
+      if (error) {
+        throw error
+      }
+      return data
+    },
+    { context: 'getContributorById' }
+  )
 }
 
 // Criar novo contribuinte

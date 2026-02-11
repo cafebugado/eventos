@@ -14,6 +14,7 @@ on:
 
 env:
   NODE_VERSION: '20'
+  PNPM_VERSION: '9'
 
 jobs:
   validate-branch:
@@ -47,7 +48,7 @@ jobs:
       - name: Instalar pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4

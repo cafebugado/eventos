@@ -1,30 +1,37 @@
 import { supabase } from '../lib/supabase'
+import { withRetry } from '../lib/apiClient'
 
-// Buscar todos os eventos
+// Buscar todos os eventos (com retry automático)
 export async function getEvents() {
-  const { data, error } = await supabase
-    .from('eventos')
-    .select('*')
-    .order('data_evento', { ascending: true })
+  return withRetry(
+    async () => {
+      const { data, error } = await supabase
+        .from('eventos')
+        .select('*')
+        .order('data_evento', { ascending: true })
 
-  if (error) {
-    console.error('Erro ao buscar eventos:', error)
-    throw error
-  }
-
-  return data
+      if (error) {
+        throw error
+      }
+      return data
+    },
+    { context: 'getEvents' }
+  )
 }
 
-// Buscar evento por ID
+// Buscar evento por ID (com retry automático)
 export async function getEventById(id) {
-  const { data, error } = await supabase.from('eventos').select('*').eq('id', id).single()
+  return withRetry(
+    async () => {
+      const { data, error } = await supabase.from('eventos').select('*').eq('id', id).single()
 
-  if (error) {
-    console.error('Erro ao buscar evento:', error)
-    throw error
-  }
-
-  return data
+      if (error) {
+        throw error
+      }
+      return data
+    },
+    { context: 'getEventById' }
+  )
 }
 
 // Criar novo evento
@@ -100,33 +107,41 @@ export async function deleteEvent(id) {
   return true
 }
 
-// Buscar eventos por período
+// Buscar eventos por período (com retry automático)
 export async function getEventsByPeriod(periodo) {
-  const { data, error } = await supabase
-    .from('eventos')
-    .select('*')
-    .eq('periodo', periodo)
-    .order('data_evento', { ascending: true })
+  return withRetry(
+    async () => {
+      const { data, error } = await supabase
+        .from('eventos')
+        .select('*')
+        .eq('periodo', periodo)
+        .order('data_evento', { ascending: true })
 
-  if (error) {
-    console.error('Erro ao buscar eventos por período:', error)
-    throw error
-  }
-
-  return data
+      if (error) {
+        throw error
+      }
+      return data
+    },
+    { context: 'getEventsByPeriod' }
+  )
 }
 
 // Buscar os próximos eventos (futuros, ordenados por data, limitado)
 export async function getUpcomingEvents(limit = 3) {
-  const { data, error } = await supabase
-    .from('eventos')
-    .select('*')
-    .order('data_evento', { ascending: true })
+  const data = await withRetry(
+    async () => {
+      const { data, error } = await supabase
+        .from('eventos')
+        .select('*')
+        .order('data_evento', { ascending: true })
 
-  if (error) {
-    console.error('Erro ao buscar próximos eventos:', error)
-    throw error
-  }
+      if (error) {
+        throw error
+      }
+      return data
+    },
+    { context: 'getUpcomingEvents' }
+  )
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -148,14 +163,19 @@ export async function getUpcomingEvents(limit = 3) {
   return upcoming
 }
 
-// Buscar estatísticas dos eventos
+// Buscar estatísticas dos eventos (com retry automático)
 export async function getEventStats() {
-  const { data: allEvents, error } = await supabase.from('eventos').select('periodo')
+  const allEvents = await withRetry(
+    async () => {
+      const { data, error } = await supabase.from('eventos').select('periodo')
 
-  if (error) {
-    console.error('Erro ao buscar estatísticas:', error)
-    throw error
-  }
+      if (error) {
+        throw error
+      }
+      return data
+    },
+    { context: 'getEventStats' }
+  )
 
   const total = allEvents.length
   const noturno = allEvents.filter((e) => e.periodo === 'Noturno').length

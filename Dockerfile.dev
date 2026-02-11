@@ -13,8 +13,8 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copia arquivos de dependências
 COPY package.json pnpm-lock.yaml ./
 
-# Instala dependências
-RUN pnpm install
+# Instala dependências (frozen-lockfile garante builds reproduzíveis)
+RUN pnpm install --frozen-lockfile
 
 # Não copia o código-fonte aqui.
 # O volume bind mount do docker-compose monta o diretório do host
