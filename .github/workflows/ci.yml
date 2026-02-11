@@ -86,6 +86,24 @@ jobs:
             echo "Nenhuma secret encontrada."
           fi
 
+      - name: Validar security headers no nginx.conf
+        run: |
+          echo "Validando security headers no nginx.conf..."
+          MISSING=""
+          grep -q "X-Frame-Options" nginx.conf || MISSING="$MISSING X-Frame-Options"
+          grep -q "X-Content-Type-Options" nginx.conf || MISSING="$MISSING X-Content-Type-Options"
+          grep -q "X-XSS-Protection" nginx.conf || MISSING="$MISSING X-XSS-Protection"
+          grep -q "Referrer-Policy" nginx.conf || MISSING="$MISSING Referrer-Policy"
+          grep -q "Content-Security-Policy" nginx.conf || MISSING="$MISSING CSP"
+          grep -q "Permissions-Policy" nginx.conf || MISSING="$MISSING Permissions-Policy"
+          grep -q "server_tokens off" nginx.conf || MISSING="$MISSING server_tokens"
+          if [ -n "$MISSING" ]; then
+            echo "::error::Security headers ausentes no nginx.conf:$MISSING"
+            exit 1
+          else
+            echo "Todos os security headers presentes."
+          fi
+
   test:
     name: Testes
     runs-on: ubuntu-latest
