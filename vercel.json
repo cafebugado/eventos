@@ -1,59 +1,26 @@
 {
   "rewrites": [
     {
-      "source": "/",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot).*"
-        }
-      ],
-      "destination": "/api/og?path=/"
-    },
-    {
-      "source": "/eventos",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot).*"
-        }
-      ],
-      "destination": "/api/og?path=/eventos"
-    },
-    {
       "source": "/eventos/:id",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot).*"
+          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot|Applebot|Pinterest|Googlebot|bingbot|Embedly|Quora Link Preview|Showyoubot|vkShare|Slack-ImgProxy|redditbot|Skype).*"
         }
       ],
       "destination": "/api/og?path=/eventos/:id"
     },
     {
-      "source": "/sobre",
+      "source": "/:path*",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot).*"
+          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot|Applebot|Pinterest|Googlebot|bingbot|Embedly|Quora Link Preview|Showyoubot|vkShare|Slack-ImgProxy|redditbot|Skype).*"
         }
       ],
-      "destination": "/api/og?path=/sobre"
-    },
-    {
-      "source": "/contato",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot).*"
-        }
-      ],
-      "destination": "/api/og?path=/contato"
+      "destination": "/api/og?path=/:path*"
     },
     { "source": "/(.*)", "destination": "/" }
   ]
