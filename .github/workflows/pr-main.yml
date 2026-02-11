@@ -14,6 +14,7 @@ on:
 
 env:
   NODE_VERSION: '20'
+  PNPM_VERSION: '9'
 
 jobs:
   validate-branch:
@@ -52,7 +53,7 @@ jobs:
       - name: Instalar pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
@@ -77,12 +78,25 @@ jobs:
 
       - name: Verificar tamanho do bundle
         run: |
-          echo "## 📦 Tamanho do Bundle" >> $GITHUB_STEP_SUMMARY
+          MAX_SIZE_KB=512
+          TOTAL_SIZE_KB=$(du -sk dist/ | cut -f1)
+
+          echo "## Tamanho do Bundle" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          du -sh dist/
-          find dist -name "*.js" -exec du -h {} \; | sort -rh | head -10
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "| Arquivo | Tamanho |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|---------|" >> $GITHUB_STEP_SUMMARY
+          find dist -name "*.js" -exec du -h {} \; | sort -rh | head -10 | while read size file; do
+            echo "| \`$file\` | $size |" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total:** ${TOTAL_SIZE_KB}KB / Limite: ${MAX_SIZE_KB}KB" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$TOTAL_SIZE_KB" -gt "$MAX_SIZE_KB" ]; then
+            echo "::error::Bundle excede o limite! ${TOTAL_SIZE_KB}KB > ${MAX_SIZE_KB}KB"
+            exit 1
+          else
+            echo "Bundle dentro do limite: ${TOTAL_SIZE_KB}KB <= ${MAX_SIZE_KB}KB"
+          fi
 
   pr-info:
     name: Informações do PR

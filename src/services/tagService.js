@@ -1,15 +1,22 @@
 import { supabase } from '../lib/supabase'
+import { withRetry } from '../lib/apiClient'
 
-// Buscar todas as tags
+// Buscar todas as tags (com retry automático)
 export async function getTags() {
-  const { data, error } = await supabase.from('tags').select('*').order('nome', { ascending: true })
+  return withRetry(
+    async () => {
+      const { data, error } = await supabase
+        .from('tags')
+        .select('*')
+        .order('nome', { ascending: true })
 
-  if (error) {
-    console.error('Erro ao buscar tags:', error)
-    throw error
-  }
-
-  return data
+      if (error) {
+        throw error
+      }
+      return data
+    },
+    { context: 'getTags' }
+  )
 }
 
 // Criar nova tag
@@ -65,16 +72,21 @@ export async function deleteTag(id) {
   return true
 }
 
-// Buscar tags de todos os eventos (retorna mapa evento_id -> tags[])
+// Buscar tags de todos os eventos (com retry automático)
 export async function getAllEventTags() {
-  const { data, error } = await supabase
-    .from('evento_tags')
-    .select('evento_id, tags(id, nome, cor)')
+  const data = await withRetry(
+    async () => {
+      const { data, error } = await supabase
+        .from('evento_tags')
+        .select('evento_id, tags(id, nome, cor)')
 
-  if (error) {
-    console.error('Erro ao buscar tags dos eventos:', error)
-    throw error
-  }
+      if (error) {
+        throw error
+      }
+      return data
+    },
+    { context: 'getAllEventTags' }
+  )
 
   const map = {}
   for (const item of data) {
@@ -87,19 +99,22 @@ export async function getAllEventTags() {
   return map
 }
 
-// Buscar tags de um evento
+// Buscar tags de um evento (com retry automático)
 export async function getEventTags(eventoId) {
-  const { data, error } = await supabase
-    .from('evento_tags')
-    .select('tag_id, tags(id, nome, cor)')
-    .eq('evento_id', eventoId)
+  return withRetry(
+    async () => {
+      const { data, error } = await supabase
+        .from('evento_tags')
+        .select('tag_id, tags(id, nome, cor)')
+        .eq('evento_id', eventoId)
 
-  if (error) {
-    console.error('Erro ao buscar tags do evento:', error)
-    throw error
-  }
-
-  return data.map((item) => item.tags)
+      if (error) {
+        throw error
+      }
+      return data.map((item) => item.tags)
+    },
+    { context: 'getEventTags' }
+  )
 }
 
 // Associar tags a um evento (substitui todas as tags do evento)

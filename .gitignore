@@ -33,3 +33,8 @@ Thumbs.db
 # Testes
 coverage/
 .nyc_output/
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
