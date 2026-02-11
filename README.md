@@ -260,7 +260,7 @@ agendas_eventos/
 │   │   ├── ci.yml                # Pipeline principal
 │   │   ├── pr-developer.yml      # PRs para developer
 │   │   └── pr-main.yml           # PRs para main
-│   └── BRANCH_PROTECTION.md      # Regras de proteção
+│   └── (workflows apenas)
 │
 ├── supabase/                     # Configurações Supabase
 ├── Dockerfile                    # Build de produção (multi-stage)
@@ -284,7 +284,7 @@ agendas_eventos/
 
 ## Configuração do Supabase
 
-Para configurar o Supabase, consulte o guia detalhado em [SUPABASE_SETUP.md](SUPABASE_SETUP.md).
+Para configurar o Supabase, consulte o guia detalhado em [SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 
 ### Tabela de Eventos
 
@@ -490,7 +490,7 @@ pnpm build
 
 ## Contribuindo
 
-Consulte o guia completo em [CONTRIBUTING.md](CONTRIBUTING.md).
+Consulte o guia completo em [CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ### Resumo
 
@@ -502,10 +502,14 @@ Consulte o guia completo em [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Documentação Adicional
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Guia de contribuição
-- [SUPABASE_SETUP.md](SUPABASE_SETUP.md) - Configuração do Supabase
-- [DOCKER_SETUP.md](DOCKER_SETUP.md) - Instalação e configuração do Docker
-- [BRANCH_PROTECTION.md](.github/BRANCH_PROTECTION.md) - Regras de proteção de branches
+- [SETUP_INICIAL.md](docs/SETUP_INICIAL.md) - Montagem do ambiente (primeira vez)
+- [FLUXO_DE_TRABALHO.md](docs/FLUXO_DE_TRABALHO.md) - Fluxo de trabalho diario (Git, commits, PRs)
+- [FLUXO_DOCKER.md](docs/FLUXO_DOCKER.md) - Fluxo de trabalho com Docker
+- [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Solucao de problemas comuns
+- [CONTRIBUTING.md](docs/CONTRIBUTING.md) - Guia de contribuicao
+- [SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) - Configuracao do Supabase
+- [DOCKER_SETUP.md](docs/DOCKER_SETUP.md) - Instalacao e configuracao do Docker
+- [BRANCH_PROTECTION.md](docs/BRANCH_PROTECTION.md) - Regras de protecao de branches
 
 ## Licença
 
