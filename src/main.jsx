@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import { initSentry, captureError } from './lib/sentry.js'
 import { initWebVitals } from './lib/vitals.js'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
@@ -42,6 +43,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Analytics />
+        <SpeedInsights />
       </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>

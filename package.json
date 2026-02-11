@@ -23,6 +23,7 @@
     "@sentry/react": "^10.38.0",
     "@supabase/supabase-js": "^2.93.2",
     "@vercel/analytics": "^1.6.1",
+    "@vercel/speed-insights": "^1.3.1",
     "lucide-react": "^0.469.0",
     "papaparse": "^5.5.3",
     "react": "^19.1.1",
