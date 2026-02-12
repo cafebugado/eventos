@@ -811,7 +811,8 @@ section {
   transition: transform 0.3s ease;
 }
 
-.evento-card:hover .card-image img {
+.evento-card:hover .card-image img,
+.card-heart {
   transform: scale(1.05);
 }
 

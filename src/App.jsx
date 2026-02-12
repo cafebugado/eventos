@@ -25,6 +25,8 @@ import useMediaQuery from './hooks/useMediaQuery'
 import usePagination from './hooks/usePagination'
 import './App.css'
 import BgEventos from './assets/eventos.png'
+import { FavouriteEventButton } from './components/favourite-event/favouriteEvent'
+import { useCallback } from 'react'
 
 const PERIODOS = ['Todos', 'Matinal', 'Diurno', 'Vespertino', 'Noturno']
 
@@ -52,6 +54,48 @@ function App() {
   const [eventTagsMap, setEventTagsMap] = useState({})
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 768px)')
+
+  // Logica para os favs
+  const [favourites, setFavourites] = useState(() => {
+    try {
+      const stored = localStorage.getItem('favourites')
+      if (!stored) return [] // Return empty array if nothing stored
+
+      const parsed = JSON.parse(stored)
+      // Ensure it's an array
+      return Array.isArray(parsed) ? parsed : []
+    } catch (error) {
+      console.error('Failed to parse favourites from localStorage:', error)
+      return [] // Return empty array on error
+    }
+  })
+  const favouriteIds = useMemo(() => new Set(favourites.map((fav) => fav.id)), [favourites])
+  const toggleFavourite = useCallback(
+    (eventId) => {
+      setFavourites((prev) => {
+        const index = prev.findIndex((fav) => fav.id === eventId)
+        let newFavourites
+
+        if (index === -1) {
+          const eventToAdd = agenda.find((e) => e.id === eventId)
+          newFavourites = [...prev, eventToAdd]
+          console.log('Added to favourites')
+        } else {
+          newFavourites = prev.filter((fav) => fav.id !== eventId)
+          console.log('Removed from favourites')
+        }
+
+        try {
+          localStorage.setItem('favourites', JSON.stringify(newFavourites))
+        } catch (error) {
+          console.error('Failed to save favourites to localStorage:', error)
+        }
+
+        return newFavourites
+      })
+    },
+    [agenda]
+  )
 
   // Funcao para carregar eventos do Supabase
   const loadEvents = async () => {
@@ -141,6 +185,7 @@ function App() {
     window.scrollTo(0, 0)
   }, [currentPage])
 
+  useEffect(() => {}, [])
   useEffect(() => {
     const observerOptions = {
       threshold: 0.3,
@@ -270,96 +315,106 @@ function App() {
                   const isPast = eventDate < today
 
                   return (
-                    <div
-                      key={item.id || `event-${pageOffset + index}`}
-                      className={`evento-card ${isPast ? 'evento-encerrado' : ''}`}
-                      style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
-                      onClick={() => navigate(`/eventos/${item.id}`)}
-                    >
-                      <div className="card-image">
-                        <img src={item.imagem || BgEventos} alt={item.nome} />
-                        {isPast ? (
-                          <div className="card-badge card-badge-encerrado">Encerrado</div>
-                        ) : isToday ? (
-                          <div className="card-badge card-badge-today">Hoje</div>
-                        ) : (
-                          <div className="card-badge">{item.periodo}</div>
-                        )}
-                        {eventTagsMap[item.id] && eventTagsMap[item.id].length > 0 && (
-                          <div className="card-image-tags">
-                            {eventTagsMap[item.id].map((tag) => (
-                              <span
-                                key={tag.id}
-                                className="card-image-tag"
-                                style={{ '--tag-color': tag.cor || '#2563eb' }}
-                              >
-                                {tag.nome}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className="card-content">
-                        <h3>{item.nome}</h3>
-                        {item.descricao && (
-                          <RichText
-                            className="event-description"
-                            content={item.descricao}
-                            stopPropagationOnLinks
-                          />
-                        )}
-                        <div className="event-info">
-                          <div className="info-item">
-                            <span className="icon">
-                              <Calendar size={16} />
-                            </span>
-                            <span>{item.data_evento}</span>
-                          </div>
-                          <div className="info-item">
-                            <span className="icon">
-                              <Clock size={16} />
-                            </span>
-                            <span>{item.horario}</span>
-                          </div>
-                          <div className="info-item">
-                            <span className="icon">
-                              <CalendarDays size={16} />
-                            </span>
-                            <span>{item.dia_semana}</span>
-                          </div>
-                          {item.modalidade && (
-                            <div className="info-item">
-                              <span className="icon">
-                                {item.modalidade === 'Online' ? (
-                                  <Wifi size={16} />
-                                ) : item.modalidade === 'Híbrido' ? (
-                                  <Video size={16} />
-                                ) : (
-                                  <Monitor size={16} />
-                                )}
-                              </span>
-                              <span>{item.modalidade}</span>
-                            </div>
+                    <div style={{ position: 'relative' }}>
+                      <FavouriteEventButton
+                        event={item}
+                        isFavourite={favouriteIds.has(item.id)}
+                        onToggle={toggleFavourite}
+                      />
+
+                      <div
+                        key={item.id || `event-${pageOffset + index}`}
+                        className={`evento-card ${isPast ? 'evento-encerrado' : ''}`}
+                        style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
+                        onClick={() => navigate(`/eventos/${item.id}`)}
+                      >
+                        <div className="card-image">
+                          <img src={item.imagem || BgEventos} alt={item.nome} />
+                          {isPast ? (
+                            <div className="card-badge card-badge-encerrado">Encerrado</div>
+                          ) : isToday ? (
+                            <div className="card-badge card-badge-today">Hoje</div>
+                          ) : (
+                            <div className="card-badge">{item.periodo}</div>
                           )}
-                          {item.cidade && item.modalidade !== 'Online' && (
-                            <div className="info-item">
-                              <span className="icon">
-                                <MapPin size={16} />
-                              </span>
-                              <span>{[item.cidade, item.estado].filter(Boolean).join(' - ')}</span>
+                          {eventTagsMap[item.id] && eventTagsMap[item.id].length > 0 && (
+                            <div className="card-image-tags">
+                              {eventTagsMap[item.id].map((tag) => (
+                                <span
+                                  key={tag.id}
+                                  className="card-image-tag"
+                                  style={{ '--tag-color': tag.cor || '#2563eb' }}
+                                >
+                                  {tag.nome}
+                                </span>
+                              ))}
                             </div>
                           )}
                         </div>
-                        <div className="event-link-wrapper">
-                          <button
-                            className="event-link"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              navigate(`/eventos/${item.id}`)
-                            }}
-                          >
-                            {isPast ? 'Ver detalhes do evento' : 'Saber mais sobre o evento'}
-                          </button>
+                        <div className="card-content">
+                          <h3>{item.nome}</h3>
+                          {item.descricao && (
+                            <RichText
+                              className="event-description"
+                              content={item.descricao}
+                              stopPropagationOnLinks
+                            />
+                          )}
+                          <div className="event-info">
+                            <div className="info-item">
+                              <span className="icon">
+                                <Calendar size={16} />
+                              </span>
+                              <span>{item.data_evento}</span>
+                            </div>
+                            <div className="info-item">
+                              <span className="icon">
+                                <Clock size={16} />
+                              </span>
+                              <span>{item.horario}</span>
+                            </div>
+                            <div className="info-item">
+                              <span className="icon">
+                                <CalendarDays size={16} />
+                              </span>
+                              <span>{item.dia_semana}</span>
+                            </div>
+                            {item.modalidade && (
+                              <div className="info-item">
+                                <span className="icon">
+                                  {item.modalidade === 'Online' ? (
+                                    <Wifi size={16} />
+                                  ) : item.modalidade === 'Híbrido' ? (
+                                    <Video size={16} />
+                                  ) : (
+                                    <Monitor size={16} />
+                                  )}
+                                </span>
+                                <span>{item.modalidade}</span>
+                              </div>
+                            )}
+                            {item.cidade && item.modalidade !== 'Online' && (
+                              <div className="info-item">
+                                <span className="icon">
+                                  <MapPin size={16} />
+                                </span>
+                                <span>
+                                  {[item.cidade, item.estado].filter(Boolean).join(' - ')}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="event-link-wrapper">
+                            <button
+                              className="event-link"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                navigate(`/eventos/${item.id}`)
+                              }}
+                            >
+                              {isPast ? 'Ver detalhes do evento' : 'Saber mais sobre o evento'}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
