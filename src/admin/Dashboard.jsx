@@ -31,6 +31,8 @@ import {
   Monitor,
   Video,
   Palette,
+  Shield,
+  UserCog,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { getSession, signOut, getCurrentUser } from '../services/authService'
@@ -60,9 +62,11 @@ import {
   getEventTags,
   setEventTags,
 } from '../services/tagService'
+import { getUsersWithRoles, assignUserRole, removeUserRole } from '../services/roleService'
 import Pagination from '../components/Pagination'
 import RichText from '../components/RichText'
 import useMediaQuery from '../hooks/useMediaQuery'
+import useUserRole, { ROLE_LABELS } from '../hooks/useUserRole'
 import usePagination from '../hooks/usePagination'
 import { filterEventsByQuery } from '../utils/eventSearch'
 import { stripRichText } from '../utils/richText'
@@ -165,9 +169,14 @@ function Dashboard() {
   const [editingTag, setEditingTag] = useState(null)
   const [isSubmittingTag, setIsSubmittingTag] = useState(false)
   const [selectedTags, setSelectedTags] = useState([])
+  const [users, setUsers] = useState([])
+  const [loadingUsers, setLoadingUsers] = useState(true)
+  const [editingRoles, setEditingRoles] = useState({})
+  const [savingRoleFor, setSavingRoleFor] = useState(null)
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 768px)')
+  const { role: userRole, loading: roleLoading, permissions } = useUserRole()
 
   const {
     register,
@@ -685,6 +694,65 @@ function Dashboard() {
     )
   }
 
+  // === User Management Functions ===
+  const loadUsers = useCallback(async () => {
+    try {
+      setLoadingUsers(true)
+      const data = await getUsersWithRoles()
+      setUsers(data)
+    } catch (error) {
+      console.error('Erro ao carregar usuarios:', error)
+      showNotification('Erro ao carregar usuarios', 'error')
+    } finally {
+      setLoadingUsers(false)
+    }
+  }, [showNotification])
+
+  useEffect(() => {
+    if (activeTab === 'usuarios' && permissions.canManageUsers) {
+      loadUsers()
+    }
+  }, [activeTab, permissions.canManageUsers, loadUsers])
+
+  const handleAssignRole = async (userId, newRole) => {
+    setSavingRoleFor(userId)
+    try {
+      await assignUserRole(userId, newRole)
+      showNotification('Role atualizada com sucesso!')
+      await loadUsers()
+      setEditingRoles((prev) => {
+        const next = { ...prev }
+        delete next[userId]
+        return next
+      })
+    } catch (error) {
+      console.error('Erro ao atribuir role:', error)
+      showNotification(error.message || 'Erro ao atribuir role', 'error')
+    } finally {
+      setSavingRoleFor(null)
+    }
+  }
+
+  const handleRemoveRole = async (userId) => {
+    if (
+      window.confirm(
+        'Tem certeza que deseja remover a role deste usuario? Ele perdera todo acesso de escrita.'
+      )
+    ) {
+      setSavingRoleFor(userId)
+      try {
+        await removeUserRole(userId)
+        showNotification('Role removida com sucesso!')
+        await loadUsers()
+      } catch (error) {
+        console.error('Erro ao remover role:', error)
+        showNotification(error.message || 'Erro ao remover role', 'error')
+      } finally {
+        setSavingRoleFor(null)
+      }
+    }
+  }
+
   const watchModalidade = watch('modalidade')
 
   const ESTADOS_BR = [
@@ -734,30 +802,45 @@ function Dashboard() {
             <Calendar size={20} />
             <span>Eventos</span>
           </button>
-          <button
-            className={`menu-item ${activeTab === 'criar' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('criar')
-              openCreateModal()
-            }}
-          >
-            <Plus size={20} />
-            <span>Criar Evento</span>
-          </button>
-          <button
-            className={`menu-item ${activeTab === 'tags' ? 'active' : ''}`}
-            onClick={() => setActiveTab('tags')}
-          >
-            <Tag size={20} />
-            <span>Tags</span>
-          </button>
-          <button
-            className={`menu-item ${activeTab === 'contribuintes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('contribuintes')}
-          >
-            <Users size={20} />
-            <span>Contribuintes</span>
-          </button>
+          {permissions.canCreateEvents && (
+            <button
+              className={`menu-item ${activeTab === 'criar' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('criar')
+                openCreateModal()
+              }}
+            >
+              <Plus size={20} />
+              <span>Criar Evento</span>
+            </button>
+          )}
+          {permissions.canManageTags && (
+            <button
+              className={`menu-item ${activeTab === 'tags' ? 'active' : ''}`}
+              onClick={() => setActiveTab('tags')}
+            >
+              <Tag size={20} />
+              <span>Tags</span>
+            </button>
+          )}
+          {permissions.canManageContributors && (
+            <button
+              className={`menu-item ${activeTab === 'contribuintes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('contribuintes')}
+            >
+              <Users size={20} />
+              <span>Contribuintes</span>
+            </button>
+          )}
+          {permissions.canManageUsers && (
+            <button
+              className={`menu-item ${activeTab === 'usuarios' ? 'active' : ''}`}
+              onClick={() => setActiveTab('usuarios')}
+            >
+              <UserCog size={20} />
+              <span>Usuarios</span>
+            </button>
+          )}
           <button className="menu-item" onClick={() => window.open('/', '_blank')}>
             <ExternalLink size={20} />
             <span>Ver Site</span>
@@ -768,7 +851,9 @@ function Dashboard() {
           <div className="user-info">
             <div className="user-avatar">{userEmail?.charAt(0).toUpperCase() || 'A'}</div>
             <div className="user-details">
-              <span className="user-name">Admin</span>
+              <span className="user-name">
+                {userRole ? ROLE_LABELS[userRole] || userRole : 'Sem Role'}
+              </span>
               <span className="user-email">{userEmail}</span>
             </div>
           </div>
@@ -795,169 +880,365 @@ function Dashboard() {
 
         {/* Content */}
         <div className="admin-content">
-          {activeTab !== 'contribuintes' && activeTab !== 'tags' && (
+          {roleLoading ? (
+            <div className="loading-state">
+              <div className="spinner"></div>
+              <p>Verificando permissoes...</p>
+            </div>
+          ) : !userRole ? (
+            <div className="access-denied-state">
+              <Shield size={48} />
+              <h3>Acesso nao configurado</h3>
+              <p>
+                Sua conta ainda nao possui uma role atribuida. Entre em contato com o administrador
+                do sistema para solicitar acesso.
+              </p>
+            </div>
+          ) : (
             <>
-              {/* Stats */}
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-icon blue">
-                    <Calendar size={24} />
-                  </div>
-                  <div className="stat-info">
-                    <span className="stat-value">{stats.total}</span>
-                    <span className="stat-label">Total de Eventos</span>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon green">
-                    <CheckCircle size={24} />
-                  </div>
-                  <div className="stat-info">
-                    <span className="stat-value">{stats.noturno}</span>
-                    <span className="stat-label">Eventos Noturnos</span>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon orange">
-                    <Sun size={24} />
-                  </div>
-                  <div className="stat-info">
-                    <span className="stat-value">{stats.diurno}</span>
-                    <span className="stat-label">Eventos Diurnos</span>
-                  </div>
-                </div>
-              </div>
+              {activeTab !== 'contribuintes' &&
+                activeTab !== 'tags' &&
+                activeTab !== 'usuarios' && (
+                  <>
+                    {/* Stats */}
+                    <div className="stats-grid">
+                      <div className="stat-card">
+                        <div className="stat-icon blue">
+                          <Calendar size={24} />
+                        </div>
+                        <div className="stat-info">
+                          <span className="stat-value">{stats.total}</span>
+                          <span className="stat-label">Total de Eventos</span>
+                        </div>
+                      </div>
+                      <div className="stat-card">
+                        <div className="stat-icon green">
+                          <CheckCircle size={24} />
+                        </div>
+                        <div className="stat-info">
+                          <span className="stat-value">{stats.noturno}</span>
+                          <span className="stat-label">Eventos Noturnos</span>
+                        </div>
+                      </div>
+                      <div className="stat-card">
+                        <div className="stat-icon orange">
+                          <Sun size={24} />
+                        </div>
+                        <div className="stat-info">
+                          <span className="stat-value">{stats.diurno}</span>
+                          <span className="stat-label">Eventos Diurnos</span>
+                        </div>
+                      </div>
+                    </div>
 
-              {/* Events Section */}
-              <div className="events-section">
-                <div className="section-header">
-                  <h2>Eventos Cadastrados</h2>
-                  <button
-                    className="btn-primary"
-                    onClick={openCreateModal}
-                    aria-label="Novo Evento"
-                  >
-                    <Plus size={18} />
-                    <span className="btn-text">Novo Evento</span>
-                  </button>
-                </div>
+                    {/* Events Section */}
+                    <div className="events-section">
+                      <div className="section-header">
+                        <h2>Eventos Cadastrados</h2>
+                        {permissions.canCreateEvents && (
+                          <button
+                            className="btn-primary"
+                            onClick={openCreateModal}
+                            aria-label="Novo Evento"
+                          >
+                            <Plus size={18} />
+                            <span className="btn-text">Novo Evento</span>
+                          </button>
+                        )}
+                      </div>
 
-                {showSearch && (
-                  <div className="events-toolbar">
-                    <div className="events-search">
-                      <Search size={18} className="events-search-icon" />
-                      <input
-                        type="text"
-                        placeholder="Buscar por nome, descricao ou data..."
-                        value={searchTerm}
-                        onChange={(event) => setSearchTerm(event.target.value)}
-                        aria-label="Buscar eventos"
-                      />
-                      {searchTerm && (
-                        <button
-                          type="button"
-                          className="events-search-clear"
-                          onClick={() => setSearchTerm('')}
-                        >
-                          Limpar
-                        </button>
+                      {showSearch && (
+                        <div className="events-toolbar">
+                          <div className="events-search">
+                            <Search size={18} className="events-search-icon" />
+                            <input
+                              type="text"
+                              placeholder="Buscar por nome, descricao ou data..."
+                              value={searchTerm}
+                              onChange={(event) => setSearchTerm(event.target.value)}
+                              aria-label="Buscar eventos"
+                            />
+                            {searchTerm && (
+                              <button
+                                type="button"
+                                className="events-search-clear"
+                                onClick={() => setSearchTerm('')}
+                              >
+                                Limpar
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {loading ? (
+                        <div className="loading-state">
+                          <div className="spinner"></div>
+                          <p>Carregando eventos...</p>
+                        </div>
+                      ) : eventos.length === 0 ? (
+                        <div className="empty-state">
+                          <Calendar size={48} />
+                          <h3>Nenhum evento cadastrado</h3>
+                          <p>Clique em "Novo Evento" para criar seu primeiro evento.</p>
+                        </div>
+                      ) : filteredEvents.length === 0 ? (
+                        <div className="empty-state">
+                          <Search size={48} />
+                          <h3>Nenhum evento encontrado</h3>
+                          <p>Tente ajustar sua busca para encontrar o evento desejado.</p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="events-table-container">
+                            <table className="events-table">
+                              <thead>
+                                <tr>
+                                  <th>Imagem</th>
+                                  <th>Nome do Evento</th>
+                                  <th>Data</th>
+                                  <th>Horário</th>
+                                  <th>Período</th>
+                                  <th>Ações</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {pagedItems.map((evento) => {
+                                  const eventDate = parseDateValue(evento.data_evento)
+                                  const today = new Date()
+                                  today.setHours(0, 0, 0, 0)
+                                  const isPast = eventDate && eventDate < today
+
+                                  return (
+                                    <tr key={evento.id} className={isPast ? 'event-row-past' : ''}>
+                                      <td data-label="Imagem">
+                                        <img
+                                          src={evento.imagem || BgEventos}
+                                          alt={evento.nome}
+                                          className="event-thumbnail"
+                                        />
+                                      </td>
+                                      <td data-label="Nome do Evento">
+                                        <span className="event-name">{evento.nome}</span>
+                                        {evento.descricao && (
+                                          <span className="event-desc-preview">
+                                            {stripRichText(evento.descricao)}
+                                          </span>
+                                        )}
+                                        {isPast && (
+                                          <span className="badge badge-encerrado">Encerrado</span>
+                                        )}
+                                      </td>
+                                      <td data-label="Data">{evento.data_evento}</td>
+                                      <td data-label="Horário">{evento.horario}</td>
+                                      <td data-label="Período">
+                                        <span
+                                          className={`badge badge-${evento.periodo?.toLowerCase()}`}
+                                        >
+                                          {evento.periodo}
+                                        </span>
+                                      </td>
+                                      <td data-label="Ações">
+                                        <div className="action-buttons">
+                                          {!isPast && (
+                                            <>
+                                              <button
+                                                className="btn-icon btn-view"
+                                                onClick={() => window.open(evento.link, '_blank')}
+                                                title="Ver evento"
+                                              >
+                                                <Eye size={16} />
+                                              </button>
+                                              {permissions.canEditEvents && (
+                                                <button
+                                                  className="btn-icon btn-edit"
+                                                  onClick={() => openEditModal(evento)}
+                                                  title="Editar"
+                                                >
+                                                  <Edit2 size={16} />
+                                                </button>
+                                              )}
+                                            </>
+                                          )}
+                                          {permissions.canDeleteEvents && (
+                                            <button
+                                              className="btn-icon btn-delete"
+                                              onClick={() => handleDeleteEvent(evento.id)}
+                                              title="Excluir"
+                                            >
+                                              <Trash2 size={16} />
+                                            </button>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                          <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={goToPage}
+                          />
+                        </>
                       )}
                     </div>
-                  </div>
+                  </>
                 )}
 
-                {loading ? (
-                  <div className="loading-state">
-                    <div className="spinner"></div>
-                    <p>Carregando eventos...</p>
+              {/* Tags Section */}
+              {activeTab === 'tags' && (
+                <div className="events-section">
+                  <div className="section-header">
+                    <h2>Tags de Tecnologia</h2>
+                    <button
+                      className="btn-primary"
+                      onClick={openCreateTagModal}
+                      aria-label="Nova Tag"
+                    >
+                      <Plus size={18} />
+                      <span className="btn-text">Nova Tag</span>
+                    </button>
                   </div>
-                ) : eventos.length === 0 ? (
-                  <div className="empty-state">
-                    <Calendar size={48} />
-                    <h3>Nenhum evento cadastrado</h3>
-                    <p>Clique em "Novo Evento" para criar seu primeiro evento.</p>
+
+                  {loadingTags ? (
+                    <div className="loading-state">
+                      <div className="spinner"></div>
+                      <p>Carregando tags...</p>
+                    </div>
+                  ) : tags.length === 0 ? (
+                    <div className="empty-state">
+                      <Tag size={48} />
+                      <h3>Nenhuma tag cadastrada</h3>
+                      <p>Clique em &quot;Nova Tag&quot; para criar a primeira tag de tecnologia.</p>
+                    </div>
+                  ) : (
+                    <div className="tags-admin-grid">
+                      {tags.map((tag) => (
+                        <div key={tag.id} className="tag-admin-card">
+                          <div
+                            className="tag-admin-color"
+                            style={{ backgroundColor: tag.cor || '#2563eb' }}
+                          />
+                          <div className="tag-admin-info">
+                            <span className="tag-admin-name">{tag.nome}</span>
+                          </div>
+                          <div className="action-buttons">
+                            <button
+                              className="btn-icon btn-edit"
+                              onClick={() => openEditTagModal(tag)}
+                              title="Editar"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              className="btn-icon btn-delete"
+                              onClick={() => handleDeleteTag(tag.id)}
+                              title="Excluir"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Users Management Section */}
+              {activeTab === 'usuarios' && permissions.canManageUsers && (
+                <div className="events-section">
+                  <div className="section-header">
+                    <h2>Gestao de Usuarios</h2>
                   </div>
-                ) : filteredEvents.length === 0 ? (
-                  <div className="empty-state">
-                    <Search size={48} />
-                    <h3>Nenhum evento encontrado</h3>
-                    <p>Tente ajustar sua busca para encontrar o evento desejado.</p>
-                  </div>
-                ) : (
-                  <>
+
+                  {loadingUsers ? (
+                    <div className="loading-state">
+                      <div className="spinner"></div>
+                      <p>Carregando usuarios...</p>
+                    </div>
+                  ) : users.length === 0 ? (
+                    <div className="empty-state">
+                      <Users size={48} />
+                      <h3>Nenhum usuario encontrado</h3>
+                    </div>
+                  ) : (
                     <div className="events-table-container">
                       <table className="events-table">
                         <thead>
                           <tr>
-                            <th>Imagem</th>
-                            <th>Nome do Evento</th>
-                            <th>Data</th>
-                            <th>Horário</th>
-                            <th>Período</th>
-                            <th>Ações</th>
+                            <th>Email</th>
+                            <th>Role Atual</th>
+                            <th>Nova Role</th>
+                            <th>Acoes</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {pagedItems.map((evento) => {
-                            const eventDate = parseDateValue(evento.data_evento)
-                            const today = new Date()
-                            today.setHours(0, 0, 0, 0)
-                            const isPast = eventDate && eventDate < today
-
+                          {users.map((u) => {
+                            const isCurrentUser = u.email === userEmail
+                            const pendingRole = editingRoles[u.id]
                             return (
-                              <tr key={evento.id} className={isPast ? 'event-row-past' : ''}>
-                                <td data-label="Imagem">
-                                  <img
-                                    src={evento.imagem || BgEventos}
-                                    alt={evento.nome}
-                                    className="event-thumbnail"
-                                  />
+                              <tr key={u.id} className={isCurrentUser ? 'event-row-current' : ''}>
+                                <td data-label="Email">
+                                  <span className="user-email-cell">{u.email}</span>
+                                  {isCurrentUser && <span className="badge badge-you">Voce</span>}
                                 </td>
-                                <td data-label="Nome do Evento">
-                                  <span className="event-name">{evento.nome}</span>
-                                  {evento.descricao && (
-                                    <span className="event-desc-preview">
-                                      {stripRichText(evento.descricao)}
+                                <td data-label="Role Atual">
+                                  {u.role ? (
+                                    <span className={`role-badge role-${u.role}`}>
+                                      {ROLE_LABELS[u.role] || u.role}
                                     </span>
-                                  )}
-                                  {isPast && (
-                                    <span className="badge badge-encerrado">Encerrado</span>
+                                  ) : (
+                                    <span className="role-badge role-none">Sem Role</span>
                                   )}
                                 </td>
-                                <td data-label="Data">{evento.data_evento}</td>
-                                <td data-label="Horário">{evento.horario}</td>
-                                <td data-label="Período">
-                                  <span className={`badge badge-${evento.periodo?.toLowerCase()}`}>
-                                    {evento.periodo}
-                                  </span>
+                                <td data-label="Nova Role">
+                                  <select
+                                    className="role-select"
+                                    value={pendingRole || u.role || ''}
+                                    onChange={(e) =>
+                                      setEditingRoles((prev) => ({
+                                        ...prev,
+                                        [u.id]: e.target.value,
+                                      }))
+                                    }
+                                    disabled={isCurrentUser || savingRoleFor === u.id}
+                                  >
+                                    <option value="">Selecione...</option>
+                                    <option value="super_admin">Super Admin</option>
+                                    <option value="admin">Administrador</option>
+                                    <option value="moderador">Moderador</option>
+                                  </select>
                                 </td>
-                                <td data-label="Ações">
+                                <td data-label="Acoes">
                                   <div className="action-buttons">
-                                    {!isPast && (
-                                      <>
-                                        <button
-                                          className="btn-icon btn-view"
-                                          onClick={() => window.open(evento.link, '_blank')}
-                                          title="Ver evento"
-                                        >
-                                          <Eye size={16} />
-                                        </button>
-                                        <button
-                                          className="btn-icon btn-edit"
-                                          onClick={() => openEditModal(evento)}
-                                          title="Editar"
-                                        >
-                                          <Edit2 size={16} />
-                                        </button>
-                                      </>
+                                    {pendingRole && pendingRole !== u.role && (
+                                      <button
+                                        className="btn-icon btn-edit"
+                                        onClick={() => handleAssignRole(u.id, pendingRole)}
+                                        disabled={isCurrentUser || savingRoleFor === u.id}
+                                        title="Salvar role"
+                                      >
+                                        {savingRoleFor === u.id ? (
+                                          <Loader2 size={16} className="spinning" />
+                                        ) : (
+                                          <Save size={16} />
+                                        )}
+                                      </button>
                                     )}
-                                    <button
-                                      className="btn-icon btn-delete"
-                                      onClick={() => handleDeleteEvent(evento.id)}
-                                      title="Excluir"
-                                    >
-                                      <Trash2 size={16} />
-                                    </button>
+                                    {u.role && (
+                                      <button
+                                        className="btn-icon btn-delete"
+                                        onClick={() => handleRemoveRole(u.id)}
+                                        disabled={isCurrentUser || savingRoleFor === u.id}
+                                        title="Remover role"
+                                      >
+                                        <Trash2 size={16} />
+                                      </button>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -966,167 +1247,107 @@ function Dashboard() {
                         </tbody>
                       </table>
                     </div>
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={goToPage}
-                    />
-                  </>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Tags Section */}
-          {activeTab === 'tags' && (
-            <div className="events-section">
-              <div className="section-header">
-                <h2>Tags de Tecnologia</h2>
-                <button className="btn-primary" onClick={openCreateTagModal} aria-label="Nova Tag">
-                  <Plus size={18} />
-                  <span className="btn-text">Nova Tag</span>
-                </button>
-              </div>
-
-              {loadingTags ? (
-                <div className="loading-state">
-                  <div className="spinner"></div>
-                  <p>Carregando tags...</p>
-                </div>
-              ) : tags.length === 0 ? (
-                <div className="empty-state">
-                  <Tag size={48} />
-                  <h3>Nenhuma tag cadastrada</h3>
-                  <p>Clique em &quot;Nova Tag&quot; para criar a primeira tag de tecnologia.</p>
-                </div>
-              ) : (
-                <div className="tags-admin-grid">
-                  {tags.map((tag) => (
-                    <div key={tag.id} className="tag-admin-card">
-                      <div
-                        className="tag-admin-color"
-                        style={{ backgroundColor: tag.cor || '#2563eb' }}
-                      />
-                      <div className="tag-admin-info">
-                        <span className="tag-admin-name">{tag.nome}</span>
-                      </div>
-                      <div className="action-buttons">
-                        <button
-                          className="btn-icon btn-edit"
-                          onClick={() => openEditTagModal(tag)}
-                          title="Editar"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          className="btn-icon btn-delete"
-                          onClick={() => handleDeleteTag(tag.id)}
-                          title="Excluir"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-          {/* Contributors Section */}
-          {activeTab === 'contribuintes' && (
-            <div className="events-section">
-              <div className="section-header">
-                <h2>Contribuintes do Projeto</h2>
-                <button
-                  className="btn-primary"
-                  onClick={openCreateContributorModal}
-                  aria-label="Novo Contribuinte"
-                >
-                  <Plus size={18} />
-                  <span className="btn-text">Novo Contribuinte</span>
-                </button>
-              </div>
+              {/* Contributors Section */}
+              {activeTab === 'contribuintes' && (
+                <div className="events-section">
+                  <div className="section-header">
+                    <h2>Contribuintes do Projeto</h2>
+                    <button
+                      className="btn-primary"
+                      onClick={openCreateContributorModal}
+                      aria-label="Novo Contribuinte"
+                    >
+                      <Plus size={18} />
+                      <span className="btn-text">Novo Contribuinte</span>
+                    </button>
+                  </div>
 
-              {loadingContributors ? (
-                <div className="loading-state">
-                  <div className="spinner"></div>
-                  <p>Carregando contribuintes...</p>
-                </div>
-              ) : contributors.length === 0 ? (
-                <div className="empty-state">
-                  <Users size={48} />
-                  <h3>Nenhum contribuinte cadastrado</h3>
-                  <p>
-                    Clique em &quot;Novo Contribuinte&quot; para adicionar o primeiro contribuinte.
-                  </p>
-                </div>
-              ) : (
-                <div className="contributors-admin-grid">
-                  {contributors.map((contributor) => (
-                    <div key={contributor.id} className="contributor-admin-card">
-                      <img
-                        src={contributor.avatar_url}
-                        alt={contributor.nome}
-                        className="contributor-admin-avatar"
-                      />
-                      <div className="contributor-admin-info">
-                        <span className="contributor-admin-name">{contributor.nome}</span>
-                        <span className="contributor-admin-username">
-                          @{contributor.github_username}
-                        </span>
-                        <div className="contributor-admin-links">
-                          <a
-                            href={contributor.github_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="GitHub"
-                          >
-                            <Github size={14} />
-                          </a>
-                          {contributor.linkedin_url && (
-                            <a
-                              href={contributor.linkedin_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="LinkedIn"
+                  {loadingContributors ? (
+                    <div className="loading-state">
+                      <div className="spinner"></div>
+                      <p>Carregando contribuintes...</p>
+                    </div>
+                  ) : contributors.length === 0 ? (
+                    <div className="empty-state">
+                      <Users size={48} />
+                      <h3>Nenhum contribuinte cadastrado</h3>
+                      <p>
+                        Clique em &quot;Novo Contribuinte&quot; para adicionar o primeiro
+                        contribuinte.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="contributors-admin-grid">
+                      {contributors.map((contributor) => (
+                        <div key={contributor.id} className="contributor-admin-card">
+                          <img
+                            src={contributor.avatar_url}
+                            alt={contributor.nome}
+                            className="contributor-admin-avatar"
+                          />
+                          <div className="contributor-admin-info">
+                            <span className="contributor-admin-name">{contributor.nome}</span>
+                            <span className="contributor-admin-username">
+                              @{contributor.github_username}
+                            </span>
+                            <div className="contributor-admin-links">
+                              <a
+                                href={contributor.github_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="GitHub"
+                              >
+                                <Github size={14} />
+                              </a>
+                              {contributor.linkedin_url && (
+                                <a
+                                  href={contributor.linkedin_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="LinkedIn"
+                                >
+                                  <Linkedin size={14} />
+                                </a>
+                              )}
+                              {contributor.portfolio_url && (
+                                <a
+                                  href={contributor.portfolio_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="Portfólio"
+                                >
+                                  <ExternalLink size={14} />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                          <div className="action-buttons">
+                            <button
+                              className="btn-icon btn-edit"
+                              onClick={() => openEditContributorModal(contributor)}
+                              title="Editar"
                             >
-                              <Linkedin size={14} />
-                            </a>
-                          )}
-                          {contributor.portfolio_url && (
-                            <a
-                              href={contributor.portfolio_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="Portfólio"
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              className="btn-icon btn-delete"
+                              onClick={() => handleDeleteContributor(contributor.id)}
+                              title="Excluir"
                             >
-                              <ExternalLink size={14} />
-                            </a>
-                          )}
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="action-buttons">
-                        <button
-                          className="btn-icon btn-edit"
-                          onClick={() => openEditContributorModal(contributor)}
-                          title="Editar"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          className="btn-icon btn-delete"
-                          onClick={() => handleDeleteContributor(contributor.id)}
-                          title="Excluir"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </main>
@@ -1322,86 +1543,90 @@ function Dashboard() {
                 </>
               )}
 
-              <div className="form-row">
-                <div className="form-field">
-                  <label>
-                    <Tag size={16} />
-                    Tags de Tecnologia
-                  </label>
-                  {tags.length === 0 ? (
-                    <span className="field-helper">
-                      Nenhuma tag cadastrada. Crie tags na aba &quot;Tags&quot; primeiro.
-                    </span>
-                  ) : (
-                    <div className="tags-selector">
-                      {tags.map((tag) => (
-                        <button
-                          key={tag.id}
-                          type="button"
-                          className={`tag-selector-item ${selectedTags.includes(tag.id) ? 'selected' : ''}`}
-                          style={{
-                            '--tag-color': tag.cor || '#2563eb',
-                          }}
-                          onClick={() => toggleTagSelection(tag.id)}
-                        >
-                          {tag.nome}
-                          {selectedTags.includes(tag.id) && <CheckCircle size={14} />}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-field">
-                  <label>
-                    <Image size={16} />
-                    Imagem do Evento
-                  </label>
-
-                  <div className="image-upload-container">
-                    {imagePreview ? (
-                      <div className="image-preview">
-                        <img src={imagePreview} alt="Preview" />
-                        <button type="button" className="remove-image" onClick={removeImage}>
-                          <X size={16} />
-                        </button>
-                      </div>
+              {permissions.canManageTags && (
+                <div className="form-row">
+                  <div className="form-field">
+                    <label>
+                      <Tag size={16} />
+                      Tags de Tecnologia
+                    </label>
+                    {tags.length === 0 ? (
+                      <span className="field-helper">
+                        Nenhuma tag cadastrada. Crie tags na aba &quot;Tags&quot; primeiro.
+                      </span>
                     ) : (
-                      <div
-                        className="image-upload-area"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <Upload size={32} />
-                        <p>Clique para fazer upload</p>
-                        <span>PNG, JPG até 5MB</span>
+                      <div className="tags-selector">
+                        {tags.map((tag) => (
+                          <button
+                            key={tag.id}
+                            type="button"
+                            className={`tag-selector-item ${selectedTags.includes(tag.id) ? 'selected' : ''}`}
+                            style={{
+                              '--tag-color': tag.cor || '#2563eb',
+                            }}
+                            onClick={() => toggleTagSelection(tag.id)}
+                          >
+                            {tag.nome}
+                            {selectedTags.includes(tag.id) && <CheckCircle size={14} />}
+                          </button>
+                        ))}
                       </div>
                     )}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageSelect}
-                      style={{ display: 'none' }}
-                    />
-                  </div>
-
-                  <div className="image-url-option">
-                    <span>ou cole a URL da imagem:</span>
-                    <input
-                      type="url"
-                      placeholder="https://..."
-                      {...register('imagem')}
-                      onChange={(e) => {
-                        if (e.target.value && !imageFile) {
-                          setImagePreview(e.target.value)
-                        }
-                      }}
-                    />
                   </div>
                 </div>
-              </div>
+              )}
+
+              {permissions.canUploadImages && (
+                <div className="form-row">
+                  <div className="form-field">
+                    <label>
+                      <Image size={16} />
+                      Imagem do Evento
+                    </label>
+
+                    <div className="image-upload-container">
+                      {imagePreview ? (
+                        <div className="image-preview">
+                          <img src={imagePreview} alt="Preview" />
+                          <button type="button" className="remove-image" onClick={removeImage}>
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          className="image-upload-area"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <Upload size={32} />
+                          <p>Clique para fazer upload</p>
+                          <span>PNG, JPG até 5MB</span>
+                        </div>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        style={{ display: 'none' }}
+                      />
+                    </div>
+
+                    <div className="image-url-option">
+                      <span>ou cole a URL da imagem:</span>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        {...register('imagem')}
+                        onChange={(e) => {
+                          if (e.target.value && !imageFile) {
+                            setImagePreview(e.target.value)
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="modal-footer">
                 <button type="button" className="btn-secondary" onClick={closeModal}>

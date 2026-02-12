@@ -5,12 +5,21 @@ import Dashboard from './Dashboard'
 import { renderWithRouter, createMockEvent } from '../test/utils'
 import * as authService from '../services/authService'
 import * as eventService from '../services/eventService'
+import * as roleService from '../services/roleService'
 
 // Mock dos services
 vi.mock('../services/authService', () => ({
   getSession: vi.fn(),
   signOut: vi.fn(),
   getCurrentUser: vi.fn(),
+  onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+}))
+
+vi.mock('../services/roleService', () => ({
+  getCurrentUserRole: vi.fn(),
+  getUsersWithRoles: vi.fn().mockResolvedValue([]),
+  assignUserRole: vi.fn(),
+  removeUserRole: vi.fn(),
 }))
 
 vi.mock('../services/eventService', () => ({
@@ -84,6 +93,7 @@ describe('Dashboard', () => {
     authService.getCurrentUser.mockResolvedValue({ email: 'admin@teste.com' })
     eventService.getEvents.mockResolvedValue(mockEvents)
     eventService.getEventStats.mockResolvedValue(mockStats)
+    roleService.getCurrentUserRole.mockResolvedValue('super_admin')
   })
 
   it('deve redirecionar se não estiver autenticado', async () => {
@@ -389,5 +399,120 @@ describe('Dashboard', () => {
     const dataRows = rows.slice(1)
     expect(dataRows[0]).toHaveTextContent('Evento Futuro')
     expect(dataRows[1]).toHaveTextContent('Evento Passado')
+  })
+
+  // === Testes de RBAC ===
+  describe('RBAC - Controle de Permissoes', () => {
+    it('deve exibir mensagem de acesso nao configurado quando usuario nao tem role', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue(null)
+
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Acesso nao configurado')).toBeInTheDocument()
+      })
+    })
+
+    it('moderador nao deve ver botao Criar Evento na sidebar', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue('moderador')
+
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      })
+
+      const sidebarButtons = screen.getAllByRole('button')
+      const criarEventoBtn = sidebarButtons.find((btn) => btn.textContent.includes('Criar Evento'))
+      expect(criarEventoBtn).toBeUndefined()
+    })
+
+    it('moderador nao deve ver botao Novo Evento na listagem', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue('moderador')
+
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      })
+
+      expect(screen.queryByRole('button', { name: /Novo Evento/i })).not.toBeInTheDocument()
+    })
+
+    it('moderador nao deve ver botao Excluir em eventos', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue('moderador')
+
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Evento 1')).toBeInTheDocument()
+      })
+
+      expect(screen.queryByTitle('Excluir')).not.toBeInTheDocument()
+    })
+
+    it('moderador deve ver botao Editar em eventos futuros', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue('moderador')
+
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Evento 1')).toBeInTheDocument()
+      })
+
+      expect(screen.getAllByTitle('Editar').length).toBeGreaterThan(0)
+    })
+
+    it('admin nao deve ver tab Usuarios na sidebar', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue('admin')
+
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      })
+
+      const sidebarButtons = screen.getAllByRole('button')
+      const usuariosBtn = sidebarButtons.find((btn) => btn.textContent.includes('Usuarios'))
+      expect(usuariosBtn).toBeUndefined()
+    })
+
+    it('super_admin deve ver tab Usuarios na sidebar', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue('super_admin')
+
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      })
+
+      const sidebarButtons = screen.getAllByRole('button')
+      const usuariosBtn = sidebarButtons.find((btn) => btn.textContent.includes('Usuarios'))
+      expect(usuariosBtn).toBeDefined()
+    })
+
+    it('deve exibir role do usuario na sidebar', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue('super_admin')
+
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Super Admin')).toBeInTheDocument()
+      })
+    })
+
+    it('admin deve ver todos os botoes de CRUD em eventos', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue('admin')
+
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Evento 1')).toBeInTheDocument()
+      })
+
+      expect(screen.getByRole('button', { name: /Novo Evento/i })).toBeInTheDocument()
+      expect(screen.getAllByTitle('Editar').length).toBeGreaterThan(0)
+      expect(screen.getAllByTitle('Excluir').length).toBeGreaterThan(0)
+    })
   })
 })

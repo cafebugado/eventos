@@ -178,4 +178,28 @@ export const handlers = [
   http.delete(`${SUPABASE_URL}/storage/v1/object/imagens/*`, () => {
     return HttpResponse.json({})
   }),
+
+  // User roles handlers
+  http.get(`${SUPABASE_URL}/rest/v1/user_roles`, () => {
+    return HttpResponse.json([{ user_id: 'user-123', role: 'super_admin' }])
+  }),
+
+  http.post(`${SUPABASE_URL}/rest/v1/rpc/get_users_with_roles`, () => {
+    return HttpResponse.json([
+      {
+        id: 'user-123',
+        email: 'admin@cafebugado.com',
+        created_at: '2024-01-01T00:00:00Z',
+        role: 'super_admin',
+      },
+    ])
+  }),
+
+  http.post(`${SUPABASE_URL}/rest/v1/rpc/assign_user_role`, () => {
+    return HttpResponse.json({})
+  }),
+
+  http.post(`${SUPABASE_URL}/rest/v1/rpc/remove_user_role`, () => {
+    return HttpResponse.json({})
+  }),
 ]
