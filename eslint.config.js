@@ -10,11 +10,7 @@ export default defineConfig([
   globalIgnores(['dist', 'node_modules']),
   {
     files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite,
-    ],
+    extends: [js.configs.recommended, reactRefresh.configs.vite],
     languageOptions: {
       ecmaVersion: 2020,
       globals: {
@@ -28,6 +24,7 @@ export default defineConfig([
       },
     },
     plugins: {
+      'react-hooks': reactHooks,
       prettier,
     },
     rules: {

@@ -70,6 +70,18 @@ export function createMockContributor(overrides = {}) {
   }
 }
 
+// Mock de user role
+export function createMockUserRole(overrides = {}) {
+  return {
+    id: 'role-123',
+    user_id: 'user-123',
+    role: 'admin',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
+    ...overrides,
+  }
+}
+
 // Helper para aguardar elemento
 export async function waitForElement(callback, options = {}) {
   const { timeout = 1000, interval = 50 } = options
