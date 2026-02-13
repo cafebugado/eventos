@@ -10,6 +10,7 @@ import {
   Monitor,
   Video,
   Wifi,
+  Heart,
 } from 'lucide-react'
 import { getEventById } from '../services/eventService'
 import { getEventTags } from '../services/tagService'
@@ -43,6 +44,7 @@ function EventDetails() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [eventTags, setEventTags] = useState([])
+  const [isFavourite, setFavourite] = useState()
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -58,6 +60,7 @@ function EventDetails() {
         setError('NOT_FOUND')
       } else {
         setEvent(eventData)
+
         try {
           const tags = await getEventTags(eventData.id)
           setEventTags(tags)
@@ -83,6 +86,42 @@ function EventDetails() {
   useEffect(() => {
     loadEvent()
   }, [id])
+
+  useEffect(() => {
+    if (event) {
+      // Check if this event is in the user's favourites
+      const favourites = JSON.parse(localStorage.getItem('favourites'))
+      const isFav = favourites.findIndex((fav) => fav.id === event.id)
+      console.log(isFav)
+      if (isFav != -1) {
+        setFavourite(true)
+      } else {
+        setFavourite(false)
+      }
+    }
+  }, [event])
+
+  function handleFavourite() {
+    const prev = JSON.parse(localStorage.getItem('favourites')) || []
+    const index = prev.findIndex((fav) => fav.id === event.id)
+    let newFavourites
+
+    if (index === -1) {
+      newFavourites = [...prev, event]
+      console.log('Added to favourites')
+      setFavourite(true)
+    } else {
+      newFavourites = prev.filter((fav) => fav.id !== event.id)
+      console.log('Removed from favourites')
+      setFavourite(false)
+    }
+
+    try {
+      localStorage.setItem('favourites', JSON.stringify(newFavourites))
+    } catch (error) {
+      console.error('Failed to save favourites to localStorage:', error)
+    }
+  }
 
   if (loading) {
     return (
@@ -194,7 +233,6 @@ function EventDetails() {
         }}
       />
       <Header />
-
       <main className="details-main">
         <div className="details-container">
           <button onClick={() => navigate('/eventos')} className="back-link">
@@ -224,16 +262,13 @@ function EventDetails() {
                 </div>
               )}
             </div>
-
             <div className="event-details-content">
               <h1>{event.nome}</h1>
-
               {event.descricao && (
                 <div className="event-description-full">
                   <RichText content={event.descricao} />
                 </div>
               )}
-
               <div className="event-info-grid">
                 <div className="info-card">
                   <div className="info-icon">
@@ -283,7 +318,6 @@ function EventDetails() {
                   </div>
                 )}
               </div>
-
               {event.endereco && event.modalidade !== 'Online' && (
                 <div className="event-location">
                   <div className="location-info">
@@ -310,7 +344,6 @@ function EventDetails() {
                   </a>
                 </div>
               )}
-
               {!event.endereco && event.cidade && event.modalidade !== 'Online' && (
                 <div className="event-location">
                   <div className="location-info">
@@ -334,18 +367,36 @@ function EventDetails() {
                   </a>
                 </div>
               )}
-
-              <a
-                href={isPast ? undefined : event.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`participate-button ${isPast ? 'disabled' : ''}`}
-                onClick={(e) => isPast && e.preventDefault()}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '20px',
+                }}
               >
-                {isPast ? 'Evento Encerrado' : 'Participar do Evento'}
-                {!isPast && <ArrowUpRight size={20} />}
-              </a>
-
+                <a
+                  href={isPast ? undefined : event.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`participate-button ${isPast ? 'disabled' : ''}`}
+                  onClick={(e) => isPast && e.preventDefault()}
+                >
+                  {isPast ? 'Evento Encerrado' : 'Participar do Evento'}
+                  {!isPast && <ArrowUpRight size={20} />}
+                </a>
+                <button
+                  onClick={handleFavourite}
+                  className="participate-button"
+                  style={{ backgroundColor: 'transparent', outline: '1px solid white' }}
+                >
+                  {isFavourite ? 'Remover dos favoritos' : 'Favoritar'}
+                  <Heart
+                    fill={isFavourite ? 'red' : 'transparent'}
+                    style={{ color: isFavourite ? 'transparent' : 'white' }}
+                  />
+                </button>
+              </div>
               {!isPast && (
                 <ShareButtons
                   eventName={event.nome}
@@ -358,7 +409,6 @@ function EventDetails() {
           </div>
         </div>
       </main>
-
       <Footer />
       <FloatingMenu />
     </div>
