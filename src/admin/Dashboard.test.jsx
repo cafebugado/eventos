@@ -413,7 +413,7 @@ describe('Dashboard', () => {
       })
     })
 
-    it('moderador nao deve ver botao Criar Evento na sidebar', async () => {
+    it('moderador deve ver botao Criar Evento na sidebar', async () => {
       roleService.getCurrentUserRole.mockResolvedValue('moderador')
 
       renderWithRouter(<Dashboard />)
@@ -424,10 +424,10 @@ describe('Dashboard', () => {
 
       const sidebarButtons = screen.getAllByRole('button')
       const criarEventoBtn = sidebarButtons.find((btn) => btn.textContent.includes('Criar Evento'))
-      expect(criarEventoBtn).toBeUndefined()
+      expect(criarEventoBtn).toBeDefined()
     })
 
-    it('moderador nao deve ver botao Novo Evento na listagem', async () => {
+    it('moderador deve ver botao Novo Evento na listagem', async () => {
       roleService.getCurrentUserRole.mockResolvedValue('moderador')
 
       renderWithRouter(<Dashboard />)
@@ -436,7 +436,7 @@ describe('Dashboard', () => {
         expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
       })
 
-      expect(screen.queryByRole('button', { name: /Novo Evento/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Novo Evento/i })).toBeInTheDocument()
     })
 
     it('moderador nao deve ver botao Excluir em eventos', async () => {
