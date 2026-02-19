@@ -151,6 +151,7 @@ function Dashboard() {
   const [activeTab, setActiveTab] = useState('eventos')
   const [stats, setStats] = useState({ total: 0, noturno: 0, diurno: 0 })
   const [userEmail, setUserEmail] = useState('')
+  const [userId, setUserId] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
@@ -168,6 +169,7 @@ function Dashboard() {
   const [showTagModal, setShowTagModal] = useState(false)
   const [editingTag, setEditingTag] = useState(null)
   const [isSubmittingTag, setIsSubmittingTag] = useState(false)
+  const [confirmDeleteTag, setConfirmDeleteTag] = useState(null)
   const [selectedTags, setSelectedTags] = useState([])
   const [users, setUsers] = useState([])
   const [loadingUsers, setLoadingUsers] = useState(true)
@@ -266,6 +268,7 @@ function Dashboard() {
       const user = await getCurrentUser()
       if (user) {
         setUserEmail(user.email)
+        setUserId(user.id)
       }
 
       const savedTheme = localStorage.getItem('theme')
@@ -671,20 +674,23 @@ function Dashboard() {
     }
   }
 
-  const handleDeleteTag = async (id) => {
-    if (
-      window.confirm(
-        'Tem certeza que deseja excluir esta tag? Ela será removida de todos os eventos.'
-      )
-    ) {
-      try {
-        await deleteTagService(id)
-        showNotification('Tag excluída com sucesso!')
-        await loadTags()
-      } catch (error) {
-        console.error('Erro ao excluir tag:', error)
-        showNotification('Erro ao excluir tag', 'error')
-      }
+  const handleDeleteTag = (tag) => {
+    setConfirmDeleteTag(tag)
+  }
+
+  const confirmDeleteTagAction = async () => {
+    if (!confirmDeleteTag) {
+      return
+    }
+    try {
+      await deleteTagService(confirmDeleteTag.id)
+      showNotification('Tag excluída com sucesso!')
+      await loadTags()
+    } catch (error) {
+      console.error('Erro ao excluir tag:', error)
+      showNotification('Erro ao excluir tag', 'error')
+    } finally {
+      setConfirmDeleteTag(null)
     }
   }
 
@@ -1116,33 +1122,45 @@ function Dashboard() {
                     </div>
                   ) : (
                     <div className="tags-admin-grid">
-                      {tags.map((tag) => (
-                        <div key={tag.id} className="tag-admin-card">
-                          <div
-                            className="tag-admin-color"
-                            style={{ backgroundColor: tag.cor || '#2563eb' }}
-                          />
-                          <div className="tag-admin-info">
-                            <span className="tag-admin-name">{tag.nome}</span>
+                      {tags.map((tag) => {
+                        const isOwner = tag.created_by === userId
+                        const isModerador = userRole === 'moderador'
+                        const canEditThisTag =
+                          permissions.canManageTags && (!isModerador || isOwner)
+                        const canDeleteThisTag =
+                          permissions.canDeleteTags && (!isModerador || isOwner)
+                        return (
+                          <div key={tag.id} className="tag-admin-card">
+                            <div
+                              className="tag-admin-color"
+                              style={{ backgroundColor: tag.cor || '#2563eb' }}
+                            />
+                            <div className="tag-admin-info">
+                              <span className="tag-admin-name">{tag.nome}</span>
+                            </div>
+                            <div className="action-buttons">
+                              {canEditThisTag && (
+                                <button
+                                  className="btn-icon btn-edit"
+                                  onClick={() => openEditTagModal(tag)}
+                                  title="Editar"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                              )}
+                              {canDeleteThisTag && (
+                                <button
+                                  className="btn-icon btn-delete"
+                                  onClick={() => handleDeleteTag(tag)}
+                                  title="Excluir"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
                           </div>
-                          <div className="action-buttons">
-                            <button
-                              className="btn-icon btn-edit"
-                              onClick={() => openEditTagModal(tag)}
-                              title="Editar"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button
-                              className="btn-icon btn-delete"
-                              onClick={() => handleDeleteTag(tag.id)}
-                              title="Excluir"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </div>
@@ -1804,6 +1822,55 @@ function Dashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmação: Excluir Tag */}
+      {confirmDeleteTag && (
+        <div className="modal-overlay" onClick={() => setConfirmDeleteTag(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Excluir Tag</h2>
+              <button className="modal-close" onClick={() => setConfirmDeleteTag(null)}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-form">
+              <div className="form-row">
+                <p>
+                  Tem certeza que deseja excluir a tag{' '}
+                  <strong>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '2px 10px',
+                        borderRadius: '999px',
+                        backgroundColor: confirmDeleteTag.cor || '#2563eb',
+                        color: '#fff',
+                        fontSize: '0.85em',
+                      }}
+                    >
+                      {confirmDeleteTag.nome}
+                    </span>
+                  </strong>
+                  ? Ela será removida de todos os eventos.
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setConfirmDeleteTag(null)}
+                >
+                  Cancelar
+                </button>
+                <button type="button" className="btn-danger" onClick={confirmDeleteTagAction}>
+                  <Trash2 size={18} />
+                  Excluir
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

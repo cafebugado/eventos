@@ -25,6 +25,7 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 - **Upload de Imagens** - Upload direto para Supabase Storage
 - **Estatísticas** - Visualização de eventos por período
 - **Validação de Formulários** - React Hook Form com validações
+- **Controle de Acesso (RBAC)** - Permissões granulares por papel: super_admin, admin e moderador
 
 ## Tecnologias Utilizadas
 
@@ -315,6 +316,7 @@ CREATE TABLE tags (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nome TEXT NOT NULL UNIQUE,
   cor TEXT DEFAULT '#2563eb',
+  created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -329,6 +331,20 @@ CREATE TABLE evento_tags (
   PRIMARY KEY (evento_id, tag_id)
 );
 ```
+
+### Controle de Acesso (RBAC)
+
+| Permissão               | super_admin | admin | moderador          |
+| ----------------------- | ----------- | ----- | ------------------ |
+| Criar eventos           | ✅          | ✅    | ✅                 |
+| Editar eventos          | ✅          | ✅    | ✅                 |
+| Excluir eventos         | ✅          | ✅    | ❌                 |
+| Criar tags              | ✅          | ✅    | ✅                 |
+| Editar tags             | ✅          | ✅    | Apenas as próprias |
+| Excluir tags            | ✅          | ✅    | Apenas as próprias |
+| Gerenciar contribuintes | ✅          | ✅    | ❌                 |
+| Gerenciar usuários      | ✅          | ❌    | ❌                 |
+| Upload de imagens       | ✅          | ✅    | ❌                 |
 
 ### Períodos Disponíveis
 
