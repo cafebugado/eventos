@@ -66,7 +66,14 @@ import {
   getEventTags,
   setEventTags,
 } from '../services/tagService'
-import { getUsersWithRoles, assignUserRole, removeUserRole } from '../services/roleService'
+import {
+  getUsersWithRoles,
+  getUsersWithRolesForAdmin,
+  assignUserRole,
+  adminAssignUserRole,
+  removeUserRole,
+  adminRemoveUserRole,
+} from '../services/roleService'
 import { getMyProfile, upsertMyProfile } from '../services/profileService'
 import Pagination from '../components/Pagination'
 import RichText from '../components/RichText'
@@ -884,15 +891,27 @@ function Dashboard() {
   const loadUsers = useCallback(async () => {
     try {
       setLoadingUsers(true)
-      const data = await getUsersWithRoles()
-      setUsers(data)
+      const data =
+        userRole === 'admin' ? await getUsersWithRolesForAdmin() : await getUsersWithRoles()
+      const getDisplayName = (u) =>
+        u.nome ? `${u.nome}${u.sobrenome ? ` ${u.sobrenome}` : ''}` : u.email
+      const sorted = [...(data || [])].sort((a, b) => {
+        if (a.email === userEmail) {
+          return -1
+        }
+        if (b.email === userEmail) {
+          return 1
+        }
+        return getDisplayName(a).localeCompare(getDisplayName(b), 'pt-BR', { sensitivity: 'base' })
+      })
+      setUsers(sorted)
     } catch (error) {
       console.error('Erro ao carregar usuarios:', error)
       showNotification('Erro ao carregar usuarios', 'error')
     } finally {
       setLoadingUsers(false)
     }
-  }, [showNotification])
+  }, [showNotification, userRole])
 
   useEffect(() => {
     if (activeTab === 'usuarios' && permissions.canManageUsers) {
@@ -903,7 +922,11 @@ function Dashboard() {
   const handleAssignRole = async (userId, newRole) => {
     setSavingRoleFor(userId)
     try {
-      await assignUserRole(userId, newRole)
+      if (userRole === 'admin') {
+        await adminAssignUserRole(userId, newRole)
+      } else {
+        await assignUserRole(userId, newRole)
+      }
       showNotification('Role atualizada com sucesso!')
       await loadUsers()
       setEditingRoles((prev) => {
@@ -927,7 +950,11 @@ function Dashboard() {
     ) {
       setSavingRoleFor(userId)
       try {
-        await removeUserRole(userId)
+        if (userRole === 'admin') {
+          await adminRemoveUserRole(userId)
+        } else {
+          await removeUserRole(userId)
+        }
         showNotification('Role removida com sucesso!')
         await loadUsers()
       } catch (error) {
@@ -1610,7 +1637,7 @@ function Dashboard() {
                       <table className="events-table">
                         <thead>
                           <tr>
-                            <th>Email</th>
+                            <th>Nome</th>
                             <th>Role Atual</th>
                             <th>Nova Role</th>
                             <th>Acoes</th>
@@ -1620,10 +1647,17 @@ function Dashboard() {
                           {users.map((u) => {
                             const isCurrentUser = u.email === userEmail
                             const pendingRole = editingRoles[u.id]
+                            // Admin nao pode alterar roles de admin ou superior
+                            const isProtectedRole =
+                              userRole === 'admin' &&
+                              (u.role === 'admin' || u.role === 'super_admin')
+                            const displayName = u.nome
+                              ? `${u.nome}${u.sobrenome ? ` ${u.sobrenome}` : ''}`
+                              : u.email
                             return (
                               <tr key={u.id} className={isCurrentUser ? 'event-row-current' : ''}>
-                                <td data-label="Email">
-                                  <span className="user-email-cell">{u.email}</span>
+                                <td data-label="Nome">
+                                  <span className="user-email-cell">{displayName}</span>
                                   {isCurrentUser && <span className="badge badge-you">Voce</span>}
                                 </td>
                                 <td data-label="Role Atual">
@@ -1645,12 +1679,26 @@ function Dashboard() {
                                         [u.id]: e.target.value,
                                       }))
                                     }
-                                    disabled={isCurrentUser || savingRoleFor === u.id}
+                                    disabled={
+                                      isCurrentUser || savingRoleFor === u.id || isProtectedRole
+                                    }
                                   >
-                                    <option value="">Selecione...</option>
-                                    <option value="super_admin">Super Admin</option>
-                                    <option value="admin">Administrador</option>
-                                    <option value="moderador">Moderador</option>
+                                    {!u.role && <option value="">Selecione...</option>}
+                                    {isProtectedRole && u.role === 'super_admin' && (
+                                      <option value="super_admin">Super Admin</option>
+                                    )}
+                                    {isProtectedRole && u.role === 'admin' && (
+                                      <option value="admin">Administrador</option>
+                                    )}
+                                    {!isProtectedRole && userRole === 'super_admin' && (
+                                      <option value="super_admin">Super Admin</option>
+                                    )}
+                                    {!isProtectedRole && userRole === 'super_admin' && (
+                                      <option value="admin">Administrador</option>
+                                    )}
+                                    {!isProtectedRole && (
+                                      <option value="moderador">Moderador</option>
+                                    )}
                                   </select>
                                 </td>
                                 <td data-label="Acoes">
@@ -1658,8 +1706,12 @@ function Dashboard() {
                                     {pendingRole && pendingRole !== u.role && (
                                       <button
                                         className="btn-icon btn-edit"
-                                        onClick={() => handleAssignRole(u.id, pendingRole)}
-                                        disabled={isCurrentUser || savingRoleFor === u.id}
+                                        onClick={() =>
+                                          !isProtectedRole && handleAssignRole(u.id, pendingRole)
+                                        }
+                                        disabled={
+                                          isCurrentUser || savingRoleFor === u.id || isProtectedRole
+                                        }
                                         title="Salvar role"
                                       >
                                         {savingRoleFor === u.id ? (
@@ -1671,10 +1723,16 @@ function Dashboard() {
                                     )}
                                     {u.role && (
                                       <button
-                                        className="btn-icon btn-delete"
-                                        onClick={() => handleRemoveRole(u.id)}
-                                        disabled={isCurrentUser || savingRoleFor === u.id}
-                                        title="Remover role"
+                                        className={`btn-icon ${isProtectedRole ? 'btn-delete-locked' : 'btn-delete'}`}
+                                        onClick={() => !isProtectedRole && handleRemoveRole(u.id)}
+                                        disabled={
+                                          isCurrentUser || savingRoleFor === u.id || isProtectedRole
+                                        }
+                                        title={
+                                          isProtectedRole
+                                            ? 'Sem permissão para remover este usuário'
+                                            : 'Remover role'
+                                        }
                                       >
                                         <Trash2 size={16} />
                                       </button>
