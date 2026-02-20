@@ -78,6 +78,7 @@ import { stripRichText } from '../utils/richText'
 import './Admin.css'
 import '../components/UpcomingEvents.css'
 import BackButton from '../components/BackButton'
+import EventCard from '../components/EventCard'
 import BgEventos from '../assets/eventos.png'
 
 const DAY_NAMES = [
@@ -1206,74 +1207,18 @@ function Dashboard() {
                               hoje.setHours(0, 0, 0, 0)
                               const encerrado = evDate && evDate < hoje
                               return (
-                                <div key={evento.id} className="upcoming-card">
-                                  <div className="upcoming-card-image">
-                                    <img src={evento.imagem || BgEventos} alt={evento.nome} />
-                                    <div
-                                      className={`upcoming-card-badge${encerrado ? ' badge-encerrado' : ''}`}
-                                    >
-                                      {encerrado ? 'Encerrado' : evento.periodo}
-                                    </div>
-                                  </div>
-                                  <div className="upcoming-card-content">
-                                    <h3>{evento.nome}</h3>
-                                    {evento.descricao && (
-                                      <p className="upcoming-card-desc">{evento.descricao}</p>
-                                    )}
-                                    <div className="upcoming-card-info">
-                                      <div className="upcoming-info-item">
-                                        <Calendar size={14} />
-                                        <span>{formatDateToDisplay(evento.data_evento)}</span>
-                                      </div>
-                                      <div className="upcoming-info-item">
-                                        <Clock size={14} />
-                                        <span>{evento.horario}</span>
-                                      </div>
-                                      <div className="upcoming-info-item">
-                                        <CalendarDays size={14} />
-                                        <span>{evento.dia_semana}</span>
-                                      </div>
-                                      {evento.modalidade && (
-                                        <div className="upcoming-info-item">
-                                          {evento.modalidade === 'Online' ? (
-                                            <Wifi size={14} />
-                                          ) : evento.modalidade === 'Híbrido' ? (
-                                            <Video size={14} />
-                                          ) : (
-                                            <Monitor size={14} />
-                                          )}
-                                          <span>{evento.modalidade}</span>
-                                        </div>
-                                      )}
-                                      {(evento.cidade || evento.estado) &&
-                                        evento.modalidade !== 'Online' && (
-                                          <div className="upcoming-info-item">
-                                            <MapPin size={14} />
-                                            <span>
-                                              {[evento.cidade, evento.estado]
-                                                .filter(Boolean)
-                                                .join(' - ')}
-                                            </span>
-                                          </div>
-                                        )}
-                                    </div>
-                                    <a
-                                      href={encerrado ? undefined : evento.link}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className={`participate-button${encerrado ? ' disabled' : ''}`}
-                                      onClick={(e) => encerrado && e.preventDefault()}
-                                      style={{
-                                        marginTop: '1rem',
-                                        fontSize: '0.875rem',
-                                        padding: '0.75rem 1.25rem',
-                                      }}
-                                    >
-                                      {encerrado ? 'Evento Encerrado' : 'Saber mais sobre o evento'}
-                                      {!encerrado && <ArrowUpRight size={16} />}
-                                    </a>
-                                  </div>
-                                </div>
+                                <EventCard
+                                  key={evento.id}
+                                  event={{
+                                    ...evento,
+                                    data_evento:
+                                      formatDateToDisplay(evento.data_evento) || evento.data_evento,
+                                  }}
+                                  isPast={encerrado}
+                                  showDescription
+                                  showLocation
+                                  showActionButton
+                                />
                               )
                             })}
                           </div>
@@ -1296,69 +1241,17 @@ function Dashboard() {
                         ) : (
                           <div className="upcoming-grid">
                             {eventosProximos.map((evento) => (
-                              <div key={evento.id} className="upcoming-card">
-                                <div className="upcoming-card-image">
-                                  <img src={evento.imagem || BgEventos} alt={evento.nome} />
-                                  <div className="upcoming-card-badge">{evento.periodo}</div>
-                                </div>
-                                <div className="upcoming-card-content">
-                                  <h3>{evento.nome}</h3>
-                                  {evento.descricao && (
-                                    <p className="upcoming-card-desc">{evento.descricao}</p>
-                                  )}
-                                  <div className="upcoming-card-info">
-                                    <div className="upcoming-info-item">
-                                      <Calendar size={14} />
-                                      <span>{formatDateToDisplay(evento.data_evento)}</span>
-                                    </div>
-                                    <div className="upcoming-info-item">
-                                      <Clock size={14} />
-                                      <span>{evento.horario}</span>
-                                    </div>
-                                    <div className="upcoming-info-item">
-                                      <CalendarDays size={14} />
-                                      <span>{evento.dia_semana}</span>
-                                    </div>
-                                    {evento.modalidade && (
-                                      <div className="upcoming-info-item">
-                                        {evento.modalidade === 'Online' ? (
-                                          <Wifi size={14} />
-                                        ) : evento.modalidade === 'Híbrido' ? (
-                                          <Video size={14} />
-                                        ) : (
-                                          <Monitor size={14} />
-                                        )}
-                                        <span>{evento.modalidade}</span>
-                                      </div>
-                                    )}
-                                    {(evento.cidade || evento.estado) &&
-                                      evento.modalidade !== 'Online' && (
-                                        <div className="upcoming-info-item">
-                                          <MapPin size={14} />
-                                          <span>
-                                            {[evento.cidade, evento.estado]
-                                              .filter(Boolean)
-                                              .join(' - ')}
-                                          </span>
-                                        </div>
-                                      )}
-                                  </div>
-                                  <a
-                                    href={evento.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="participate-button"
-                                    style={{
-                                      marginTop: '1rem',
-                                      fontSize: '0.875rem',
-                                      padding: '0.75rem 1.25rem',
-                                    }}
-                                  >
-                                    Saber mais sobre o evento
-                                    <ArrowUpRight size={16} />
-                                  </a>
-                                </div>
-                              </div>
+                              <EventCard
+                                key={evento.id}
+                                event={{
+                                  ...evento,
+                                  data_evento:
+                                    formatDateToDisplay(evento.data_evento) || evento.data_evento,
+                                }}
+                                showDescription
+                                showLocation
+                                showActionButton
+                              />
                             ))}
                           </div>
                         )}

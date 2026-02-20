@@ -1,0 +1,312 @@
+/* Sentinel invisível para o IntersectionObserver detectar */
+.event-recs-sentinel {
+  height: 1px;
+  visibility: hidden;
+}
+
+/* Seção principal */
+.event-recs-section {
+  padding: 5rem 2rem;
+  background: var(--background);
+}
+
+.event-recs-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Cabeçalho */
+.event-recs-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.event-recs-header h2 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.event-recs-header p {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Grid */
+.event-recs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Card */
+.event-recs-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.event-recs-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px var(--shadow-hover);
+}
+
+.event-recs-card:focus-visible {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+}
+
+/* Imagem do card */
+.event-recs-card-image {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+}
+
+.event-recs-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.event-recs-card:hover .event-recs-card-image img {
+  transform: scale(1.05);
+}
+
+/* Badge de período */
+.event-recs-card-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: var(--primary-blue);
+  color: white;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.375rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Conteúdo do card */
+.event-recs-card-content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.event-recs-card-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Info do card */
+.event-recs-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: auto;
+}
+
+.event-recs-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.event-recs-info-item svg {
+  flex-shrink: 0;
+  color: var(--primary-blue);
+}
+
+/* CTA */
+.event-recs-cta {
+  text-align: center;
+}
+
+.event-recs-cta button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 1px solid var(--primary-blue);
+  color: var(--primary-blue);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.event-recs-cta button:hover {
+  background: var(--primary-blue);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+}
+
+/* Skeleton */
+.event-recs-skeleton {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.event-recs-skeleton-image {
+  height: 160px;
+  background: linear-gradient(90deg, var(--border) 0%, #cbd5e1 50%, var(--border) 100%);
+  background-size: 200% 100%;
+  animation: recsShimmer 1.5s ease-in-out infinite;
+}
+
+.event-recs-skeleton-content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.event-recs-skeleton-title {
+  height: 1.25rem;
+  width: 75%;
+  background: linear-gradient(90deg, var(--border) 0%, #cbd5e1 50%, var(--border) 100%);
+  background-size: 200% 100%;
+  animation: recsShimmer 1.5s ease-in-out infinite;
+  border-radius: 0.25rem;
+}
+
+.event-recs-skeleton-text {
+  height: 0.875rem;
+  width: 60%;
+  background: linear-gradient(90deg, var(--border) 0%, #cbd5e1 50%, var(--border) 100%);
+  background-size: 200% 100%;
+  animation: recsShimmer 1.5s ease-in-out infinite;
+  border-radius: 0.25rem;
+}
+
+.event-recs-skeleton-text.short {
+  width: 45%;
+}
+
+@keyframes recsShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Dark mode */
+[data-theme='dark'] .event-recs-section {
+  background: var(--background);
+}
+
+[data-theme='dark'] .event-recs-cta button:hover {
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
+}
+
+/* Responsivo — Tablet */
+@media (max-width: 1024px) {
+  .event-recs-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+/* Responsivo — Mobile */
+@media (max-width: 768px) {
+  .event-recs-section {
+    padding: 3.5rem 1rem;
+  }
+
+  .event-recs-header h2 {
+    font-size: 1.75rem;
+  }
+
+  .event-recs-header p {
+    font-size: 0.95rem;
+  }
+
+  .event-recs-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .event-recs-card {
+    flex-direction: row;
+  }
+
+  .event-recs-card-image {
+    width: 120px;
+    height: auto;
+    min-height: 120px;
+    flex-shrink: 0;
+  }
+
+  .event-recs-card-content {
+    padding: 1rem;
+  }
+
+  .event-recs-card-content h3 {
+    font-size: 1rem;
+  }
+
+  .event-recs-card-badge {
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.625rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .event-recs-section {
+    padding: 3rem 1rem;
+  }
+
+  .event-recs-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .event-recs-card-image {
+    width: 100px;
+    min-height: 100px;
+  }
+
+  .event-recs-card-content h3 {
+    font-size: 0.925rem;
+    -webkit-line-clamp: 1;
+  }
+
+  .event-recs-info-item {
+    font-size: 0.75rem;
+  }
+
+  .event-recs-cta button {
+    width: 100%;
+    justify-content: center;
+  }
+}

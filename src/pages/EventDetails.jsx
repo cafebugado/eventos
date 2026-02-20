@@ -19,6 +19,7 @@ import FloatingMenu from '../components/FloatingMenu'
 import RichText from '../components/RichText'
 import SEOHead from '../components/SEOHead'
 import ShareButtons from '../components/ShareButtons'
+import EventRecommendations from '../components/EventRecommendations'
 import BgEventos from '../assets/eventos.png'
 import './EventDetails.css'
 
@@ -349,6 +350,8 @@ function EventDetails() {
           </div>
         </div>
       </main>
+
+      <EventRecommendations currentEvent={event} currentEventTags={eventTags} />
 
       <Footer />
       <FloatingMenu />
