@@ -4,6 +4,7 @@
    ========================================= */
 
 /* Base */
+
 .ec-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -200,9 +201,51 @@
   margin-top: auto;
   padding-top: 1rem;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: items-center;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
+.card-heart-div {
+  display: flex;
+  background-color: transparent;
+  align-items: center;
+  border: 2px solid var(--primary-blue);
+  justify-content: center;
+  color: var(--text-primary);
+  padding: 5px 5px;
+  gap: 10px;
+  transition: all 0.2s ease;
+  border: 1px solid var(--heart-outline);
+  border-radius: 5px;
+}
+
+.card-heart-div:hover {
+  transform: translateY(-3px);
+}
+:root {
+  --heart-col: #2563eb;
+  --heart-outline: #2563eb;
+  --heart-fill: #2563eb;
+}
+
+[data-theme='dark'] {
+  --heart-col: white;
+  --heart-outline: white;
+  --heart-fill: red;
+}
+
+.heart-icon {
+  stroke: var(--heart-col);
+  fill: none;
+  transition: fill 0.2s ease;
+}
+
+.heart-icon.is-active {
+  fill: var(--heart-fill);
+  stroke: var(--heart-fill);
+}
 /* =========================================
    Responsivo
    ========================================= */

@@ -12,6 +12,7 @@ import {
 import RichText from './RichText'
 import BgEventos from '../assets/eventos.png'
 import './EventCard.css'
+import { FavouriteEventButton } from './favourite-event/favouriteEventButton'
 
 function ModalidadeIcon({ modalidade, size }) {
   if (modalidade === 'Online') {
@@ -35,6 +36,8 @@ function EventCard({
   actionLabel,
   onClick,
   style,
+  favouriteIds,
+  toggleFavourite,
 }) {
   const navigate = useNavigate()
 
@@ -86,7 +89,6 @@ function EventCard({
             <RichText className="ec-description" content={event.descricao} stopPropagationOnLinks />
           )}
         </div>
-
         <div className="ec-info">
           <div className="ec-info-item">
             <Calendar size={iconSize} />
@@ -113,9 +115,16 @@ function EventCard({
             </div>
           )}
         </div>
-
         {showActionButton && (
-          <div className="ec-action">
+          <div
+            className="ec-action"
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '20px',
+            }}
+          >
             {isFull ? (
               <button
                 className="event-link"
@@ -142,6 +151,12 @@ function EventCard({
                 {!isPast && <ArrowUpRight size={16} />}
               </a>
             )}
+            <FavouriteEventButton
+              event={event}
+              isFavourite={favouriteIds.has(event.id)}
+              onToggle={toggleFavourite}
+              isCard={true}
+            />
           </div>
         )}
       </div>
