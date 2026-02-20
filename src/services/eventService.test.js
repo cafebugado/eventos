@@ -11,6 +11,7 @@ import {
   getEventStats,
   uploadEventImage,
   deleteEventImage,
+  getRecommendedEvents,
 } from './eventService'
 
 describe('eventService', () => {
@@ -451,6 +452,107 @@ describe('eventService', () => {
       supabase.storage.from.mockReturnValue(mockStorage)
 
       await expect(uploadEventImage(mockFile)).rejects.toThrow('Upload failed')
+    })
+  })
+
+  describe('getRecommendedEvents', () => {
+    const fmt = (d) =>
+      `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const future = (days) => {
+      const d = new Date(today)
+      d.setDate(d.getDate() + days)
+      return d
+    }
+
+    beforeEach(() => {
+      vi.doMock('./tagService', () => ({
+        getAllEventTags: vi.fn().mockResolvedValue({}),
+      }))
+    })
+
+    it('deve retornar eventos futuros excluindo o evento atual', async () => {
+      const mockEvents = [
+        { id: '1', nome: 'Atual', data_evento: fmt(future(5)) },
+        { id: '2', nome: 'Recomendado', data_evento: fmt(future(3)) },
+        { id: '3', nome: 'Outro', data_evento: fmt(future(7)) },
+      ]
+
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
+      }
+      supabase.from.mockReturnValue(mockChain)
+
+      const result = await getRecommendedEvents('1', [], future(5), 3)
+
+      expect(result.find((r) => r.id === '1')).toBeUndefined()
+      expect(result.find((r) => r.nome === 'Recomendado')).toBeDefined()
+    })
+
+    it('deve respeitar o limite de resultados', async () => {
+      const mockEvents = Array.from({ length: 10 }, (_, i) => ({
+        id: String(i + 1),
+        nome: `Evento ${i + 1}`,
+        data_evento: fmt(future(i + 1)),
+      }))
+
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
+      }
+      supabase.from.mockReturnValue(mockChain)
+
+      const result = await getRecommendedEvents('99', [], future(0), 3)
+
+      expect(result).toHaveLength(3)
+    })
+
+    it('deve excluir eventos passados dos resultados', async () => {
+      const pastDate = new Date(today)
+      pastDate.setDate(pastDate.getDate() - 1)
+
+      const mockEvents = [
+        { id: '1', nome: 'Passado', data_evento: fmt(pastDate) },
+        { id: '2', nome: 'Futuro', data_evento: fmt(future(3)) },
+      ]
+
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
+      }
+      supabase.from.mockReturnValue(mockChain)
+
+      const result = await getRecommendedEvents('99', [], future(0), 3)
+
+      expect(result.find((r) => r.nome === 'Passado')).toBeUndefined()
+      expect(result.find((r) => r.nome === 'Futuro')).toBeDefined()
+    })
+
+    it('deve retornar array vazio quando não há candidatos', async () => {
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }
+      supabase.from.mockReturnValue(mockChain)
+
+      const result = await getRecommendedEvents('1', [], future(0), 3)
+
+      expect(result).toEqual([])
+    })
+
+    it('deve lançar erro quando a busca falha', async () => {
+      const mockError = new Error('Database error')
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: null, error: mockError }),
+      }
+      supabase.from.mockReturnValue(mockChain)
+
+      await expect(getRecommendedEvents('1', [], future(0), 3)).rejects.toThrow('Database error')
     })
   })
 

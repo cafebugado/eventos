@@ -205,6 +205,101 @@ export async function uploadEventImage(file) {
   return data.publicUrl
 }
 
+// Helper privado para calcular semana ISO 8601
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  const dayNum = d.getUTCDay() || 7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+  return Math.ceil(((d - yearStart) / 86400000 + 1) / 7)
+}
+
+// Buscar eventos recomendados com base em tags e proximidade de data
+export async function getRecommendedEvents(
+  currentEventId,
+  currentEventTags,
+  currentEventDate,
+  limit = 3
+) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const currentTagIds = new Set((currentEventTags || []).map((t) => t.id))
+  const currentWeek = getISOWeek(currentEventDate)
+  const currentYear = currentEventDate.getFullYear()
+
+  // Buscar todos os eventos e o mapa de tags em paralelo
+  const [allEvents, allTagsMap] = await Promise.all([
+    withRetry(
+      async () => {
+        const { data, error } = await supabase
+          .from('eventos')
+          .select('*')
+          .order('data_evento', { ascending: true })
+        if (error) {
+          throw error
+        }
+        return data
+      },
+      { context: 'getRecommendedEvents' }
+    ),
+    (async () => {
+      try {
+        const { getAllEventTags } = await import('./tagService')
+        return await getAllEventTags()
+      } catch {
+        return {}
+      }
+    })(),
+  ])
+
+  // Filtrar candidatos: apenas futuros e excluindo o evento atual
+  const candidates = allEvents.filter((ev) => {
+    if (String(ev.id) === String(currentEventId)) {
+      return false
+    }
+    if (!ev.data_evento) {
+      return false
+    }
+    const parts = ev.data_evento.split('/')
+    if (parts.length === 3) {
+      const evDate = new Date(parts[2], parts[1] - 1, parts[0])
+      return evDate >= today
+    }
+    return new Date(ev.data_evento) >= today
+  })
+
+  // Pontuar e ordenar cada candidato
+  const scored = candidates.map((ev) => {
+    const parts = ev.data_evento.split('/')
+    const evDate =
+      parts.length === 3 ? new Date(parts[2], parts[1] - 1, parts[0]) : new Date(ev.data_evento)
+
+    const evTags = allTagsMap[String(ev.id)] || []
+    const sharedTagCount = evTags.filter((t) => currentTagIds.has(t.id)).length
+    const hasTagMatch = sharedTagCount > 0
+    const sameWeek = getISOWeek(evDate) === currentWeek && evDate.getFullYear() === currentYear
+    const daysAway = evDate - today
+
+    return { ev, hasTagMatch, sameWeek, sharedTagCount, daysAway, evTags }
+  })
+
+  scored.sort((a, b) => {
+    if (a.hasTagMatch !== b.hasTagMatch) {
+      return a.hasTagMatch ? -1 : 1
+    }
+    if (a.sameWeek !== b.sameWeek) {
+      return a.sameWeek ? -1 : 1
+    }
+    return a.daysAway - b.daysAway
+  })
+
+  return scored.slice(0, limit).map(({ ev, evTags }) => ({
+    ...ev,
+    tags: evTags,
+  }))
+}
+
 // Deletar imagem do Storage
 export async function deleteEventImage(imageUrl) {
   if (!imageUrl) {

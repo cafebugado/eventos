@@ -28,6 +28,8 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 - **Controle de Acesso (RBAC)** - Permissões granulares por papel: super_admin, admin e moderador
 - **Perfil de Usuário** - Todos os papéis podem configurar nome, sobrenome e avatar via GitHub
 - **Dashboard do Moderador** - Stats clicáveis com visualização de contribuições, eventos da semana e próximos eventos
+- **Recomendações de Eventos** - Sugestões baseadas em tags e proximidade de data carregadas via lazy-load na página de detalhe
+- **EventCard Reutilizável** - Componente unificado com variantes `compact` e `full` usado em toda a aplicação
 
 ## Tecnologias Utilizadas
 
@@ -225,6 +227,15 @@ agendas_eventos/
 │   │   ├── Dashboard.jsx         # Dashboard de eventos
 │   │   ├── Dashboard.test.jsx    # Testes do dashboard
 │   │   └── Admin.css             # Estilos do admin
+│   │
+│   ├── components/               # Componentes reutilizáveis
+│   │   ├── EventCard.jsx         # Card de evento (variant compact/full)
+│   │   ├── EventCard.test.jsx    # Testes do EventCard
+│   │   ├── EventCard.css         # Estilos do EventCard
+│   │   ├── EventRecommendations.jsx  # Recomendações lazy no detalhe do evento
+│   │   ├── EventRecommendations.css  # Estilos das recomendações
+│   │   ├── UpcomingEvents.jsx    # Seção de próximos eventos (home)
+│   │   └── ...                   # Demais componentes
 │   │
 │   ├── pages/                    # Páginas públicas
 │   │   ├── Home.jsx              # Landing page
