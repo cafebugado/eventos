@@ -1,9 +1,9 @@
 # Workflow de Release Automático
 # Dispara a cada push em main (merge de PR developer→main)
 # - Calcula a nova versão semver via Conventional Commits
-# - Atualiza package.json
 # - Cria Git tag e GitHub Release com changelog
-# - Sincroniza a branch developer com o commit de release
+# - Atualiza package.json com commit direto na branch developer
+#   (evita push direto em main que é protegida por branch ruleset)
 
 name: Release Automático
 
@@ -19,7 +19,7 @@ jobs:
   release:
     name: Versionar e Publicar Release
     runs-on: ubuntu-latest
-    # Ignorar o próprio commit de release para evitar loop infinito
+    # Ignorar commits de bump de versão para evitar loop infinito
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
@@ -89,27 +89,6 @@ jobs:
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "bump=$BUMP" >> $GITHUB_OUTPUT
 
-      - name: Instalar pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: '9'
-
-      - name: Configurar Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20'
-
-      - name: Atualizar versão no package.json
-        run: |
-          npm version ${{ steps.versioning.outputs.new_version }} --no-git-tag-version
-          echo "package.json atualizado para ${{ steps.versioning.outputs.new_version }}"
-
-      - name: Commit e push da versão em main
-        run: |
-          git add package.json
-          git commit -m "chore(release): v${{ steps.versioning.outputs.new_version }} [skip ci]"
-          git push origin main
-
       - name: Criar Git tag
         run: |
           git tag "v${{ steps.versioning.outputs.new_version }}"
@@ -121,11 +100,10 @@ jobs:
           LAST_TAG="${{ steps.versioning.outputs.last_tag }}"
           NEW_VERSION="${{ steps.versioning.outputs.new_version }}"
 
-          # Commits até HEAD~1 para excluir o commit de versão recém criado
           if [ "$LAST_TAG" = "v0.0.0" ]; then
-            COMMITS=$(git log --pretty=format:"%s (%h)" HEAD~1)
+            COMMITS=$(git log --pretty=format:"%s (%h)" HEAD)
           else
-            COMMITS=$(git log --pretty=format:"%s (%h)" "${LAST_TAG}..HEAD~1")
+            COMMITS=$(git log --pretty=format:"%s (%h)" "${LAST_TAG}..HEAD")
           fi
 
           FEATURES=""
@@ -154,8 +132,6 @@ jobs:
           printf "%b\n" "$CHANGELOG" > changelog.md
           cat changelog.md
 
-          echo "changelog_file=changelog.md" >> $GITHUB_OUTPUT
-
       - name: Criar GitHub Release
         uses: actions/github-script@v7
         with:
@@ -172,12 +148,28 @@ jobs:
               prerelease: false
             });
 
-      - name: Sincronizar branch developer com main
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9'
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Atualizar package.json na branch developer
         run: |
+          # Trocar para developer e atualizar o package.json lá
+          # (developer não tem restrição de push direto)
           git fetch origin developer
           git checkout developer
           git pull origin developer
-          git merge main --no-edit
+
+          npm version ${{ steps.versioning.outputs.new_version }} --no-git-tag-version
+
+          git add package.json
+          git commit -m "chore(release): v${{ steps.versioning.outputs.new_version }} [skip ci]"
           git push origin developer
 
       - name: Resumo do Release
@@ -191,4 +183,4 @@ jobs:
           echo "| Tipo de bump | \`${{ steps.versioning.outputs.bump }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Git tag | ✅ Criada |" >> $GITHUB_STEP_SUMMARY
           echo "| GitHub Release | ✅ Publicado |" >> $GITHUB_STEP_SUMMARY
-          echo "| Branch developer | ✅ Sincronizada |" >> $GITHUB_STEP_SUMMARY
+          echo "| package.json em developer | ✅ Atualizado |" >> $GITHUB_STEP_SUMMARY
