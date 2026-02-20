@@ -127,26 +127,6 @@
   transform: translateY(0);
 }
 
-.back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: transparent;
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.back-button:hover {
-  border-color: var(--primary-blue);
-  color: var(--primary-blue);
-  background: rgba(37, 99, 235, 0.05);
-}
-
 /* Skeleton Loading for Details Page */
 .skeleton-back-button {
   width: 180px;
@@ -254,26 +234,8 @@
   padding: 2rem;
 }
 
-.details-container .back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  padding: 0.625rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.details-container .back-btn {
   margin-bottom: 2rem;
-}
-
-.details-container .back-link:hover {
-  color: var(--primary-blue);
-  border-color: var(--primary-blue);
-  background: rgba(37, 99, 235, 0.05);
 }
 
 /* Event Details Card */

@@ -30,6 +30,7 @@ export function createMockEvent(overrides = {}) {
     link: 'https://evento.com',
     imagem: 'https://exemplo.com/imagem.jpg',
     created_at: '2024-01-01T00:00:00Z',
+    created_by: null,
     ...overrides,
   }
 }

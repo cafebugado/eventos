@@ -26,6 +26,8 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 - **Estatísticas** - Visualização de eventos por período
 - **Validação de Formulários** - React Hook Form com validações
 - **Controle de Acesso (RBAC)** - Permissões granulares por papel: super_admin, admin e moderador
+- **Perfil de Usuário** - Todos os papéis podem configurar nome, sobrenome e avatar via GitHub
+- **Dashboard do Moderador** - Stats clicáveis com visualização de contribuições, eventos da semana e próximos eventos
 
 ## Tecnologias Utilizadas
 
@@ -236,6 +238,7 @@ agendas_eventos/
 │   │   ├── eventService.js       # CRUD de eventos
 │   │   ├── eventService.test.js  # Testes de eventos
 │   │   ├── contributorService.js # CRUD de contribuintes
+│   │   ├── profileService.js     # Perfil do usuário (nome, sobrenome, avatar)
 │   │   └── tagService.js         # CRUD de tags e associação
 │   │
 │   ├── lib/                      # Configurações
@@ -338,13 +341,13 @@ CREATE TABLE evento_tags (
 | ----------------------- | ----------- | ----- | ------------------ |
 | Criar eventos           | ✅          | ✅    | ✅                 |
 | Editar eventos          | ✅          | ✅    | ✅                 |
-| Excluir eventos         | ✅          | ✅    | ❌                 |
+| Excluir eventos         | ✅          | ✅    | Apenas os próprios |
 | Criar tags              | ✅          | ✅    | ✅                 |
 | Editar tags             | ✅          | ✅    | Apenas as próprias |
 | Excluir tags            | ✅          | ✅    | Apenas as próprias |
 | Gerenciar contribuintes | ✅          | ✅    | ❌                 |
 | Gerenciar usuários      | ✅          | ❌    | ❌                 |
-| Upload de imagens       | ✅          | ✅    | ❌                 |
+| Upload de imagens       | ✅          | ✅    | ✅                 |
 
 ### Períodos Disponíveis
 

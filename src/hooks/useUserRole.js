@@ -26,12 +26,12 @@ const PERMISSIONS = {
   moderador: {
     canCreateEvents: true,
     canEditEvents: true,
-    canDeleteEvents: false,
+    canDeleteEvents: true,
     canManageTags: true,
     canDeleteTags: true,
     canManageContributors: false,
     canManageUsers: false,
-    canUploadImages: false,
+    canUploadImages: true,
   },
 }
 

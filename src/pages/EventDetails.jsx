@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft,
   Calendar,
   Clock,
   CalendarDays,
@@ -13,6 +12,7 @@ import {
 } from 'lucide-react'
 import { getEventById } from '../services/eventService'
 import { getEventTags } from '../services/tagService'
+import BackButton from '../components/BackButton'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import FloatingMenu from '../components/FloatingMenu'
@@ -147,10 +147,7 @@ function EventDetails() {
         <Header />
         <main className="details-main">
           <div className="details-container">
-            <button onClick={() => navigate('/eventos')} className="back-link">
-              <ArrowLeft size={18} />
-              <span>Voltar para Eventos</span>
-            </button>
+            <BackButton onClick={() => navigate('/eventos')} label="Voltar para Eventos" />
             <div className="error-container" role="alert" aria-live="polite">
               <div className="error-icon">
                 <Calendar size={48} />
@@ -163,10 +160,7 @@ function EventDetails() {
                     Tentar novamente
                   </button>
                 )}
-                <button onClick={() => navigate('/eventos')} className="back-button">
-                  <ArrowLeft size={18} />
-                  Voltar para Eventos
-                </button>
+                <BackButton onClick={() => navigate('/eventos')} label="Voltar para Eventos" />
               </div>
             </div>
           </div>
@@ -197,10 +191,7 @@ function EventDetails() {
 
       <main className="details-main">
         <div className="details-container">
-          <button onClick={() => navigate('/eventos')} className="back-link">
-            <ArrowLeft size={18} />
-            <span>Voltar para Eventos</span>
-          </button>
+          <BackButton onClick={() => navigate('/eventos')} label="Voltar para Eventos" />
 
           <div className={`event-details-card ${isPast ? 'evento-encerrado' : ''}`}>
             <div className="event-image-container">
