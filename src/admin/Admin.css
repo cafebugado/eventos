@@ -1896,6 +1896,27 @@
   cursor: pointer;
 }
 
+.favourite-button {
+  background-color: transparent;
+  color: var(--text-primary);
+  width: 100%;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid var(--text-primary);
+}
+.favourite-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+}
+
 .participate-button:hover {
   background: var(--dark-blue);
   transform: translateY(-2px);
