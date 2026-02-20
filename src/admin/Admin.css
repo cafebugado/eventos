@@ -1917,6 +1917,24 @@
   box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
 }
 
+.heart-icon {
+  stroke: #2563eb;
+  fill: none;
+  transition: fill 0.2s ease;
+}
+
+.heart-icon.is-active {
+  fill: #2563eb;
+}
+
+[data-theme='dark'] .heart-icon {
+  stroke: white;
+}
+
+[data-theme='dark'] .heart-icon.is-active {
+  fill: red;
+  stroke: red;
+}
 .participate-button:hover {
   background: var(--dark-blue);
   transform: translateY(-2px);

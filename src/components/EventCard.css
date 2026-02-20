@@ -227,11 +227,13 @@
 :root {
   --heart-col: #2563eb;
   --heart-outline: #2563eb;
+  --heart-fill: #2563eb;
 }
 
 [data-theme='dark'] {
-  --heart-col: red;
+  --heart-col: white;
   --heart-outline: white;
+  --heart-fill: red;
 }
 
 .heart-icon {
@@ -241,7 +243,8 @@
 }
 
 .heart-icon.is-active {
-  fill: var(--heart-col);
+  fill: var(--heart-fill);
+  stroke: var(--heart-fill);
 }
 /* =========================================
    Responsivo

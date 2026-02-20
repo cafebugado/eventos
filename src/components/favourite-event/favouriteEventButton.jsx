@@ -12,10 +12,7 @@ export const FavouriteEventButton = memo(({ event, isFavourite, onToggle, isCard
         className="favourite-button"
       >
         {isFavourite ? 'Remover dos favoritos' : 'Favoritar'}
-        <Heart
-          fill={isFavourite ? 'red' : 'transparent'}
-          style={{ color: isFavourite ? 'transparent' : 'red' }}
-        />
+        <Heart className={`heart-icon ${isFavourite ? 'is-active' : ''}`} />
       </button>
     )
   } else {
