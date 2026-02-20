@@ -1,0 +1,194 @@
+# Workflow de Release Automático
+# Dispara a cada push em main (merge de PR developer→main)
+# - Calcula a nova versão semver via Conventional Commits
+# - Atualiza package.json
+# - Cria Git tag e GitHub Release com changelog
+# - Sincroniza a branch developer com o commit de release
+
+name: Release Automático
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Versionar e Publicar Release
+    runs-on: ubuntu-latest
+    # Ignorar o próprio commit de release para evitar loop infinito
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+      - name: Checkout com histórico completo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configurar Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determinar versão anterior e calcular nova versão
+        id: versioning
+        run: |
+          # Buscar última tag vX.Y.Z
+          LAST_TAG=$(git tag --list 'v*' --sort=-version:refname | head -n1)
+          if [ -z "$LAST_TAG" ]; then
+            LAST_TAG="v0.0.0"
+            CURRENT_VERSION="0.0.0"
+          else
+            CURRENT_VERSION="${LAST_TAG#v}"
+          fi
+
+          echo "Última tag: $LAST_TAG"
+          echo "Versão atual: $CURRENT_VERSION"
+
+          # Analisar commits desde a última tag
+          if [ "$LAST_TAG" = "v0.0.0" ]; then
+            COMMITS=$(git log --pretty=format:"%s" HEAD)
+          else
+            COMMITS=$(git log --pretty=format:"%s" "${LAST_TAG}..HEAD")
+          fi
+
+          echo "Commits analisados:"
+          echo "$COMMITS"
+
+          # Determinar tipo de bump (maior prioridade: major > minor > patch)
+          BUMP="patch"
+          while IFS= read -r line; do
+            if echo "$line" | grep -qiE "BREAKING CHANGE|^[a-z]+(\([^)]+\))?!:"; then
+              BUMP="major"
+              break
+            elif echo "$line" | grep -qE "^feat(\([^)]+\))?:"; then
+              if [ "$BUMP" != "major" ]; then
+                BUMP="minor"
+              fi
+            fi
+          done <<< "$COMMITS"
+
+          echo "Tipo de bump: $BUMP"
+
+          # Calcular nova versão
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          case "$BUMP" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+
+          echo "Nova versão: $NEW_VERSION"
+
+          echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "bump=$BUMP" >> $GITHUB_OUTPUT
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9'
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Atualizar versão no package.json
+        run: |
+          npm version ${{ steps.versioning.outputs.new_version }} --no-git-tag-version
+          echo "package.json atualizado para ${{ steps.versioning.outputs.new_version }}"
+
+      - name: Commit e push da versão em main
+        run: |
+          git add package.json
+          git commit -m "chore(release): v${{ steps.versioning.outputs.new_version }} [skip ci]"
+          git push origin main
+
+      - name: Criar Git tag
+        run: |
+          git tag "v${{ steps.versioning.outputs.new_version }}"
+          git push origin "v${{ steps.versioning.outputs.new_version }}"
+
+      - name: Gerar changelog
+        id: changelog
+        run: |
+          LAST_TAG="${{ steps.versioning.outputs.last_tag }}"
+          NEW_VERSION="${{ steps.versioning.outputs.new_version }}"
+
+          # Commits até HEAD~1 para excluir o commit de versão recém criado
+          if [ "$LAST_TAG" = "v0.0.0" ]; then
+            COMMITS=$(git log --pretty=format:"%s (%h)" HEAD~1)
+          else
+            COMMITS=$(git log --pretty=format:"%s (%h)" "${LAST_TAG}..HEAD~1")
+          fi
+
+          FEATURES=""
+          FIXES=""
+          OTHERS=""
+
+          while IFS= read -r line; do
+            if [ -z "$line" ]; then continue; fi
+            if echo "$line" | grep -qE "^feat(\([^)]+\))?:"; then
+              FEATURES="${FEATURES}\n- ${line}"
+            elif echo "$line" | grep -qE "^fix(\([^)]+\))?:"; then
+              FIXES="${FIXES}\n- ${line}"
+            elif echo "$line" | grep -qE "^chore\(release\):"; then
+              : # ignorar commits de release anteriores
+            else
+              OTHERS="${OTHERS}\n- ${line}"
+            fi
+          done <<< "$COMMITS"
+
+          CHANGELOG="## O que mudou na v${NEW_VERSION}"
+          [ -n "$FEATURES" ] && CHANGELOG="${CHANGELOG}\n\n### Novas Funcionalidades\n${FEATURES}"
+          [ -n "$FIXES" ] && CHANGELOG="${CHANGELOG}\n\n### Correções\n${FIXES}"
+          [ -n "$OTHERS" ] && CHANGELOG="${CHANGELOG}\n\n### Outras Mudanças\n${OTHERS}"
+
+          # Salvar changelog em arquivo para evitar problemas com caracteres especiais
+          printf "%b\n" "$CHANGELOG" > changelog.md
+          cat changelog.md
+
+          echo "changelog_file=changelog.md" >> $GITHUB_OUTPUT
+
+      - name: Criar GitHub Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('changelog.md', 'utf8');
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${{ steps.versioning.outputs.new_version }}`,
+              name: `v${{ steps.versioning.outputs.new_version }}`,
+              body: body,
+              draft: false,
+              prerelease: false
+            });
+
+      - name: Sincronizar branch developer com main
+        run: |
+          git fetch origin developer
+          git checkout developer
+          git pull origin developer
+          git merge main --no-edit
+          git push origin developer
+
+      - name: Resumo do Release
+        run: |
+          echo "## Release v${{ steps.versioning.outputs.new_version }} publicado!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Campo | Valor |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Versão anterior | \`${{ steps.versioning.outputs.last_tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Nova versão | \`v${{ steps.versioning.outputs.new_version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tipo de bump | \`${{ steps.versioning.outputs.bump }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Git tag | ✅ Criada |" >> $GITHUB_STEP_SUMMARY
+          echo "| GitHub Release | ✅ Publicado |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch developer | ✅ Sincronizada |" >> $GITHUB_STEP_SUMMARY
