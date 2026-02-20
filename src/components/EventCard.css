@@ -200,7 +200,26 @@
   margin-top: auto;
   padding-top: 1rem;
   display: flex;
+  justify-content: space-between;
+  align-items: items-center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.card-heart-div {
+  display: flex;
+  background-color: transparent;
+  align-items: center;
   justify-content: center;
+  color: var(--text-primary);
+  padding: 5px 5px;
+  gap: 10px;
+  transition: all 0.2s ease;
+
+  border-radius: 5px;
+}
+.card-heart-div:hover {
+  transform: translateY(-3px);
 }
 
 /* =========================================
