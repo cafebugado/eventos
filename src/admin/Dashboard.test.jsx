@@ -52,6 +52,11 @@ vi.mock('../services/contributorService', () => ({
   isValidGitHubUsername: vi.fn().mockReturnValue(true),
 }))
 
+vi.mock('../services/profileService', () => ({
+  getMyProfile: vi.fn().mockResolvedValue(null),
+  upsertMyProfile: vi.fn().mockResolvedValue(null),
+}))
+
 // Mock do react-router-dom navigate
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -90,7 +95,7 @@ describe('Dashboard', () => {
 
     // Setup padrão dos mocks
     authService.getSession.mockResolvedValue({ user: { id: '1' } })
-    authService.getCurrentUser.mockResolvedValue({ email: 'admin@teste.com' })
+    authService.getCurrentUser.mockResolvedValue({ id: 'user-1', email: 'admin@teste.com' })
     eventService.getEvents.mockResolvedValue(mockEvents)
     eventService.getEventStats.mockResolvedValue(mockStats)
     roleService.getCurrentUserRole.mockResolvedValue('super_admin')
@@ -147,11 +152,11 @@ describe('Dashboard', () => {
     expect(screen.getByText('Eventos Diurnos')).toBeInTheDocument()
   })
 
-  it('deve exibir email do usuário na sidebar', async () => {
+  it('deve exibir funcao do usuario na sidebar', async () => {
     renderWithRouter(<Dashboard />)
 
     await waitFor(() => {
-      expect(screen.getByText('admin@teste.com')).toBeInTheDocument()
+      expect(screen.getAllByText('Super Admin').length).toBeGreaterThanOrEqual(1)
     })
   })
 
@@ -413,7 +418,7 @@ describe('Dashboard', () => {
       })
     })
 
-    it('moderador deve ver botao Criar Evento na sidebar', async () => {
+    it('moderador nao deve ver botao Criar Evento na sidebar', async () => {
       roleService.getCurrentUserRole.mockResolvedValue('moderador')
 
       renderWithRouter(<Dashboard />)
@@ -424,7 +429,7 @@ describe('Dashboard', () => {
 
       const sidebarButtons = screen.getAllByRole('button')
       const criarEventoBtn = sidebarButtons.find((btn) => btn.textContent.includes('Criar Evento'))
-      expect(criarEventoBtn).toBeDefined()
+      expect(criarEventoBtn).toBeUndefined()
     })
 
     it('moderador deve ver botao Novo Evento na listagem', async () => {
@@ -439,8 +444,25 @@ describe('Dashboard', () => {
       expect(screen.queryByRole('button', { name: /Novo Evento/i })).toBeInTheDocument()
     })
 
-    it('moderador nao deve ver botao Excluir em eventos', async () => {
+    it('moderador nao deve ver botao Excluir em eventos de outros usuarios', async () => {
       roleService.getCurrentUserRole.mockResolvedValue('moderador')
+      // eventos com created_by diferente do userId do moderador (user-1)
+      eventService.getEvents.mockResolvedValue([
+        createMockEvent({
+          id: '1',
+          nome: 'Evento 1',
+          periodo: 'Noturno',
+          data_evento: futureDate,
+          created_by: 'outro-user',
+        }),
+        createMockEvent({
+          id: '2',
+          nome: 'Evento 2',
+          periodo: 'Diurno',
+          data_evento: futureDate,
+          created_by: 'outro-user',
+        }),
+      ])
 
       renderWithRouter(<Dashboard />)
 
@@ -449,6 +471,35 @@ describe('Dashboard', () => {
       })
 
       expect(screen.queryByTitle('Excluir')).not.toBeInTheDocument()
+    })
+
+    it('moderador deve ver botao Excluir apenas nos eventos que ele criou', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue('moderador')
+      // um evento do proprio moderador (user-1) e um de outro
+      eventService.getEvents.mockResolvedValue([
+        createMockEvent({
+          id: '1',
+          nome: 'Evento 1',
+          periodo: 'Noturno',
+          data_evento: futureDate,
+          created_by: 'user-1',
+        }),
+        createMockEvent({
+          id: '2',
+          nome: 'Evento 2',
+          periodo: 'Diurno',
+          data_evento: futureDate,
+          created_by: 'outro-user',
+        }),
+      ])
+
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Evento 1')).toBeInTheDocument()
+      })
+
+      expect(screen.getAllByTitle('Excluir').length).toBe(1)
     })
 
     it('moderador deve ver botao Editar em eventos futuros', async () => {
@@ -497,7 +548,7 @@ describe('Dashboard', () => {
       renderWithRouter(<Dashboard />)
 
       await waitFor(() => {
-        expect(screen.getByText('Super Admin')).toBeInTheDocument()
+        expect(screen.getAllByText('Super Admin').length).toBeGreaterThanOrEqual(1)
       })
     })
 

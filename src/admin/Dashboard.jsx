@@ -30,9 +30,13 @@ import {
   MapPin,
   Monitor,
   Video,
+  Wifi,
+  ArrowUpRight,
   Palette,
   Shield,
   UserCog,
+  Settings,
+  Heart,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { getSession, signOut, getCurrentUser } from '../services/authService'
@@ -63,6 +67,7 @@ import {
   setEventTags,
 } from '../services/tagService'
 import { getUsersWithRoles, assignUserRole, removeUserRole } from '../services/roleService'
+import { getMyProfile, upsertMyProfile } from '../services/profileService'
 import Pagination from '../components/Pagination'
 import RichText from '../components/RichText'
 import useMediaQuery from '../hooks/useMediaQuery'
@@ -71,6 +76,8 @@ import usePagination from '../hooks/usePagination'
 import { filterEventsByQuery } from '../utils/eventSearch'
 import { stripRichText } from '../utils/richText'
 import './Admin.css'
+import '../components/UpcomingEvents.css'
+import BackButton from '../components/BackButton'
 import BgEventos from '../assets/eventos.png'
 
 const DAY_NAMES = [
@@ -152,6 +159,12 @@ function Dashboard() {
   const [stats, setStats] = useState({ total: 0, noturno: 0, diurno: 0 })
   const [userEmail, setUserEmail] = useState('')
   const [userId, setUserId] = useState(null)
+  const [userProfile, setUserProfile] = useState(null)
+  const [profileGitHubPreview, setProfileGitHubPreview] = useState(null)
+  const [isFetchingProfileGitHub, setIsFetchingProfileGitHub] = useState(false)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [moderadorView, setModeradoView] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
@@ -180,6 +193,92 @@ function Dashboard() {
   const isMobile = useMediaQuery('(max-width: 768px)')
   const { role: userRole, loading: roleLoading, permissions } = useUserRole()
 
+  const saudacao = useMemo(() => {
+    const hora = new Date().getHours()
+    if (hora >= 5 && hora < 12) {
+      return 'Bom dia'
+    }
+    if (hora >= 12 && hora < 18) {
+      return 'Boa tarde'
+    }
+    return 'Boa noite'
+  }, [])
+
+  const mensagemMotivacional = useMemo(() => {
+    const frases = [
+      'Cada evento que você cadastra conecta pessoas. Obrigado! 💙',
+      'Sua contribuição faz a comunidade crescer mais forte. 🚀',
+      'Você é parte essencial desta comunidade. Valeu! 🙌',
+      'Juntos construímos algo incrível. Obrigado por estar aqui! ✨',
+      'Sua dedicação inspira toda a comunidade. Continue assim! 💪',
+      'Cada detalhe que você cuida faz diferença para todos. 🌟',
+      'A comunidade é mais forte com você nela. Obrigado! 🤝',
+      'Você transforma informação em conexão. Isso é incrível! 🎯',
+    ]
+    const dia = new Date().getDate()
+    return frases[dia % frases.length]
+  }, [])
+
+  const primeiroNome = userProfile?.nome || userEmail?.split('@')[0] || ''
+
+  const moderadorStats = useMemo(() => {
+    if (userRole !== 'moderador' || !userId) {
+      return null
+    }
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const startOfWeek = new Date(today)
+    startOfWeek.setDate(today.getDate() - today.getDay())
+    const endOfWeek = new Date(startOfWeek)
+    endOfWeek.setDate(startOfWeek.getDate() + 6)
+
+    // eventos que o moderador cadastrou (todos os tempos)
+    const minhasContribuicoes = eventos.filter((e) => e.created_by === userId).length
+
+    // todos os eventos da plataforma que acontecem esta semana
+    const estaSemana = eventos.filter((e) => {
+      const d = parseDateValue(e.data_evento)
+      return d && d >= startOfWeek && d <= endOfWeek
+    }).length
+
+    // todos os eventos da plataforma que ainda vão acontecer
+    const futuros = eventos.filter((e) => {
+      const d = parseDateValue(e.data_evento)
+      return d && d >= today
+    }).length
+
+    return { minhasContribuicoes, estaSemana, futuros }
+  }, [eventos, userRole, userId])
+
+  const eventosContribuicoes = useMemo(
+    () => eventos.filter((e) => e.created_by === userId),
+    [eventos, userId]
+  )
+
+  const eventosEstaSemana = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const startOfWeek = new Date(today)
+    startOfWeek.setDate(today.getDate() - today.getDay())
+    const endOfWeek = new Date(startOfWeek)
+    endOfWeek.setDate(startOfWeek.getDate() + 6)
+    return eventos.filter((e) => {
+      const d = parseDateValue(e.data_evento)
+      return d && d >= startOfWeek && d <= endOfWeek
+    })
+  }, [eventos])
+
+  const eventosProximos = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return eventos.filter((e) => {
+      const d = parseDateValue(e.data_evento)
+      return d && d >= today
+    })
+  }, [eventos])
+
   const {
     register,
     handleSubmit,
@@ -205,6 +304,13 @@ function Dashboard() {
     setValue: setTagValue,
     watch: watchTag,
     formState: { errors: tagErrors },
+  } = useForm()
+
+  const {
+    register: registerProfile,
+    handleSubmit: handleSubmitProfile,
+    reset: resetProfile,
+    formState: { errors: profileErrors },
   } = useForm()
 
   const sortedEvents = useMemo(() => {
@@ -269,6 +375,21 @@ function Dashboard() {
       if (user) {
         setUserEmail(user.email)
         setUserId(user.id)
+      }
+
+      const profile = await getMyProfile()
+      if (profile) {
+        setUserProfile(profile)
+        setProfileGitHubPreview(
+          profile.github_username
+            ? { github_username: profile.github_username, avatar_url: profile.avatar_url }
+            : null
+        )
+        resetProfile({
+          nome: profile.nome || '',
+          sobrenome: profile.sobrenome || '',
+          github_username: profile.github_username || '',
+        })
       }
 
       const savedTheme = localStorage.getItem('theme')
@@ -493,6 +614,64 @@ function Dashboard() {
       loadContributors()
     }
   }, [activeTab, loadContributors])
+
+  const handleFetchProfileGitHub = async (username) => {
+    if (!username || !isValidGitHubUsername(username)) {
+      setProfileGitHubPreview(null)
+      return
+    }
+
+    setIsFetchingProfileGitHub(true)
+    try {
+      const userData = await fetchGitHubUser(username)
+      setProfileGitHubPreview({
+        github_username: userData.github_username,
+        avatar_url: userData.avatar_url,
+      })
+    } catch (error) {
+      showNotification(error.message || 'Erro ao buscar usuário do GitHub', 'error')
+      setProfileGitHubPreview(null)
+    } finally {
+      setIsFetchingProfileGitHub(false)
+    }
+  }
+
+  const onSubmitProfile = async (data) => {
+    setIsSavingProfile(true)
+    try {
+      const saved = await upsertMyProfile({
+        nome: data.nome,
+        sobrenome: data.sobrenome,
+        github_username: data.github_username || null,
+        avatar_url: profileGitHubPreview?.avatar_url || null,
+      })
+      setUserProfile(saved)
+      setIsEditingProfile(false)
+      showNotification('Perfil salvo com sucesso!')
+    } catch {
+      showNotification('Erro ao salvar perfil', 'error')
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }
+
+  const handleEditProfile = () => {
+    resetProfile({
+      nome: userProfile?.nome || '',
+      sobrenome: userProfile?.sobrenome || '',
+      github_username: userProfile?.github_username || '',
+    })
+    setProfileGitHubPreview(
+      userProfile?.github_username
+        ? { github_username: userProfile.github_username, avatar_url: userProfile.avatar_url }
+        : null
+    )
+    setIsEditingProfile(true)
+  }
+
+  const handleCancelEditProfile = () => {
+    setIsEditingProfile(false)
+  }
 
   const handleFetchGitHub = async (username) => {
     if (!username || !isValidGitHubUsername(username)) {
@@ -808,18 +987,6 @@ function Dashboard() {
             <Calendar size={20} />
             <span>Eventos</span>
           </button>
-          {permissions.canCreateEvents && (
-            <button
-              className={`menu-item ${activeTab === 'criar' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('criar')
-                openCreateModal()
-              }}
-            >
-              <Plus size={20} />
-              <span>Criar Evento</span>
-            </button>
-          )}
           {permissions.canManageTags && (
             <button
               className={`menu-item ${activeTab === 'tags' ? 'active' : ''}`}
@@ -847,6 +1014,13 @@ function Dashboard() {
               <span>Usuarios</span>
             </button>
           )}
+          <button
+            className={`menu-item ${activeTab === 'configuracoes' ? 'active' : ''}`}
+            onClick={() => setActiveTab('configuracoes')}
+          >
+            <Settings size={20} />
+            <span>Configurações</span>
+          </button>
           <button className="menu-item" onClick={() => window.open('/', '_blank')}>
             <ExternalLink size={20} />
             <span>Ver Site</span>
@@ -855,12 +1029,26 @@ function Dashboard() {
 
         <div className="sidebar-footer">
           <div className="user-info">
-            <div className="user-avatar">{userEmail?.charAt(0).toUpperCase() || 'A'}</div>
+            {userProfile?.avatar_url ? (
+              <img
+                src={userProfile.avatar_url}
+                alt="avatar"
+                className="user-avatar user-avatar-img"
+              />
+            ) : (
+              <div className="user-avatar">{userEmail?.charAt(0).toUpperCase() || 'A'}</div>
+            )}
             <div className="user-details">
               <span className="user-name">
+                {userProfile?.nome
+                  ? `${userProfile.nome}${userProfile.sobrenome ? ` ${userProfile.sobrenome}` : ''}`
+                  : userRole
+                    ? ROLE_LABELS[userRole] || userRole
+                    : 'Sem Role'}
+              </span>
+              <span className="user-email">
                 {userRole ? ROLE_LABELS[userRole] || userRole : 'Sem Role'}
               </span>
-              <span className="user-email">{userEmail}</span>
             </div>
           </div>
           <button className="logout-btn" onClick={handleLogout}>
@@ -874,8 +1062,19 @@ function Dashboard() {
         {/* Top Bar */}
         <header className="admin-topbar">
           <div className="topbar-left">
-            <LayoutDashboard size={24} />
-            <h1>Dashboard</h1>
+            {userRole === 'moderador' ? (
+              <div className="topbar-greeting">
+                <h1>
+                  {saudacao}, {primeiroNome}!
+                </h1>
+                <span className="topbar-greeting-sub">{mensagemMotivacional}</span>
+              </div>
+            ) : (
+              <>
+                <LayoutDashboard size={24} />
+                <h1>Dashboard</h1>
+              </>
+            )}
           </div>
           <div className="topbar-right">
             <button className="theme-btn" onClick={toggleTheme}>
@@ -904,98 +1103,281 @@ function Dashboard() {
             <>
               {activeTab !== 'contribuintes' &&
                 activeTab !== 'tags' &&
-                activeTab !== 'usuarios' && (
+                activeTab !== 'usuarios' &&
+                activeTab !== 'configuracoes' && (
                   <>
                     {/* Stats */}
                     <div className="stats-grid">
-                      <div className="stat-card">
-                        <div className="stat-icon blue">
-                          <Calendar size={24} />
-                        </div>
-                        <div className="stat-info">
-                          <span className="stat-value">{stats.total}</span>
-                          <span className="stat-label">Total de Eventos</span>
-                        </div>
-                      </div>
-                      <div className="stat-card">
-                        <div className="stat-icon green">
-                          <CheckCircle size={24} />
-                        </div>
-                        <div className="stat-info">
-                          <span className="stat-value">{stats.noturno}</span>
-                          <span className="stat-label">Eventos Noturnos</span>
-                        </div>
-                      </div>
-                      <div className="stat-card">
-                        <div className="stat-icon orange">
-                          <Sun size={24} />
-                        </div>
-                        <div className="stat-info">
-                          <span className="stat-value">{stats.diurno}</span>
-                          <span className="stat-label">Eventos Diurnos</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Events Section */}
-                    <div className="events-section">
-                      <div className="section-header">
-                        <h2>Eventos Cadastrados</h2>
-                        {permissions.canCreateEvents && (
-                          <button
-                            className="btn-primary"
-                            onClick={openCreateModal}
-                            aria-label="Novo Evento"
+                      {moderadorStats ? (
+                        <>
+                          <div
+                            className="stat-card stat-card-clickable"
+                            onClick={() => setModeradoView('contribuicoes')}
+                            title="Ver minhas contribuições"
                           >
-                            <Plus size={18} />
-                            <span className="btn-text">Novo Evento</span>
-                          </button>
-                        )}
-                      </div>
-
-                      {showSearch && (
-                        <div className="events-toolbar">
-                          <div className="events-search">
-                            <Search size={18} className="events-search-icon" />
-                            <input
-                              type="text"
-                              placeholder="Buscar por nome, descricao ou data..."
-                              value={searchTerm}
-                              onChange={(event) => setSearchTerm(event.target.value)}
-                              aria-label="Buscar eventos"
-                            />
-                            {searchTerm && (
-                              <button
-                                type="button"
-                                className="events-search-clear"
-                                onClick={() => setSearchTerm('')}
-                              >
-                                Limpar
-                              </button>
-                            )}
+                            <div className="stat-icon blue">
+                              <Users size={24} />
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-value">
+                                {moderadorStats.minhasContribuicoes}
+                              </span>
+                              <span className="stat-label">Minhas Contribuições</span>
+                            </div>
                           </div>
-                        </div>
-                      )}
-
-                      {loading ? (
-                        <div className="loading-state">
-                          <div className="spinner"></div>
-                          <p>Carregando eventos...</p>
-                        </div>
-                      ) : eventos.length === 0 ? (
-                        <div className="empty-state">
-                          <Calendar size={48} />
-                          <h3>Nenhum evento cadastrado</h3>
-                          <p>Clique em "Novo Evento" para criar seu primeiro evento.</p>
-                        </div>
-                      ) : filteredEvents.length === 0 ? (
-                        <div className="empty-state">
-                          <Search size={48} />
-                          <h3>Nenhum evento encontrado</h3>
-                          <p>Tente ajustar sua busca para encontrar o evento desejado.</p>
-                        </div>
+                          <div
+                            className="stat-card stat-card-clickable"
+                            onClick={() => setModeradoView('semana')}
+                            title="Ver eventos desta semana"
+                          >
+                            <div className="stat-icon green">
+                              <CalendarDays size={24} />
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-value">{moderadorStats.estaSemana}</span>
+                              <span className="stat-label">Eventos Esta Semana</span>
+                            </div>
+                          </div>
+                          <div
+                            className="stat-card stat-card-clickable"
+                            onClick={() => setModeradoView('proximos')}
+                            title="Ver próximos eventos"
+                          >
+                            <div className="stat-icon purple">
+                              <Clock size={24} />
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-value">{moderadorStats.futuros}</span>
+                              <span className="stat-label">Próximos Eventos</span>
+                            </div>
+                          </div>
+                        </>
                       ) : (
                         <>
+                          <div className="stat-card">
+                            <div className="stat-icon blue">
+                              <Calendar size={24} />
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-value">{stats.total}</span>
+                              <span className="stat-label">Total de Eventos</span>
+                            </div>
+                          </div>
+                          <div className="stat-card">
+                            <div className="stat-icon green">
+                              <CheckCircle size={24} />
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-value">{stats.noturno}</span>
+                              <span className="stat-label">Eventos Noturnos</span>
+                            </div>
+                          </div>
+                          <div className="stat-card">
+                            <div className="stat-icon orange">
+                              <Sun size={24} />
+                            </div>
+                            <div className="stat-info">
+                              <span className="stat-value">{stats.diurno}</span>
+                              <span className="stat-label">Eventos Diurnos</span>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Moderador sub-views */}
+                    {moderadorView === 'semana' && (
+                      <div className="events-section">
+                        <BackButton
+                          onClick={() => setModeradoView(null)}
+                          label="Voltar ao Dashboard"
+                        />
+                        <h2 style={{ marginBottom: '1.5rem' }}>Eventos Esta Semana</h2>
+                        {eventosEstaSemana.length === 0 ? (
+                          <div className="empty-state">
+                            <CalendarDays size={48} />
+                            <h3>Nenhum evento esta semana</h3>
+                          </div>
+                        ) : (
+                          <div className="upcoming-grid">
+                            {eventosEstaSemana.map((evento) => {
+                              const evDate = parseDateValue(evento.data_evento)
+                              const hoje = new Date()
+                              hoje.setHours(0, 0, 0, 0)
+                              const encerrado = evDate && evDate < hoje
+                              return (
+                                <div key={evento.id} className="upcoming-card">
+                                  <div className="upcoming-card-image">
+                                    <img src={evento.imagem || BgEventos} alt={evento.nome} />
+                                    <div
+                                      className={`upcoming-card-badge${encerrado ? ' badge-encerrado' : ''}`}
+                                    >
+                                      {encerrado ? 'Encerrado' : evento.periodo}
+                                    </div>
+                                  </div>
+                                  <div className="upcoming-card-content">
+                                    <h3>{evento.nome}</h3>
+                                    {evento.descricao && (
+                                      <p className="upcoming-card-desc">{evento.descricao}</p>
+                                    )}
+                                    <div className="upcoming-card-info">
+                                      <div className="upcoming-info-item">
+                                        <Calendar size={14} />
+                                        <span>{formatDateToDisplay(evento.data_evento)}</span>
+                                      </div>
+                                      <div className="upcoming-info-item">
+                                        <Clock size={14} />
+                                        <span>{evento.horario}</span>
+                                      </div>
+                                      <div className="upcoming-info-item">
+                                        <CalendarDays size={14} />
+                                        <span>{evento.dia_semana}</span>
+                                      </div>
+                                      {evento.modalidade && (
+                                        <div className="upcoming-info-item">
+                                          {evento.modalidade === 'Online' ? (
+                                            <Wifi size={14} />
+                                          ) : evento.modalidade === 'Híbrido' ? (
+                                            <Video size={14} />
+                                          ) : (
+                                            <Monitor size={14} />
+                                          )}
+                                          <span>{evento.modalidade}</span>
+                                        </div>
+                                      )}
+                                      {(evento.cidade || evento.estado) &&
+                                        evento.modalidade !== 'Online' && (
+                                          <div className="upcoming-info-item">
+                                            <MapPin size={14} />
+                                            <span>
+                                              {[evento.cidade, evento.estado]
+                                                .filter(Boolean)
+                                                .join(' - ')}
+                                            </span>
+                                          </div>
+                                        )}
+                                    </div>
+                                    <a
+                                      href={encerrado ? undefined : evento.link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`participate-button${encerrado ? ' disabled' : ''}`}
+                                      onClick={(e) => encerrado && e.preventDefault()}
+                                      style={{
+                                        marginTop: '1rem',
+                                        fontSize: '0.875rem',
+                                        padding: '0.75rem 1.25rem',
+                                      }}
+                                    >
+                                      {encerrado ? 'Evento Encerrado' : 'Saber mais sobre o evento'}
+                                      {!encerrado && <ArrowUpRight size={16} />}
+                                    </a>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {moderadorView === 'proximos' && (
+                      <div className="events-section">
+                        <BackButton
+                          onClick={() => setModeradoView(null)}
+                          label="Voltar ao Dashboard"
+                        />
+                        <h2 style={{ marginBottom: '1.5rem' }}>Próximos Eventos</h2>
+                        {eventosProximos.length === 0 ? (
+                          <div className="empty-state">
+                            <Clock size={48} />
+                            <h3>Nenhum evento futuro cadastrado</h3>
+                          </div>
+                        ) : (
+                          <div className="upcoming-grid">
+                            {eventosProximos.map((evento) => (
+                              <div key={evento.id} className="upcoming-card">
+                                <div className="upcoming-card-image">
+                                  <img src={evento.imagem || BgEventos} alt={evento.nome} />
+                                  <div className="upcoming-card-badge">{evento.periodo}</div>
+                                </div>
+                                <div className="upcoming-card-content">
+                                  <h3>{evento.nome}</h3>
+                                  {evento.descricao && (
+                                    <p className="upcoming-card-desc">{evento.descricao}</p>
+                                  )}
+                                  <div className="upcoming-card-info">
+                                    <div className="upcoming-info-item">
+                                      <Calendar size={14} />
+                                      <span>{formatDateToDisplay(evento.data_evento)}</span>
+                                    </div>
+                                    <div className="upcoming-info-item">
+                                      <Clock size={14} />
+                                      <span>{evento.horario}</span>
+                                    </div>
+                                    <div className="upcoming-info-item">
+                                      <CalendarDays size={14} />
+                                      <span>{evento.dia_semana}</span>
+                                    </div>
+                                    {evento.modalidade && (
+                                      <div className="upcoming-info-item">
+                                        {evento.modalidade === 'Online' ? (
+                                          <Wifi size={14} />
+                                        ) : evento.modalidade === 'Híbrido' ? (
+                                          <Video size={14} />
+                                        ) : (
+                                          <Monitor size={14} />
+                                        )}
+                                        <span>{evento.modalidade}</span>
+                                      </div>
+                                    )}
+                                    {(evento.cidade || evento.estado) &&
+                                      evento.modalidade !== 'Online' && (
+                                        <div className="upcoming-info-item">
+                                          <MapPin size={14} />
+                                          <span>
+                                            {[evento.cidade, evento.estado]
+                                              .filter(Boolean)
+                                              .join(' - ')}
+                                          </span>
+                                        </div>
+                                      )}
+                                  </div>
+                                  <a
+                                    href={evento.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="participate-button"
+                                    style={{
+                                      marginTop: '1rem',
+                                      fontSize: '0.875rem',
+                                      padding: '0.75rem 1.25rem',
+                                    }}
+                                  >
+                                    Saber mais sobre o evento
+                                    <ArrowUpRight size={16} />
+                                  </a>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {moderadorView === 'contribuicoes' && (
+                      <div className="events-section">
+                        <BackButton
+                          onClick={() => setModeradoView(null)}
+                          label="Voltar ao Dashboard"
+                        />
+                        <h2 style={{ marginBottom: '1.5rem' }}>Minhas Contribuições</h2>
+                        {eventosContribuicoes.length === 0 ? (
+                          <div className="empty-state">
+                            <Users size={48} />
+                            <h3>Você ainda não cadastrou nenhum evento</h3>
+                          </div>
+                        ) : (
                           <div className="events-table-container">
                             <table className="events-table">
                               <thead>
@@ -1009,12 +1391,11 @@ function Dashboard() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {pagedItems.map((evento) => {
+                                {eventosContribuicoes.map((evento) => {
                                   const eventDate = parseDateValue(evento.data_evento)
                                   const today = new Date()
                                   today.setHours(0, 0, 0, 0)
                                   const isPast = eventDate && eventDate < today
-
                                   return (
                                     <tr key={evento.id} className={isPast ? 'event-row-past' : ''}>
                                       <td data-label="Imagem">
@@ -1026,11 +1407,6 @@ function Dashboard() {
                                       </td>
                                       <td data-label="Nome do Evento">
                                         <span className="event-name">{evento.nome}</span>
-                                        {evento.descricao && (
-                                          <span className="event-desc-preview">
-                                            {stripRichText(evento.descricao)}
-                                          </span>
-                                        )}
                                         {isPast && (
                                           <span className="badge badge-encerrado">Encerrado</span>
                                         )}
@@ -1055,26 +1431,22 @@ function Dashboard() {
                                               >
                                                 <Eye size={16} />
                                               </button>
-                                              {permissions.canEditEvents && (
-                                                <button
-                                                  className="btn-icon btn-edit"
-                                                  onClick={() => openEditModal(evento)}
-                                                  title="Editar"
-                                                >
-                                                  <Edit2 size={16} />
-                                                </button>
-                                              )}
+                                              <button
+                                                className="btn-icon btn-edit"
+                                                onClick={() => openEditModal(evento)}
+                                                title="Editar"
+                                              >
+                                                <Edit2 size={16} />
+                                              </button>
                                             </>
                                           )}
-                                          {permissions.canDeleteEvents && (
-                                            <button
-                                              className="btn-icon btn-delete"
-                                              onClick={() => handleDeleteEvent(evento.id)}
-                                              title="Excluir"
-                                            >
-                                              <Trash2 size={16} />
-                                            </button>
-                                          )}
+                                          <button
+                                            className="btn-icon btn-delete"
+                                            onClick={() => handleDeleteEvent(evento.id)}
+                                            title="Excluir"
+                                          >
+                                            <Trash2 size={16} />
+                                          </button>
                                         </div>
                                       </td>
                                     </tr>
@@ -1083,14 +1455,171 @@ function Dashboard() {
                               </tbody>
                             </table>
                           </div>
-                          <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            onPageChange={goToPage}
-                          />
-                        </>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Events Section */}
+                    {moderadorView === null && (
+                      <div className="events-section">
+                        <div className="section-header">
+                          <h2>Eventos Cadastrados</h2>
+                          {permissions.canCreateEvents && (
+                            <button
+                              className="btn-primary"
+                              onClick={openCreateModal}
+                              aria-label="Novo Evento"
+                            >
+                              <Plus size={18} />
+                              <span className="btn-text">Novo Evento</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {showSearch && (
+                          <div className="events-toolbar">
+                            <div className="events-search">
+                              <Search size={18} className="events-search-icon" />
+                              <input
+                                type="text"
+                                placeholder="Buscar por nome, descricao ou data..."
+                                value={searchTerm}
+                                onChange={(event) => setSearchTerm(event.target.value)}
+                                aria-label="Buscar eventos"
+                              />
+                              {searchTerm && (
+                                <button
+                                  type="button"
+                                  className="events-search-clear"
+                                  onClick={() => setSearchTerm('')}
+                                >
+                                  Limpar
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {loading ? (
+                          <div className="loading-state">
+                            <div className="spinner"></div>
+                            <p>Carregando eventos...</p>
+                          </div>
+                        ) : eventos.length === 0 ? (
+                          <div className="empty-state">
+                            <Calendar size={48} />
+                            <h3>Nenhum evento cadastrado</h3>
+                            <p>Clique em "Novo Evento" para criar seu primeiro evento.</p>
+                          </div>
+                        ) : filteredEvents.length === 0 ? (
+                          <div className="empty-state">
+                            <Search size={48} />
+                            <h3>Nenhum evento encontrado</h3>
+                            <p>Tente ajustar sua busca para encontrar o evento desejado.</p>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="events-table-container">
+                              <table className="events-table">
+                                <thead>
+                                  <tr>
+                                    <th>Imagem</th>
+                                    <th>Nome do Evento</th>
+                                    <th>Data</th>
+                                    <th>Horário</th>
+                                    <th>Período</th>
+                                    <th>Ações</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {pagedItems.map((evento) => {
+                                    const eventDate = parseDateValue(evento.data_evento)
+                                    const today = new Date()
+                                    today.setHours(0, 0, 0, 0)
+                                    const isPast = eventDate && eventDate < today
+
+                                    return (
+                                      <tr
+                                        key={evento.id}
+                                        className={isPast ? 'event-row-past' : ''}
+                                      >
+                                        <td data-label="Imagem">
+                                          <img
+                                            src={evento.imagem || BgEventos}
+                                            alt={evento.nome}
+                                            className="event-thumbnail"
+                                          />
+                                        </td>
+                                        <td data-label="Nome do Evento">
+                                          <span className="event-name">{evento.nome}</span>
+                                          {evento.descricao && (
+                                            <span className="event-desc-preview">
+                                              {stripRichText(evento.descricao)}
+                                            </span>
+                                          )}
+                                          {isPast && (
+                                            <span className="badge badge-encerrado">Encerrado</span>
+                                          )}
+                                        </td>
+                                        <td data-label="Data">{evento.data_evento}</td>
+                                        <td data-label="Horário">{evento.horario}</td>
+                                        <td data-label="Período">
+                                          <span
+                                            className={`badge badge-${evento.periodo?.toLowerCase()}`}
+                                          >
+                                            {evento.periodo}
+                                          </span>
+                                        </td>
+                                        <td data-label="Ações">
+                                          <div className="action-buttons">
+                                            {!isPast && (
+                                              <>
+                                                <button
+                                                  className="btn-icon btn-view"
+                                                  onClick={() => window.open(evento.link, '_blank')}
+                                                  title="Ver evento"
+                                                >
+                                                  <Eye size={16} />
+                                                </button>
+                                                {permissions.canEditEvents && (
+                                                  <button
+                                                    className="btn-icon btn-edit"
+                                                    onClick={() => openEditModal(evento)}
+                                                    title="Editar"
+                                                  >
+                                                    <Edit2 size={16} />
+                                                  </button>
+                                                )}
+                                              </>
+                                            )}
+                                            {permissions.canDeleteEvents &&
+                                              (userRole !== 'moderador' ||
+                                                evento.created_by === userId) && (
+                                                <button
+                                                  className="btn-icon btn-delete"
+                                                  onClick={() => handleDeleteEvent(evento.id)}
+                                                  title="Excluir"
+                                                >
+                                                  <Trash2 size={16} />
+                                                </button>
+                                              )}
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    )
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                            <Pagination
+                              currentPage={currentPage}
+                              totalPages={totalPages}
+                              onPageChange={goToPage}
+                            />
+                          </>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -1361,6 +1890,175 @@ function Dashboard() {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Configurações Section */}
+              {activeTab === 'configuracoes' && (
+                <div className="settings-section">
+                  <div className="section-header">
+                    <h2>Configurações do Perfil</h2>
+                    {!isEditingProfile && (
+                      <button
+                        className="btn-icon btn-edit"
+                        onClick={handleEditProfile}
+                        title="Editar perfil"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    )}
+                  </div>
+
+                  {isEditingProfile ? (
+                    <form onSubmit={handleSubmitProfile(onSubmitProfile)} className="settings-form">
+                      <div className="settings-avatar-area">
+                        {profileGitHubPreview?.avatar_url ? (
+                          <img
+                            src={profileGitHubPreview.avatar_url}
+                            alt="avatar"
+                            className="settings-avatar-preview"
+                          />
+                        ) : (
+                          <div className="settings-avatar-placeholder">
+                            {userEmail?.charAt(0).toUpperCase() || 'A'}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-field">
+                          <label>Nome</label>
+                          <input
+                            type="text"
+                            placeholder="Seu nome"
+                            {...registerProfile('nome', { required: 'Nome é obrigatório' })}
+                          />
+                          {profileErrors.nome && (
+                            <span className="field-error">{profileErrors.nome.message}</span>
+                          )}
+                        </div>
+                        <div className="form-field">
+                          <label>Sobrenome</label>
+                          <input
+                            type="text"
+                            placeholder="Seu sobrenome"
+                            {...registerProfile('sobrenome')}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-field">
+                          <label>
+                            <Github size={16} />
+                            Username do GitHub
+                          </label>
+                          <div className="github-search-row">
+                            <input
+                              type="text"
+                              placeholder="seu-username"
+                              {...registerProfile('github_username')}
+                            />
+                            <button
+                              type="button"
+                              className="btn-primary btn-fetch-github"
+                              disabled={isFetchingProfileGitHub}
+                              onClick={() => {
+                                const input = document.querySelector(
+                                  'input[name="github_username"]'
+                                )
+                                handleFetchProfileGitHub(input?.value)
+                              }}
+                            >
+                              {isFetchingProfileGitHub ? (
+                                <Loader2 size={16} className="spin" />
+                              ) : (
+                                <Github size={16} />
+                              )}
+                              Buscar Avatar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="form-actions">
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={handleCancelEditProfile}
+                          disabled={isSavingProfile}
+                        >
+                          <X size={16} />
+                          Cancelar
+                        </button>
+                        <button type="submit" className="btn-primary" disabled={isSavingProfile}>
+                          {isSavingProfile ? (
+                            <>
+                              <Loader2 size={16} className="spin" />
+                              Salvando...
+                            </>
+                          ) : (
+                            <>
+                              <Save size={16} />
+                              Salvar
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="settings-form">
+                      <div className="settings-avatar-area">
+                        {userProfile?.avatar_url ? (
+                          <img
+                            src={userProfile.avatar_url}
+                            alt="avatar"
+                            className="settings-avatar-preview"
+                          />
+                        ) : (
+                          <div className="settings-avatar-placeholder">
+                            {userEmail?.charAt(0).toUpperCase() || 'A'}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="settings-profile-info">
+                        <div className="settings-info-row">
+                          <span className="settings-info-label">Nome</span>
+                          <span className="settings-info-value">
+                            {userProfile?.nome ? (
+                              `${userProfile.nome}${userProfile.sobrenome ? ` ${userProfile.sobrenome}` : ''}`
+                            ) : (
+                              <span className="settings-info-empty">Não informado</span>
+                            )}
+                          </span>
+                        </div>
+                        <div className="settings-info-row">
+                          <span className="settings-info-label">GitHub</span>
+                          <span className="settings-info-value">
+                            {userProfile?.github_username ? (
+                              `@${userProfile.github_username}`
+                            ) : (
+                              <span className="settings-info-empty">Não informado</span>
+                            )}
+                          </span>
+                        </div>
+                        <div className="settings-info-row">
+                          <span className="settings-info-label">Email</span>
+                          <span className="settings-info-value">{userEmail}</span>
+                        </div>
+                        <div className="settings-info-row">
+                          <span className="settings-info-label">Função</span>
+                          <span className="settings-info-value">
+                            <span className="settings-role-badge">
+                              <Shield size={13} />
+                              {userRole ? ROLE_LABELS[userRole] || userRole : 'Sem role'}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
