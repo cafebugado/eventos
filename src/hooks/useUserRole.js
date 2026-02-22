@@ -20,7 +20,7 @@ const PERMISSIONS = {
     canManageTags: true,
     canDeleteTags: true,
     canManageContributors: true,
-    canManageUsers: false,
+    canManageUsers: true,
     canUploadImages: true,
   },
   moderador: {

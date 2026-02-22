@@ -1705,8 +1705,12 @@ function Dashboard() {
                                     {!isProtectedRole && pendingRole && pendingRole !== u.role && (
                                       <button
                                         className="btn-icon btn-edit"
-                                        onClick={() => handleAssignRole(u.id, pendingRole)}
-                                        disabled={isCurrentUser || savingRoleFor === u.id}
+                                        onClick={() =>
+                                          !isProtectedRole && handleAssignRole(u.id, pendingRole)
+                                        }
+                                        disabled={
+                                          isCurrentUser || savingRoleFor === u.id || isProtectedRole
+                                        }
                                         title="Salvar role"
                                       >
                                         {savingRoleFor === u.id ? (

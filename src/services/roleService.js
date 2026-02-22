@@ -70,6 +70,21 @@ export async function assignUserRole(userId, role) {
   return true
 }
 
+// Atribuir role a um usuario (admin: so pode atribuir moderador)
+export async function adminAssignUserRole(userId, role) {
+  const { error } = await supabase.rpc('admin_assign_user_role', {
+    target_user_id: userId,
+    new_role: role,
+  })
+
+  if (error) {
+    console.error('Erro ao atribuir role (admin):', error)
+    throw error
+  }
+
+  return true
+}
+
 // Remover role de um usuario (super_admin only)
 export async function removeUserRole(userId) {
   const { error } = await supabase.rpc('remove_user_role', {

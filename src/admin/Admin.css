@@ -907,6 +907,16 @@
   background: rgba(239, 68, 68, 0.2);
 }
 
+.btn-delete-locked {
+  background: rgba(156, 163, 175, 0.1);
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-delete-locked:hover {
+  background: rgba(156, 163, 175, 0.15);
+}
+
 /* Past Events */
 .event-row-past {
   opacity: 0.6;
