@@ -37,6 +37,7 @@ import {
   UserCog,
   Settings,
   Heart,
+  GitBranch,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { getSession, signOut, getCurrentUser } from '../services/authService'
@@ -86,6 +87,7 @@ import './Admin.css'
 import '../components/UpcomingEvents.css'
 import BackButton from '../components/BackButton'
 import EventCard from '../components/EventCard'
+import GithubStats from './GithubStats'
 import BgEventos from '../assets/eventos.png'
 
 const DAY_NAMES = [
@@ -1033,6 +1035,15 @@ function Dashboard() {
               <span>Contribuintes</span>
             </button>
           )}
+          {permissions.canManageContributors && (
+            <button
+              className={`menu-item ${activeTab === 'repositorio' ? 'active' : ''}`}
+              onClick={() => setActiveTab('repositorio')}
+            >
+              <GitBranch size={20} />
+              <span>Repositório</span>
+            </button>
+          )}
           {permissions.canManageUsers && (
             <button
               className={`menu-item ${activeTab === 'usuarios' ? 'active' : ''}`}
@@ -1132,7 +1143,8 @@ function Dashboard() {
               {activeTab !== 'contribuintes' &&
                 activeTab !== 'tags' &&
                 activeTab !== 'usuarios' &&
-                activeTab !== 'configuracoes' && (
+                activeTab !== 'configuracoes' &&
+                activeTab !== 'repositorio' && (
                   <>
                     {/* Stats */}
                     <div className="stats-grid">
@@ -1843,6 +1855,13 @@ function Dashboard() {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Repositório GitHub Section */}
+              {activeTab === 'repositorio' && permissions.canManageContributors && (
+                <div className="events-section">
+                  <GithubStats />
                 </div>
               )}
 
