@@ -324,26 +324,7 @@ function Dashboard() {
   } = useForm()
 
   const sortedEvents = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    return [...eventos].sort((a, b) => {
-      const dateA = parseDateValue(a.data_evento)
-      const dateB = parseDateValue(b.data_evento)
-      const isAFuture = dateA && dateA >= today
-      const isBFuture = dateB && dateB >= today
-
-      if (isAFuture && !isBFuture) {
-        return -1
-      }
-      if (!isAFuture && isBFuture) {
-        return 1
-      }
-      if (isAFuture) {
-        return dateA - dateB
-      }
-      return dateB - dateA
-    })
+    return [...eventos].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
   }, [eventos])
 
   const filteredEvents = useMemo(
@@ -531,6 +512,15 @@ function Dashboard() {
   }
 
   const onSubmit = async (data) => {
+    const nomeNorm = data.nome.trim().toLowerCase()
+    const duplicateEvent = eventos.find(
+      (e) => e.nome.trim().toLowerCase() === nomeNorm && (!editingEvent || e.id !== editingEvent.id)
+    )
+    if (duplicateEvent) {
+      showNotification('Já existe um evento com esse nome.', 'error')
+      return
+    }
+
     setIsSubmitting(true)
     try {
       let imageUrl = data.imagem || null
@@ -844,6 +834,15 @@ function Dashboard() {
   }
 
   const onSubmitTag = async (data) => {
+    const nomeTagNorm = data.nome.trim().toLowerCase()
+    const duplicateTag = tags.find(
+      (t) => t.nome.trim().toLowerCase() === nomeTagNorm && (!editingTag || t.id !== editingTag.id)
+    )
+    if (duplicateTag) {
+      showNotification('Já existe uma tag com esse nome.', 'error')
+      return
+    }
+
     setIsSubmittingTag(true)
     try {
       if (editingTag) {
@@ -1457,9 +1456,8 @@ function Dashboard() {
                                   <tr>
                                     <th>Imagem</th>
                                     <th>Nome do Evento</th>
-                                    <th>Data</th>
-                                    <th>Horário</th>
-                                    <th>Período</th>
+                                    <th>Data do Evento</th>
+                                    <th>Cadastrado em</th>
                                     <th>Ações</th>
                                   </tr>
                                 </thead>
@@ -1493,14 +1491,13 @@ function Dashboard() {
                                             <span className="badge badge-encerrado">Encerrado</span>
                                           )}
                                         </td>
-                                        <td data-label="Data">{evento.data_evento}</td>
-                                        <td data-label="Horário">{evento.horario}</td>
-                                        <td data-label="Período">
-                                          <span
-                                            className={`badge badge-${evento.periodo?.toLowerCase()}`}
-                                          >
-                                            {evento.periodo}
-                                          </span>
+                                        <td data-label="Data do Evento">{evento.data_evento}</td>
+                                        <td data-label="Cadastrado em">
+                                          {evento.created_at
+                                            ? new Date(evento.created_at).toLocaleDateString(
+                                                'pt-BR'
+                                              )
+                                            : '-'}
                                         </td>
                                         <td data-label="Ações">
                                           <div className="action-buttons">

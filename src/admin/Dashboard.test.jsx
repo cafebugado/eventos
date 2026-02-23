@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor, act } from '@testing-library/react'
+import { screen, waitFor, act, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Dashboard from './Dashboard'
 import { renderWithRouter, createMockEvent } from '../test/utils'
@@ -385,10 +385,20 @@ describe('Dashboard', () => {
     })
   })
 
-  it('deve ordenar eventos futuros antes dos passados', async () => {
+  it('deve ordenar eventos pelo mais recentemente cadastrado primeiro', async () => {
     const mixedEvents = [
-      createMockEvent({ id: '1', nome: 'Evento Passado', data_evento: pastDate }),
-      createMockEvent({ id: '2', nome: 'Evento Futuro', data_evento: futureDate }),
+      createMockEvent({
+        id: '1',
+        nome: 'Evento Antigo',
+        data_evento: futureDate,
+        created_at: '2024-01-01T00:00:00Z',
+      }),
+      createMockEvent({
+        id: '2',
+        nome: 'Evento Recente',
+        data_evento: futureDate,
+        created_at: '2024-06-01T00:00:00Z',
+      }),
     ]
     eventService.getEvents.mockResolvedValue(mixedEvents)
     eventService.getEventStats.mockResolvedValue({ total: 2, noturno: 1, diurno: 1 })
@@ -396,14 +406,69 @@ describe('Dashboard', () => {
     renderWithRouter(<Dashboard />)
 
     await waitFor(() => {
-      expect(screen.getByText('Evento Futuro')).toBeInTheDocument()
-      expect(screen.getByText('Evento Passado')).toBeInTheDocument()
+      expect(screen.getByText('Evento Recente')).toBeInTheDocument()
+      expect(screen.getByText('Evento Antigo')).toBeInTheDocument()
     })
 
     const rows = screen.getAllByRole('row')
     const dataRows = rows.slice(1)
-    expect(dataRows[0]).toHaveTextContent('Evento Futuro')
-    expect(dataRows[1]).toHaveTextContent('Evento Passado')
+    expect(dataRows[0]).toHaveTextContent('Evento Recente')
+    expect(dataRows[1]).toHaveTextContent('Evento Antigo')
+  })
+
+  it('deve exibir coluna "Cadastrado em" na tabela de eventos', async () => {
+    renderWithRouter(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Cadastrado em')).toBeInTheDocument()
+    })
+  })
+
+  it('não deve exibir colunas Horário e Período na tabela de eventos', async () => {
+    renderWithRouter(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByRole('columnheader', { name: 'Horário' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('columnheader', { name: 'Período' })).not.toBeInTheDocument()
+  })
+
+  it('deve bloquear cadastro de evento com nome duplicado', async () => {
+    const user = userEvent.setup()
+    renderWithRouter(<Dashboard />)
+
+    // Aguarda os eventos aparecerem (garante que o estado eventos está populado)
+    await waitFor(() => {
+      expect(screen.getByText('Evento 1')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /Novo Evento/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Criar Novo Evento')).toBeInTheDocument()
+    })
+
+    // Preenche todos os campos obrigatórios, com nome igual ao de um evento existente
+    await user.type(screen.getByPlaceholderText('Ex: Workshop de React'), 'Evento 1')
+    fireEvent.change(screen.getByPlaceholderText('Selecione uma data'), {
+      target: { value: '2099-12-31' },
+    })
+    await user.type(screen.getByPlaceholderText('Ex: 19:00'), '19:00')
+    const selects = screen.getAllByRole('combobox')
+    fireEvent.change(selects[0], { target: { value: 'Segunda-feira' } })
+    fireEvent.change(selects[1], { target: { value: 'Noturno' } })
+    const linkInputs = screen.getAllByPlaceholderText('https://...')
+    await user.type(linkInputs[0], 'https://evento.com')
+
+    await user.click(screen.getByRole('button', { name: /Criar Evento/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Já existe um evento com esse nome.')).toBeInTheDocument()
+    })
+
+    expect(eventService.createEvent).not.toHaveBeenCalled()
   })
 
   // === Testes de RBAC ===
