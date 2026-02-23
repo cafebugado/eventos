@@ -133,7 +133,7 @@ jobs:
           cat changelog.md
 
       - name: Criar GitHub Release
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
