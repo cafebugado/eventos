@@ -22,6 +22,7 @@ import ShareButtons from '../components/ShareButtons'
 import EventRecommendations from '../components/EventRecommendations'
 import BgEventos from '../assets/eventos.png'
 import './EventDetails.css'
+import { FavouriteEventButton } from '../components/favourite-event/favouriteEventButton'
 
 // Funcao para converter data no formato DD/MM/YYYY para objeto Date
 function parseEventDate(dateStr) {
@@ -44,7 +45,7 @@ function EventDetails() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [eventTags, setEventTags] = useState([])
-
+  const [isFavourite, setFavourite] = useState()
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [id])
@@ -84,6 +85,39 @@ function EventDetails() {
   useEffect(() => {
     loadEvent()
   }, [id])
+
+  useEffect(() => {
+    if (event) {
+      // Check if this event is in the user's favourites
+      const favourites = JSON.parse(localStorage.getItem('favourites'))
+      const isFav = favourites.findIndex((fav) => fav?.id === event.id)
+      if (isFav !== -1) {
+        setFavourite(true)
+      } else {
+        setFavourite(false)
+      }
+    }
+  }, [event])
+
+  function handleFavourite() {
+    const prev = JSON.parse(localStorage.getItem('favourites')) || []
+    const index = prev.findIndex((fav) => fav?.id === event.id)
+    let newFavourites
+
+    if (index === -1) {
+      newFavourites = [...prev, event]
+      setFavourite(true)
+    } else {
+      newFavourites = prev.filter((fav) => fav?.id !== event.id)
+      setFavourite(false)
+    }
+
+    try {
+      localStorage.setItem('favourites', JSON.stringify(newFavourites))
+    } catch (error) {
+      console.error('Failed to save favourites to localStorage:', error)
+    }
+  }
 
   if (loading) {
     return (
@@ -327,17 +361,24 @@ function EventDetails() {
                 </div>
               )}
 
-              <a
-                href={isPast ? undefined : event.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`participate-button ${isPast ? 'disabled' : ''}`}
-                onClick={(e) => isPast && e.preventDefault()}
-              >
-                {isPast ? 'Evento Encerrado' : 'Participar do Evento'}
-                {!isPast && <ArrowUpRight size={20} />}
-              </a>
-
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+                <a
+                  href={isPast ? undefined : event.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`participate-button ${isPast ? 'disabled' : ''}`}
+                  onClick={(e) => isPast && e.preventDefault()}
+                >
+                  {isPast ? 'Evento Encerrado' : 'Participar do Evento'}
+                  {!isPast && <ArrowUpRight size={20} />}
+                </a>
+                <FavouriteEventButton
+                  event={event}
+                  isFavourite={isFavourite}
+                  onToggle={handleFavourite}
+                  isCard={false}
+                />
+              </div>
               {!isPast && (
                 <ShareButtons
                   eventName={event.nome}
