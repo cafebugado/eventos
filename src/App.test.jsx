@@ -140,6 +140,83 @@ describe('Ordenacao de eventos', () => {
   })
 })
 
+// Funcao de filtro extraida do App.jsx
+function filterEvents(agenda, { searchTerm, selectedTagId, eventTagsMap, showPastEvents, today }) {
+  return agenda.filter((event) => {
+    const searchLower = searchTerm.toLowerCase()
+    const matchesSearch =
+      !searchTerm ||
+      event.nome?.toLowerCase().includes(searchLower) ||
+      event.descricao?.toLowerCase().includes(searchLower)
+
+    const matchesTag =
+      !selectedTagId ||
+      (eventTagsMap[event.id] || []).some((tag) => String(tag.id) === selectedTagId)
+
+    const eventDate = parseEventDate(event.data_evento)
+    const isPastEvent = eventDate < today
+    const matchesPastFilter = showPastEvents || !isPastEvent
+
+    return matchesSearch && matchesTag && matchesPastFilter
+  })
+}
+
+describe('Filtro por tag', () => {
+  const today = new Date(2025, 0, 15)
+  today.setHours(0, 0, 0, 0)
+
+  const eventos = [
+    { id: 1, nome: 'Meetup React', descricao: 'Evento sobre React', data_evento: '20/01/2025' },
+    { id: 2, nome: 'Workshop Node', descricao: 'Evento sobre Node', data_evento: '22/01/2025' },
+    { id: 3, nome: 'Hackathon', descricao: 'Competicao', data_evento: '25/01/2025' },
+  ]
+
+  const eventTagsMap = {
+    1: [{ id: 10, nome: 'Frontend' }],
+    2: [{ id: 20, nome: 'Backend' }],
+    3: [
+      { id: 10, nome: 'Frontend' },
+      { id: 20, nome: 'Backend' },
+    ],
+  }
+
+  const base = { searchTerm: '', showPastEvents: false, today, eventTagsMap }
+
+  it('deve retornar todos os eventos quando nenhuma tag esta selecionada', () => {
+    const result = filterEvents(eventos, { ...base, selectedTagId: '' })
+    expect(result).toHaveLength(3)
+  })
+
+  it('deve filtrar eventos pela tag selecionada', () => {
+    const result = filterEvents(eventos, { ...base, selectedTagId: '10' })
+    expect(result).toHaveLength(2)
+    expect(result.map((e) => e.id)).toEqual([1, 3])
+  })
+
+  it('deve retornar apenas o evento com a tag especifica', () => {
+    const result = filterEvents(eventos, { ...base, selectedTagId: '20' })
+    expect(result).toHaveLength(2)
+    expect(result.map((e) => e.id)).toEqual([2, 3])
+  })
+
+  it('deve retornar vazio quando nenhum evento tem a tag selecionada', () => {
+    const result = filterEvents(eventos, { ...base, selectedTagId: '99' })
+    expect(result).toHaveLength(0)
+  })
+
+  it('deve combinar filtro de tag com busca por nome', () => {
+    const result = filterEvents(eventos, { ...base, selectedTagId: '10', searchTerm: 'meetup' })
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(1)
+  })
+
+  it('deve lidar com evento sem tags quando uma tag esta selecionada', () => {
+    const semTags = [{ id: 4, nome: 'Sem Tag', descricao: '', data_evento: '20/01/2025' }]
+    const result = filterEvents(semTags, { ...base, selectedTagId: '10', eventTagsMap: {} })
+    expect(result).toHaveLength(0)
+  })
+})
+
 describe('parseEventDate', () => {
   it('deve converter data no formato DD/MM/YYYY', () => {
     const date = parseEventDate('25/12/2025')
