@@ -10,9 +10,7 @@ import {
   BookOpen,
   Heart,
 } from 'lucide-react'
-import Header from '../components/Header'
-import Footer from '../components/Footer'
-import FloatingMenu from '../components/FloatingMenu'
+import Layout from '../layout/Layout'
 import SEOHead from '../components/SEOHead'
 import { getContributors } from '../services/contributorService'
 import './About.css'
@@ -37,14 +35,12 @@ function About() {
   }, [])
 
   return (
-    <div className="page-container">
+    <Layout>
       <SEOHead
         title="Sobre"
         description="Conheca a Comunidade Cafe Bugado. Um jeito mais simples de descobrir eventos de tecnologia. Reunimos meetups, workshops, hackathons e conferencias em um so lugar."
         url={`${window.location.origin}/sobre`}
       />
-      <Header />
-
       {/* Main Content */}
       <main className="main-content">
         {/* Secao Sobre */}
@@ -217,10 +213,7 @@ function About() {
           </div>
         </section>
       </main>
-
-      <Footer />
-      <FloatingMenu />
-    </div>
+    </Layout>
   )
 }
 
