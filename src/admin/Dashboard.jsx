@@ -912,7 +912,7 @@ function Dashboard() {
     } finally {
       setLoadingUsers(false)
     }
-  }, [showNotification, userRole])
+  }, [showNotification, userRole, userEmail])
 
   useEffect(() => {
     if (activeTab === 'usuarios' && permissions.canManageUsers) {
@@ -1656,7 +1656,6 @@ function Dashboard() {
                           {users.map((u) => {
                             const isCurrentUser = u.email === userEmail
                             const pendingRole = editingRoles[u.id]
-                            // Admin nao pode alterar roles de admin ou superior
                             const isProtectedRole =
                               userRole === 'admin' &&
                               (u.role === 'admin' || u.role === 'super_admin')
@@ -1712,7 +1711,7 @@ function Dashboard() {
                                 </td>
                                 <td data-label="Acoes">
                                   <div className="action-buttons">
-                                    {pendingRole && pendingRole !== u.role && (
+                                    {!isProtectedRole && pendingRole && pendingRole !== u.role && (
                                       <button
                                         className="btn-icon btn-edit"
                                         onClick={() =>
