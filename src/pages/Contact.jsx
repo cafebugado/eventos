@@ -1,8 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { ArrowRight, Mail, MessageCircle, MapPin } from 'lucide-react'
-import Header from '../components/Header'
-import Footer from '../components/Footer'
-import FloatingMenu from '../components/FloatingMenu'
+import Layout from '../layout/Layout'
 import SEOHead from '../components/SEOHead'
 import './Contact.css'
 
@@ -20,13 +18,12 @@ function Contact() {
   }
 
   return (
-    <div className="page-container">
+    <Layout>
       <SEOHead
         title="Contato"
         description="Entre em contato com a Comunidade Cafe Bugado. Fale conosco para duvidas, sugestoes, parcerias ou para indicar eventos de tecnologia."
         url={`${window.location.origin}/contato`}
       />
-      <Header />
 
       {/* Main Content */}
       <main className="main-content">
@@ -158,10 +155,7 @@ function Contact() {
           </div>
         </section>
       </main>
-
-      <Footer />
-      <FloatingMenu />
-    </div>
+    </Layout>
   )
 }
 
