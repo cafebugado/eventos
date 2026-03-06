@@ -1334,6 +1334,11 @@ function Dashboard() {
                                           src={evento.imagem || BgEventos}
                                           alt={evento.nome}
                                           className="event-thumbnail"
+                                          loading="lazy"
+                                          decoding="async"
+                                          onError={(e) => {
+                                            e.target.src = BgEventos
+                                          }}
                                         />
                                       </td>
                                       <td data-label="Nome do Evento">
@@ -1478,6 +1483,11 @@ function Dashboard() {
                                             src={evento.imagem || BgEventos}
                                             alt={evento.nome}
                                             className="event-thumbnail"
+                                            loading="lazy"
+                                            decoding="async"
+                                            onError={(e) => {
+                                              e.target.src = BgEventos
+                                            }}
                                           />
                                         </td>
                                         <td data-label="Nome do Evento">

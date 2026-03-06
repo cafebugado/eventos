@@ -189,7 +189,15 @@ function EventDetails() {
 
           <div className={`event-details-card ${isPast ? 'evento-encerrado' : ''}`}>
             <div className="event-image-container">
-              <img src={event.imagem || BgEventos} alt={event.nome} />
+              <img
+                src={event.imagem || BgEventos}
+                alt={event.nome}
+                loading="lazy"
+                decoding="async"
+                onError={(e) => {
+                  e.target.src = BgEventos
+                }}
+              />
               {isPast ? (
                 <div className="event-badge card-badge-encerrado">Encerrado</div>
               ) : (
