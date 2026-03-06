@@ -61,7 +61,15 @@ function EventCard({
       style={style}
     >
       <div className="ec-image">
-        <img src={event.imagem || BgEventos} alt={event.nome} />
+        <img
+          src={event.imagem || BgEventos}
+          alt={event.nome}
+          loading="lazy"
+          decoding="async"
+          onError={(e) => {
+            e.target.src = BgEventos
+          }}
+        />
         <div className={badgeClass}>{badgeText}</div>
         {tags.length > 0 && (
           <div className="card-image-tags">
