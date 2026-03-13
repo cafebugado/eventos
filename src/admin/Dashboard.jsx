@@ -40,7 +40,7 @@ import {
   GitBranch,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { getSession, signOut, getCurrentUser } from '../services/authService'
+import { getSession, signOut } from '../services/authService'
 import {
   getEvents,
   createEvent,
@@ -362,7 +362,7 @@ function Dashboard() {
         return
       }
 
-      const user = await getCurrentUser()
+      const user = session.user
       if (user) {
         setUserEmail(user.email)
         setUserId(user.id)
@@ -646,6 +646,11 @@ function Dashboard() {
         avatar_url: profileGitHubPreview?.avatar_url || null,
       })
       setUserProfile(saved)
+      setProfileGitHubPreview(
+        saved.github_username
+          ? { github_username: saved.github_username, avatar_url: saved.avatar_url }
+          : null
+      )
       setIsEditingProfile(false)
       showNotification('Perfil salvo com sucesso!')
     } catch {
@@ -670,6 +675,11 @@ function Dashboard() {
   }
 
   const handleCancelEditProfile = () => {
+    setProfileGitHubPreview(
+      userProfile?.github_username
+        ? { github_username: userProfile.github_username, avatar_url: userProfile.avatar_url }
+        : null
+    )
     setIsEditingProfile(false)
   }
 
@@ -1877,7 +1887,7 @@ function Dashboard() {
                 <div className="settings-section">
                   <div className="section-header">
                     <h2>Configurações do Perfil</h2>
-                    {!isEditingProfile && (
+                    {!isEditingProfile && permissions.canSaveSettings && (
                       <button
                         className="btn-icon btn-edit"
                         onClick={handleEditProfile}
@@ -1888,7 +1898,7 @@ function Dashboard() {
                     )}
                   </div>
 
-                  {isEditingProfile ? (
+                  {isEditingProfile && permissions.canSaveSettings ? (
                     <form onSubmit={handleSubmitProfile(onSubmitProfile)} className="settings-form">
                       <div className="settings-avatar-area">
                         {profileGitHubPreview?.avatar_url ? (
@@ -1999,6 +2009,12 @@ function Dashboard() {
                             {userEmail?.charAt(0).toUpperCase() || 'A'}
                           </div>
                         )}
+                        {(userProfile?.nome || userProfile?.sobrenome) && (
+                          <div className="settings-avatar-name">
+                            {userProfile.nome}
+                            {userProfile.sobrenome ? ` ${userProfile.sobrenome}` : ''}
+                          </div>
+                        )}
                       </div>
 
                       <div className="settings-profile-info">
@@ -2016,7 +2032,14 @@ function Dashboard() {
                           <span className="settings-info-label">GitHub</span>
                           <span className="settings-info-value">
                             {userProfile?.github_username ? (
-                              `@${userProfile.github_username}`
+                              <a
+                                href={`https://github.com/${userProfile.github_username}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="settings-github-link"
+                              >
+                                @{userProfile.github_username}
+                              </a>
                             ) : (
                               <span className="settings-info-empty">Não informado</span>
                             )}
