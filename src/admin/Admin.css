@@ -826,7 +826,9 @@
 .event-thumbnail {
   width: 60px;
   height: 40px;
+  aspect-ratio: 3 / 2;
   object-fit: cover;
+  object-position: center;
   border-radius: 0.25rem;
 }
 

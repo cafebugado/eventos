@@ -70,6 +70,7 @@
 .event-recs-card-image {
   position: relative;
   height: 160px;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
 }
 
@@ -77,6 +78,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   transition: transform 0.3s ease;
 }
 
