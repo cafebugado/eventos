@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor, act } from '@testing-library/react'
+import { screen, waitFor, act, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Dashboard from './Dashboard'
 import { renderWithRouter, createMockEvent } from '../test/utils'
@@ -11,7 +11,6 @@ import * as roleService from '../services/roleService'
 vi.mock('../services/authService', () => ({
   getSession: vi.fn(),
   signOut: vi.fn(),
-  getCurrentUser: vi.fn(),
   onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
 }))
 
@@ -94,8 +93,7 @@ describe('Dashboard', () => {
     document.documentElement.removeAttribute('data-theme')
 
     // Setup padrão dos mocks
-    authService.getSession.mockResolvedValue({ user: { id: '1' } })
-    authService.getCurrentUser.mockResolvedValue({ id: 'user-1', email: 'admin@teste.com' })
+    authService.getSession.mockResolvedValue({ user: { id: 'user-1', email: 'admin@teste.com' } })
     eventService.getEvents.mockResolvedValue(mockEvents)
     eventService.getEventStats.mockResolvedValue(mockStats)
     roleService.getCurrentUserRole.mockResolvedValue('super_admin')
@@ -385,10 +383,20 @@ describe('Dashboard', () => {
     })
   })
 
-  it('deve ordenar eventos futuros antes dos passados', async () => {
+  it('deve ordenar eventos pelo mais recentemente cadastrado primeiro', async () => {
     const mixedEvents = [
-      createMockEvent({ id: '1', nome: 'Evento Passado', data_evento: pastDate }),
-      createMockEvent({ id: '2', nome: 'Evento Futuro', data_evento: futureDate }),
+      createMockEvent({
+        id: '1',
+        nome: 'Evento Antigo',
+        data_evento: futureDate,
+        created_at: '2024-01-01T00:00:00Z',
+      }),
+      createMockEvent({
+        id: '2',
+        nome: 'Evento Recente',
+        data_evento: futureDate,
+        created_at: '2024-06-01T00:00:00Z',
+      }),
     ]
     eventService.getEvents.mockResolvedValue(mixedEvents)
     eventService.getEventStats.mockResolvedValue({ total: 2, noturno: 1, diurno: 1 })
@@ -396,14 +404,69 @@ describe('Dashboard', () => {
     renderWithRouter(<Dashboard />)
 
     await waitFor(() => {
-      expect(screen.getByText('Evento Futuro')).toBeInTheDocument()
-      expect(screen.getByText('Evento Passado')).toBeInTheDocument()
+      expect(screen.getByText('Evento Recente')).toBeInTheDocument()
+      expect(screen.getByText('Evento Antigo')).toBeInTheDocument()
     })
 
     const rows = screen.getAllByRole('row')
     const dataRows = rows.slice(1)
-    expect(dataRows[0]).toHaveTextContent('Evento Futuro')
-    expect(dataRows[1]).toHaveTextContent('Evento Passado')
+    expect(dataRows[0]).toHaveTextContent('Evento Recente')
+    expect(dataRows[1]).toHaveTextContent('Evento Antigo')
+  })
+
+  it('deve exibir coluna "Cadastrado em" na tabela de eventos', async () => {
+    renderWithRouter(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Cadastrado em')).toBeInTheDocument()
+    })
+  })
+
+  it('não deve exibir colunas Horário e Período na tabela de eventos', async () => {
+    renderWithRouter(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByRole('columnheader', { name: 'Horário' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('columnheader', { name: 'Período' })).not.toBeInTheDocument()
+  })
+
+  it('deve bloquear cadastro de evento com nome duplicado', async () => {
+    const user = userEvent.setup()
+    renderWithRouter(<Dashboard />)
+
+    // Aguarda os eventos aparecerem (garante que o estado eventos está populado)
+    await waitFor(() => {
+      expect(screen.getByText('Evento 1')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /Novo Evento/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Criar Novo Evento')).toBeInTheDocument()
+    })
+
+    // Preenche todos os campos obrigatórios, com nome igual ao de um evento existente
+    await user.type(screen.getByPlaceholderText('Ex: Workshop de React'), 'Evento 1')
+    fireEvent.change(screen.getByPlaceholderText('Selecione uma data'), {
+      target: { value: '2099-12-31' },
+    })
+    await user.type(screen.getByPlaceholderText('Ex: 19:00'), '19:00')
+    const selects = screen.getAllByRole('combobox')
+    fireEvent.change(selects[0], { target: { value: 'Segunda-feira' } })
+    fireEvent.change(selects[1], { target: { value: 'Noturno' } })
+    const linkInputs = screen.getAllByPlaceholderText('https://...')
+    await user.type(linkInputs[0], 'https://evento.com')
+
+    await user.click(screen.getByRole('button', { name: /Criar Evento/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Já existe um evento com esse nome.')).toBeInTheDocument()
+    })
+
+    expect(eventService.createEvent).not.toHaveBeenCalled()
   })
 
   // === Testes de RBAC ===
@@ -514,7 +577,7 @@ describe('Dashboard', () => {
       expect(screen.getAllByTitle('Editar').length).toBeGreaterThan(0)
     })
 
-    it('admin nao deve ver tab Usuarios na sidebar', async () => {
+    it('admin deve ver tab Usuarios na sidebar', async () => {
       roleService.getCurrentUserRole.mockResolvedValue('admin')
 
       renderWithRouter(<Dashboard />)
@@ -525,7 +588,7 @@ describe('Dashboard', () => {
 
       const sidebarButtons = screen.getAllByRole('button')
       const usuariosBtn = sidebarButtons.find((btn) => btn.textContent.includes('Usuarios'))
-      expect(usuariosBtn).toBeUndefined()
+      expect(usuariosBtn).toBeDefined()
     })
 
     it('super_admin deve ver tab Usuarios na sidebar', async () => {
@@ -564,6 +627,168 @@ describe('Dashboard', () => {
       expect(screen.getByRole('button', { name: /Novo Evento/i })).toBeInTheDocument()
       expect(screen.getAllByTitle('Editar').length).toBeGreaterThan(0)
       expect(screen.getAllByTitle('Excluir').length).toBeGreaterThan(0)
+    })
+  })
+
+  // === Testes de Configurações ===
+  describe('Configurações - Perfil do usuário', () => {
+    const mockProfile = {
+      user_id: 'user-1',
+      nome: 'João',
+      sobrenome: 'Silva',
+      github_username: 'joaosilva',
+      avatar_url: 'https://avatars.githubusercontent.com/u/123',
+      updated_at: '2024-01-01T00:00:00Z',
+    }
+
+    it('deve exibir informações do perfil salvo na aba configurações', async () => {
+      const { getMyProfile } = await import('../services/profileService')
+      getMyProfile.mockResolvedValue(mockProfile)
+
+      const user = userEvent.setup()
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByRole('button', { name: /Configurações/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Configurações do Perfil')).toBeInTheDocument()
+        expect(screen.getAllByText(/João Silva/).length).toBeGreaterThanOrEqual(1)
+        expect(screen.getByText('@joaosilva')).toBeInTheDocument()
+      })
+    })
+
+    it('deve exibir botão de editar perfil para admin', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue('admin')
+      const { getMyProfile } = await import('../services/profileService')
+      getMyProfile.mockResolvedValue(mockProfile)
+
+      const user = userEvent.setup()
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByRole('button', { name: /Configurações/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Editar perfil')).toBeInTheDocument()
+      })
+    })
+
+    it('deve exibir botão de editar perfil para moderador', async () => {
+      roleService.getCurrentUserRole.mockResolvedValue('moderador')
+      const { getMyProfile } = await import('../services/profileService')
+      getMyProfile.mockResolvedValue(mockProfile)
+
+      const user = userEvent.setup()
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByRole('button', { name: /Configurações/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Editar perfil')).toBeInTheDocument()
+      })
+    })
+
+    it('deve salvar perfil e refletir na tela', async () => {
+      const { getMyProfile, upsertMyProfile } = await import('../services/profileService')
+      getMyProfile.mockResolvedValue(null)
+      const profileSalvo = {
+        user_id: 'user-1',
+        nome: 'Maria',
+        sobrenome: 'Souza',
+        github_username: null,
+        avatar_url: null,
+        updated_at: '2024-01-01T00:00:00Z',
+      }
+      upsertMyProfile.mockResolvedValue(profileSalvo)
+
+      const user = userEvent.setup()
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByRole('button', { name: /Configurações/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Editar perfil')).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByTitle('Editar perfil'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Seu nome')).toBeInTheDocument()
+      })
+
+      await user.clear(screen.getByPlaceholderText('Seu nome'))
+      await user.type(screen.getByPlaceholderText('Seu nome'), 'Maria')
+      await user.clear(screen.getByPlaceholderText('Seu sobrenome'))
+      await user.type(screen.getByPlaceholderText('Seu sobrenome'), 'Souza')
+
+      await user.click(screen.getByRole('button', { name: /Salvar/i }))
+
+      await waitFor(() => {
+        expect(upsertMyProfile).toHaveBeenCalledWith(
+          expect.objectContaining({ nome: 'Maria', sobrenome: 'Souza' })
+        )
+        expect(screen.getAllByText(/Maria Souza/).length).toBeGreaterThanOrEqual(1)
+      })
+    })
+
+    it('deve refletir nome e avatar no sidebar após salvar perfil', async () => {
+      const { getMyProfile, upsertMyProfile } = await import('../services/profileService')
+      getMyProfile.mockResolvedValue(null)
+      const profileSalvo = {
+        user_id: 'user-1',
+        nome: 'Carlos',
+        sobrenome: 'Lima',
+        github_username: null,
+        avatar_url: null,
+        updated_at: '2024-01-01T00:00:00Z',
+      }
+      upsertMyProfile.mockResolvedValue(profileSalvo)
+
+      const user = userEvent.setup()
+      renderWithRouter(<Dashboard />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByRole('button', { name: /Configurações/i }))
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Editar perfil')).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByTitle('Editar perfil'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Seu nome')).toBeInTheDocument()
+      })
+
+      await user.clear(screen.getByPlaceholderText('Seu nome'))
+      await user.type(screen.getByPlaceholderText('Seu nome'), 'Carlos')
+      await user.clear(screen.getByPlaceholderText('Seu sobrenome'))
+      await user.type(screen.getByPlaceholderText('Seu sobrenome'), 'Lima')
+
+      await user.click(screen.getByRole('button', { name: /Salvar/i }))
+
+      await waitFor(() => {
+        // nome deve aparecer no sidebar também
+        expect(screen.getAllByText('Carlos Lima').length).toBeGreaterThanOrEqual(1)
+      })
     })
   })
 })
