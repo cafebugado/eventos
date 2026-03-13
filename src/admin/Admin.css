@@ -384,8 +384,17 @@
 
 .settings-avatar-area {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
   padding: 1rem 0 0.5rem;
+}
+
+.settings-avatar-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
 }
 
 .settings-avatar-preview {
@@ -448,6 +457,16 @@
   color: var(--text-secondary);
   font-style: italic;
   font-weight: 400;
+}
+
+.settings-github-link {
+  color: var(--primary-blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.settings-github-link:hover {
+  text-decoration: underline;
 }
 
 .settings-role-badge {
