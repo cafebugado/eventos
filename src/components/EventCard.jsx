@@ -60,30 +60,32 @@ function EventCard({
       onKeyDown={(e) => e.key === 'Enter' && handleClick()}
       style={style}
     >
-      <div className="ec-image">
-        <img
-          src={event.imagem || BgEventos}
-          alt={event.nome}
-          loading="lazy"
-          decoding="async"
-          onError={(e) => {
-            e.target.src = BgEventos
-          }}
-        />
-        <div className={badgeClass}>{badgeText}</div>
-        {tags.length > 0 && (
-          <div className="card-image-tags">
-            {tags.map((tag) => (
-              <span
-                key={tag.id}
-                className="card-image-tag"
-                style={{ '--tag-color': tag.cor || '#2563eb' }}
-              >
-                {tag.nome}
-              </span>
-            ))}
-          </div>
-        )}
+      <div className="ec-image-wrapper">
+        <div className="ec-image">
+          <img
+            src={event.imagem || BgEventos}
+            alt={event.nome}
+            loading="lazy"
+            decoding="async"
+            onError={(e) => {
+              e.target.src = BgEventos
+            }}
+          />
+          <div className={badgeClass}>{badgeText}</div>
+          {tags.length > 0 && (
+            <div className="card-image-tags">
+              {tags.map((tag) => (
+                <span
+                  key={tag.id}
+                  className="card-image-tag"
+                  style={{ '--tag-color': tag.cor || '#2563eb' }}
+                >
+                  {tag.nome}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="ec-content">
