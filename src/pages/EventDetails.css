@@ -250,7 +250,6 @@
 .event-image-container {
   position: relative;
   height: 400px;
-  aspect-ratio: 16 / 9;
   overflow: hidden;
 }
 
@@ -321,6 +320,7 @@
   font-size: 1.125rem;
   color: var(--text-secondary);
   line-height: 1.7;
+  text-align: justify;
 }
 
 /* Info Grid */
