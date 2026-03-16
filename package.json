@@ -22,7 +22,7 @@
   "dependencies": {
     "@sentry/react": "^10.42.0",
     "@supabase/supabase-js": "^2.99.1",
-    "@vercel/analytics": "^1.6.1",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^1.3.1",
     "lucide-react": "^0.577.0",
     "papaparse": "^5.5.3",
