@@ -89,7 +89,7 @@ import BackButton from '../components/BackButton'
 import EventCard from '../components/EventCard'
 import GithubStats from './GithubStats'
 import BgEventos from '../assets/eventos.png'
-
+import { MESSAGES } from '../constants/messages'
 const DAY_NAMES = [
   'Domingo',
   'Segunda-feira',
@@ -367,7 +367,7 @@ function Dashboard() {
       setStats(statsData)
     } catch (error) {
       console.error('Erro ao carregar eventos:', error)
-      showNotification('Erro ao carregar eventos', 'error')
+      showNotification(MESSAGES.events.loadError, 'error')
     } finally {
       setLoading(false)
     }
@@ -433,7 +433,7 @@ function Dashboard() {
       navigate('/admin')
     } catch (error) {
       console.error('Erro ao fazer logout:', error)
-      showNotification('Erro ao fazer logout', 'error')
+      showNotification(MESSAGES.user.logoutError, 'error')
     }
   }
 
@@ -500,11 +500,11 @@ function Dashboard() {
     const file = e.target.files[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        showNotification('Imagem deve ter no máximo 5MB', 'error')
+        showNotification(MESSAGES.images.imageErrorLength, 'error')
         return
       }
       if (!file.type.startsWith('image/')) {
-        showNotification('Arquivo deve ser uma imagem', 'error')
+        showNotification(MESSAGES.images.imageTypeError, 'error')
         return
       }
       setImageFile(file)
@@ -542,7 +542,7 @@ function Dashboard() {
           imageUrl = await uploadEventImage(imageFile)
         } catch (uploadError) {
           console.error('Erro no upload:', uploadError)
-          showNotification('Erro ao fazer upload da imagem', 'error')
+          showNotification(MESSAGES.images.uploadError, 'error')
           setIsSubmitting(false)
           setIsUploading(false)
           return
@@ -572,20 +572,20 @@ function Dashboard() {
       if (editingEvent) {
         savedEvent = await updateEvent(editingEvent.id, eventData)
         await setEventTags(editingEvent.id, selectedTags)
-        showNotification('Evento atualizado com sucesso!')
+        showNotification(MESSAGES.events.updateSucess)
       } else {
         savedEvent = await createEvent(eventData)
         if (selectedTags.length > 0) {
           await setEventTags(savedEvent.id, selectedTags)
         }
-        showNotification('Evento criado com sucesso!')
+        showNotification(MESSAGES.events.createSucess)
       }
 
       closeModal()
       await loadEvents()
     } catch (error) {
       console.error('Erro ao salvar evento:', error)
-      showNotification('Erro ao salvar evento', 'error')
+      showNotification(MESSAGES.events.saveError, 'error')
     } finally {
       setIsSubmitting(false)
       setIsUploading(false)
@@ -596,11 +596,11 @@ function Dashboard() {
     if (window.confirm('Tem certeza que deseja excluir este evento?')) {
       try {
         await deleteEventService(id)
-        showNotification('Evento excluído com sucesso!')
+        showNotification(MESSAGES.events.deleteSucess)
         await loadEvents()
       } catch (error) {
         console.error('Erro ao excluir evento:', error)
-        showNotification('Erro ao excluir evento', 'error')
+        showNotification(MESSAGES.events.deleteError, 'error')
       }
     }
   }
@@ -613,7 +613,7 @@ function Dashboard() {
       setContributors(data)
     } catch (error) {
       console.error('Erro ao carregar contribuintes:', error)
-      showNotification('Erro ao carregar contribuintes', 'error')
+      showNotification(MESSAGES.contributors.loadError, 'error')
     } finally {
       setLoadingContributors(false)
     }
@@ -639,7 +639,7 @@ function Dashboard() {
         avatar_url: userData.avatar_url,
       })
     } catch (error) {
-      showNotification(error.message || 'Erro ao buscar usuário do GitHub', 'error')
+      showNotification(error.message || MESSAGES.user.gitHubError, 'error')
       setProfileGitHubPreview(null)
     } finally {
       setIsFetchingProfileGitHub(false)
@@ -657,9 +657,9 @@ function Dashboard() {
       })
       setUserProfile(saved)
       setIsEditingProfile(false)
-      showNotification('Perfil salvo com sucesso!')
+      showNotification(MESSAGES.user.updateProfileSuccess)
     } catch {
-      showNotification('Erro ao salvar perfil', 'error')
+      showNotification(MESSAGES.user.updateProfileError, 'error')
     } finally {
       setIsSavingProfile(false)
     }
@@ -695,7 +695,7 @@ function Dashboard() {
       setGitHubPreview(userData)
       setContributorValue('nome', userData.nome)
     } catch (error) {
-      showNotification(error.message || 'Erro ao buscar usuário do GitHub', 'error')
+      showNotification(error.message || MESSAGES.user.gitHubError, 'error')
       setGitHubPreview(null)
     } finally {
       setIsFetchingGitHub(false)
@@ -738,20 +738,17 @@ function Dashboard() {
 
   const onSubmitContributor = async (data) => {
     if (!gitHubPreview) {
-      showNotification('Busque um usuário do GitHub antes de salvar', 'error')
+      showNotification(MESSAGES.contributors.githubNotice, 'error')
       return
     }
 
     if (data.linkedin_url && !isValidLinkedInUrl(data.linkedin_url)) {
-      showNotification(
-        'URL do LinkedIn inválida. Use o formato: https://linkedin.com/in/usuario',
-        'error'
-      )
+      showNotification(MESSAGES.contributors.linkedinError, 'error')
       return
     }
 
     if (data.portfolio_url && !isValidPortfolioUrl(data.portfolio_url)) {
-      showNotification('URL do portfólio inválida. Use uma URL válida com https://', 'error')
+      showNotification(MESSAGES.contributors.portfolioError, 'error')
       return
     }
 
@@ -768,17 +765,17 @@ function Dashboard() {
 
       if (editingContributor) {
         await updateContributor(editingContributor.id, contributorData)
-        showNotification('Contribuinte atualizado com sucesso!')
+        showNotification(MESSAGES.contributors.updateSucess)
       } else {
         await createContributor(contributorData)
-        showNotification('Contribuinte adicionado com sucesso!')
+        showNotification(MESSAGES.contributors.createContributor)
       }
 
       closeContributorModal()
       await loadContributors()
     } catch (error) {
       console.error('Erro ao salvar contribuinte:', error)
-      showNotification(error.message || 'Erro ao salvar contribuinte', 'error')
+      showNotification(error.message || MESSAGES.contributors.saveError, 'error')
     } finally {
       setIsSubmittingContributor(false)
     }
@@ -788,11 +785,11 @@ function Dashboard() {
     if (window.confirm('Tem certeza que deseja excluir este contribuinte?')) {
       try {
         await deleteContributorService(id)
-        showNotification('Contribuinte excluído com sucesso!')
+        showNotification(MESSAGES.contributors.deleteSucess)
         await loadContributors()
       } catch (error) {
         console.error('Erro ao excluir contribuinte:', error)
-        showNotification('Erro ao excluir contribuinte', 'error')
+        showNotification(MESSAGES.contributors.deleteError, 'error')
       }
     }
   }
@@ -805,7 +802,7 @@ function Dashboard() {
       setTags(data)
     } catch (error) {
       console.error('Erro ao carregar tags:', error)
-      showNotification('Erro ao carregar tags', 'error')
+      showNotification(MESSAGES.tags.loadError, 'error')
     } finally {
       setLoadingTags(false)
     }
@@ -848,16 +845,16 @@ function Dashboard() {
     try {
       if (editingTag) {
         await updateTag(editingTag.id, data)
-        showNotification('Tag atualizada com sucesso!')
+        showNotification(MESSAGES.tags.updateTag)
       } else {
         await createTag(data)
-        showNotification('Tag criada com sucesso!')
+        showNotification(MESSAGES.tags.createTag)
       }
       closeTagModal()
       await loadTags()
     } catch (error) {
       console.error('Erro ao salvar tag:', error)
-      showNotification(error.message || 'Erro ao salvar tag', 'error')
+      showNotification(error.message || MESSAGES.tags.saveError, 'error')
     } finally {
       setIsSubmittingTag(false)
     }
@@ -873,11 +870,11 @@ function Dashboard() {
     }
     try {
       await deleteTagService(confirmDeleteTag.id)
-      showNotification('Tag excluída com sucesso!')
+      showNotification(MESSAGES.tags.deleteTag)
       await loadTags()
     } catch (error) {
       console.error('Erro ao excluir tag:', error)
-      showNotification('Erro ao excluir tag', 'error')
+      showNotification(MESSAGES.tags.deleteError, 'error')
     } finally {
       setConfirmDeleteTag(null)
     }
@@ -909,7 +906,7 @@ function Dashboard() {
       setUsers(sorted)
     } catch (error) {
       console.error('Erro ao carregar usuarios:', error)
-      showNotification('Erro ao carregar usuarios', 'error')
+      showNotification(MESSAGES.user.loadError, 'error')
     } finally {
       setLoadingUsers(false)
     }
@@ -929,7 +926,7 @@ function Dashboard() {
       } else {
         await assignUserRole(userId, newRole)
       }
-      showNotification('Role atualizada com sucesso!')
+      showNotification(MESSAGES.user.updateRoleSuccess)
       await loadUsers()
       setEditingRoles((prev) => {
         const next = { ...prev }
@@ -938,18 +935,14 @@ function Dashboard() {
       })
     } catch (error) {
       console.error('Erro ao atribuir role:', error)
-      showNotification(error.message || 'Erro ao atribuir role', 'error')
+      showNotification(error.message || MESSAGES.user.updateRoleError, 'error')
     } finally {
       setSavingRoleFor(null)
     }
   }
 
   const handleRemoveRole = async (userId) => {
-    if (
-      window.confirm(
-        'Tem certeza que deseja remover a role deste usuario? Ele perdera todo acesso de escrita.'
-      )
-    ) {
+    if (window.confirm(MESSAGES.user.removeRoleConfirm)) {
       setSavingRoleFor(userId)
       try {
         if (userRole === 'admin') {
@@ -957,11 +950,11 @@ function Dashboard() {
         } else {
           await removeUserRole(userId)
         }
-        showNotification('Role removida com sucesso!')
+        showNotification(MESSAGES.user.removeRoleSuccess)
         await loadUsers()
       } catch (error) {
         console.error('Erro ao remover role:', error)
-        showNotification(error.message || 'Erro ao remover role', 'error')
+        showNotification(error.message || MESSAGES.user.removeRoleError, 'error')
       } finally {
         setSavingRoleFor(null)
       }
