@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
-import { Calendar, Search, Filter, Eye, EyeOff } from 'lucide-react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { Calendar, Search, Filter, Eye, EyeOff, Heart } from 'lucide-react'
 import { getEvents } from './services/eventService'
 import { getTags, getAllEventTags } from './services/tagService'
 import Header from './components/Header'
@@ -34,6 +34,7 @@ function App() {
   const [selectedTagId, setSelectedTagId] = useState('')
   const [allTags, setAllTags] = useState([])
   const [showPastEvents, setShowPastEvents] = useState(false)
+  const [showOnlyFavourites, setShowOnlyFavourites] = useState(false)
   const [eventTagsMap, setEventTagsMap] = useState({})
   const isMobile = useMediaQuery('(max-width: 768px)')
 
@@ -93,6 +94,53 @@ function App() {
     loadEvents()
   }, [])
 
+  // Logica para os favs
+  const [favourites, setFavourites] = useState(() => {
+    try {
+      const stored = localStorage.getItem('favourites')
+      if (!stored) {
+        return []
+      } // Return empty array if nothing stored
+
+      const parsed = JSON.parse(stored)
+      // Ensure it's an array
+      return Array.isArray(parsed) ? parsed : []
+    } catch (error) {
+      console.error('Failed to parse favourites from localStorage:', error)
+      return [] // Return empty array on error
+    }
+  })
+  const favouriteIds = useMemo(() => new Set(favourites.map((fav) => fav?.id)), [favourites])
+  const toggleFavourite = useCallback(
+    (eventId) => {
+      setFavourites((prev) => {
+        const index = prev.findIndex((fav) => fav?.id === eventId)
+        let newFavourites
+
+        if (index === -1) {
+          const eventToAdd = agenda.find((e) => e.id === eventId)
+          // Only add if event exists in agenda
+          if (!eventToAdd) {
+            console.warn(`Event with id ${eventId} not found in agenda`)
+            return prev
+          }
+          newFavourites = [...prev, eventToAdd]
+        } else {
+          newFavourites = prev.filter((fav) => fav?.id !== eventId)
+        }
+
+        try {
+          localStorage.setItem('favourites', JSON.stringify(newFavourites))
+        } catch (error) {
+          console.error('Failed to save favourites to localStorage:', error)
+        }
+
+        return newFavourites
+      })
+    },
+    [agenda]
+  )
+
   // Filtra e ordena eventos client-side
   const filteredEvents = useMemo(() => {
     const today = new Date()
@@ -116,9 +164,20 @@ function App() {
       const isPastEvent = eventDate < today
       const matchesPastFilter = showPastEvents || !isPastEvent
 
-      return matchesSearch && matchesTag && matchesPastFilter
+      // Filtro de favoritos
+      const matchesFavourite = !showOnlyFavourites || favouriteIds.has(event.id)
+
+      return matchesSearch && matchesTag && matchesPastFilter && matchesFavourite
     })
-  }, [agenda, searchTerm, selectedTagId, eventTagsMap, showPastEvents])
+  }, [
+    agenda,
+    searchTerm,
+    selectedTagId,
+    eventTagsMap,
+    showPastEvents,
+    showOnlyFavourites,
+    favouriteIds,
+  ])
 
   const pageSize = isMobile ? 6 : 9
   const { currentPage, totalPages, pagedItems, goToPage } = usePagination(filteredEvents, pageSize)
@@ -210,6 +269,15 @@ function App() {
               {showPastEvents ? <Eye size={18} /> : <EyeOff size={18} />}
               <span>{showPastEvents ? 'Ocultando passados' : 'Mostrar passados'}</span>
             </button>
+
+            <button
+              className={`filter-toggle ${showOnlyFavourites ? 'active' : ''}`}
+              onClick={() => setShowOnlyFavourites(!showOnlyFavourites)}
+              title={showOnlyFavourites ? 'Mostrar todos eventos' : 'Mostrar apenas favoritos'}
+            >
+              <Heart size={18} fill={showOnlyFavourites ? 'currentColor' : 'none'} />
+              <span>{showOnlyFavourites ? 'Apenas favoritos' : 'Favoritos'}</span>
+            </button>
           </div>
 
           {loading ? (
@@ -269,6 +337,8 @@ function App() {
                       showLocation
                       showActionButton
                       style={{ animationDelay: `${index * 0.1}s` }}
+                      favouriteIds={favouriteIds}
+                      toggleFavourite={toggleFavourite}
                     />
                   )
                 })}
