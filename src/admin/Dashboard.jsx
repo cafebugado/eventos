@@ -81,6 +81,8 @@ import RichText from '../components/RichText'
 import useMediaQuery from '../hooks/useMediaQuery'
 import useUserRole, { ROLE_LABELS } from '../hooks/useUserRole'
 import usePagination from '../hooks/usePagination'
+import { useSidebarCollapse } from '../hooks/useSidebarCollapse'
+import { AdminSidebar } from './AdminSidebar'
 import { filterEventsByQuery } from '../utils/eventSearch'
 import { stripRichText } from '../utils/richText'
 import './Admin.css'
@@ -166,6 +168,7 @@ function Dashboard() {
   const [editingEvent, setEditingEvent] = useState(null)
   const [notification, setNotification] = useState(null)
   const [activeTab, setActiveTab] = useState('eventos')
+  const { isCollapsed, toggle: toggleSidebar } = useSidebarCollapse()
   const [stats, setStats] = useState({ total: 0, noturno: 0, diurno: 0 })
   const [userEmail, setUserEmail] = useState('')
   const [userId, setUserId] = useState(null)
@@ -215,7 +218,7 @@ function Dashboard() {
   }, [])
 
   const mensagemMotivacional = useMemo(() => {
-    const frases = [
+    const frasesModeradorGeral = [
       'Cada evento que você cadastra conecta pessoas. Obrigado! 💙',
       'Sua contribuição faz a comunidade crescer mais forte. 🚀',
       'Você é parte essencial desta comunidade. Valeu! 🙌',
@@ -225,9 +228,43 @@ function Dashboard() {
       'A comunidade é mais forte com você nela. Obrigado! 🤝',
       'Você transforma informação em conexão. Isso é incrível! 🎯',
     ]
+
+    const frasesAdmin = [
+      'A plataforma está nas mãos certas. Bora construir! 🛠️',
+      'Você tem o poder de moldar essa comunidade. Use bem! 🔑',
+      'Grandes responsabilidades, grandes conquistas. Vamos nessa! 🏆',
+      'Cada decisão sua impacta toda a comunidade. Obrigado! 🌐',
+      'Liderança é sobre servir. E você faz isso muito bem! 🙏',
+      'O painel está pronto, os dados te esperam. Vamos trabalhar! 📊',
+      'Com visão de admin vem visão de futuro. Que dia produtivo! 🔭',
+      'Você mantém a engrenagem girando. A comunidade agradece! ⚙️',
+      'Mais um dia de fazer a diferença nos bastidores. Valeu! 🎬',
+      'O melhor admin é aquele que nem precisa ser notado. E você é ótimo! 🥇',
+    ]
+
+    const frasesSuperAdmin = [
+      'Poder total, responsabilidade total. Que dia poderoso! 👑',
+      'Super admin na área! A plataforma está em boas mãos. 🦸',
+      'Você comanda tudo aqui. Que essa sessão seja produtiva! 🚀',
+      'Acesso total, visão total. Bora fazer acontecer! 🌟',
+      'O arquiteto da plataforma entrou na sala. Vamos construir! 🏗️',
+      'Com grandes poderes vêm grandes dashboards. Aproveite! 📈',
+      'Super admin ativo. A comunidade está em modo seguro! 🛡️',
+      'Você é o guardião desta plataforma. Obrigado pela dedicação! 🔐',
+      'Tudo sob seu comando. Que sessão incrível vai ser essa! ⚡',
+      'O nível mais alto de confiança. E você merece cada bit! 💎',
+    ]
+
     const dia = new Date().getDate()
-    return frases[dia % frases.length]
-  }, [])
+
+    if (userRole === 'super_admin') {
+      return frasesSuperAdmin[dia % frasesSuperAdmin.length]
+    }
+    if (userRole === 'admin') {
+      return frasesAdmin[dia % frasesAdmin.length]
+    }
+    return frasesModeradorGeral[dia % frasesModeradorGeral.length]
+  }, [userRole])
 
   const primeiroNome = userProfile?.nome || userEmail?.split('@')[0] || ''
 
@@ -1012,105 +1049,25 @@ function Dashboard() {
   return (
     <div className="admin-dashboard">
       {/* Sidebar */}
-      <aside className="admin-sidebar">
-        <div className="sidebar-header">
-          <h2>Eventos</h2>
-          <span>Café Bugado Admin</span>
-        </div>
-
-        <nav className="sidebar-menu">
-          <button
-            className={`menu-item ${activeTab === 'eventos' ? 'active' : ''}`}
-            onClick={() => setActiveTab('eventos')}
-          >
-            <Calendar size={20} />
-            <span>Eventos</span>
-          </button>
-          {permissions.canManageTags && (
-            <button
-              className={`menu-item ${activeTab === 'tags' ? 'active' : ''}`}
-              onClick={() => setActiveTab('tags')}
-            >
-              <Tag size={20} />
-              <span>Tags</span>
-            </button>
-          )}
-          {permissions.canManageContributors && (
-            <button
-              className={`menu-item ${activeTab === 'contribuintes' ? 'active' : ''}`}
-              onClick={() => setActiveTab('contribuintes')}
-            >
-              <Users size={20} />
-              <span>Contribuintes</span>
-            </button>
-          )}
-          {permissions.canManageContributors && (
-            <button
-              className={`menu-item ${activeTab === 'repositorio' ? 'active' : ''}`}
-              onClick={() => setActiveTab('repositorio')}
-            >
-              <GitBranch size={20} />
-              <span>Repositório</span>
-            </button>
-          )}
-          {permissions.canManageUsers && (
-            <button
-              className={`menu-item ${activeTab === 'usuarios' ? 'active' : ''}`}
-              onClick={() => setActiveTab('usuarios')}
-            >
-              <UserCog size={20} />
-              <span>Usuarios</span>
-            </button>
-          )}
-          <button
-            className={`menu-item ${activeTab === 'configuracoes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('configuracoes')}
-          >
-            <Settings size={20} />
-            <span>Configurações</span>
-          </button>
-          <button className="menu-item" onClick={() => window.open('/', '_blank')}>
-            <ExternalLink size={20} />
-            <span>Ver Site</span>
-          </button>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="user-info">
-            {userProfile?.avatar_url ? (
-              <img
-                src={userProfile.avatar_url}
-                alt="avatar"
-                className="user-avatar user-avatar-img"
-              />
-            ) : (
-              <div className="user-avatar">{userEmail?.charAt(0).toUpperCase() || 'A'}</div>
-            )}
-            <div className="user-details">
-              <span className="user-name">
-                {userProfile?.nome
-                  ? `${userProfile.nome}${userProfile.sobrenome ? ` ${userProfile.sobrenome}` : ''}`
-                  : userRole
-                    ? ROLE_LABELS[userRole] || userRole
-                    : 'Sem Role'}
-              </span>
-              <span className="user-email">
-                {userRole ? ROLE_LABELS[userRole] || userRole : 'Sem Role'}
-              </span>
-            </div>
-          </div>
-          <button className="logout-btn" onClick={handleLogout}>
-            <LogOut size={20} />
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        permissions={permissions}
+        userProfile={userProfile}
+        userEmail={userEmail}
+        userRole={userRole}
+        roleLabels={ROLE_LABELS}
+        onLogout={handleLogout}
+        isCollapsed={isCollapsed}
+        onToggle={toggleSidebar}
+      />
 
       {/* Main Content */}
-      <main className="admin-main">
+      <main className={`admin-main${isCollapsed ? ' admin-main--collapsed' : ''}`}>
         {/* Top Bar */}
         <header className="admin-topbar">
           <div className="topbar-left">
-            {userRole === 'moderador' ? (
+            {userRole === 'moderador' || userRole === 'admin' || userRole === 'super_admin' ? (
               <div className="topbar-greeting">
                 <h1>
                   {saudacao}, {primeiroNome}!
