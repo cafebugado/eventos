@@ -1,9 +1,8 @@
 import { Info } from 'lucide-react'
-import Header from '../components/Header'
-import Footer from '../components/Footer'
-import FloatingMenu from '../components/FloatingMenu'
+
 import UpcomingEvents from '../components/UpcomingEvents'
 import Testimonials from '../components/Testimonials'
+import Layout from '../layout/Layout'
 import SEOHead from '../components/SEOHead'
 import './Home.css'
 import { useEffect } from 'react'
@@ -20,13 +19,12 @@ function Home() {
 
   
   return (
-    <div className="home-page">
+    <Layout>
       <SEOHead
         title="Eventos de Tecnologia em um so lugar"
         description="Descubra os melhores eventos de tecnologia. Meetups, workshops, hackathons e conferencias reunidos em um so lugar pela comunidade Cafe Bugado."
         url={window.location.origin}
       />
-      <Header />
 
       {/* Hero Section */}
       <main className="home-main">
@@ -75,14 +73,10 @@ function Home() {
             </div>
           </div>
         </section>
-
         <UpcomingEvents />
         <Testimonials />
       </main>
-
-      <Footer />
-      <FloatingMenu />
-    </div>
+    </Layout>
   )
 }
 

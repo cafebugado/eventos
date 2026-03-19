@@ -257,6 +257,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
 }
 
 .event-badge {
@@ -319,6 +320,7 @@
   font-size: 1.125rem;
   color: var(--text-secondary);
   line-height: 1.7;
+  text-align: justify;
 }
 
 /* Info Grid */

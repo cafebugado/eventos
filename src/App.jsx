@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Calendar, Search, Filter, Eye, EyeOff, Heart } from 'lucide-react'
 import { getEvents } from './services/eventService'
-import { getAllEventTags } from './services/tagService'
+import { getTags, getAllEventTags } from './services/tagService'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import FloatingMenu from './components/FloatingMenu'
@@ -11,8 +11,6 @@ import EventCard from './components/EventCard'
 import useMediaQuery from './hooks/useMediaQuery'
 import usePagination from './hooks/usePagination'
 import './App.css'
-
-const PERIODOS = ['Todos', 'Matinal', 'Diurno', 'Vespertino', 'Noturno']
 
 // Funcao para converter data no formato DD/MM/YYYY para objeto Date
 function parseEventDate(dateStr) {
@@ -33,7 +31,8 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedPeriodo, setSelectedPeriodo] = useState('Todos')
+  const [selectedTagId, setSelectedTagId] = useState('')
+  const [allTags, setAllTags] = useState([])
   const [showPastEvents, setShowPastEvents] = useState(false)
   const [showOnlyFavourites, setShowOnlyFavourites] = useState(false)
   const [eventTagsMap, setEventTagsMap] = useState({})
@@ -81,12 +80,14 @@ function App() {
 
       setAgenda(sortedEvents)
 
-      // Carrega tags de todos os eventos
+      // Carrega tags de todos os eventos e lista de tags
       try {
-        const tagsMap = await getAllEventTags()
+        const [tagsMap, tags] = await Promise.all([getAllEventTags(), getTags()])
         setEventTagsMap(tagsMap)
+        setAllTags(tags)
       } catch {
         setEventTagsMap({})
+        setAllTags([])
       }
     } catch (error) {
       console.error('Erro ao carregar eventos:', error)
@@ -165,8 +166,10 @@ function App() {
         event.nome?.toLowerCase().includes(searchLower) ||
         event.descricao?.toLowerCase().includes(searchLower)
 
-      // Filtro por periodo
-      const matchesPeriodo = selectedPeriodo === 'Todos' || event.periodo === selectedPeriodo
+      // Filtro por tag
+      const matchesTag =
+        !selectedTagId ||
+        (eventTagsMap[event.id] || []).some((tag) => String(tag.id) === selectedTagId)
 
       // Filtro de eventos passados
       const eventDate = parseEventDate(event.data_evento)
@@ -176,9 +179,17 @@ function App() {
       // Filtro de favoritos
       const matchesFavourite = !showOnlyFavourites || favouriteIds.has(event.id)
 
-      return matchesSearch && matchesPeriodo && matchesPastFilter && matchesFavourite
+      return matchesSearch && matchesTag && matchesPastFilter && matchesFavourite
     })
-  }, [agenda, searchTerm, selectedPeriodo, showPastEvents, showOnlyFavourites, favouriteIds])
+  }, [
+    agenda,
+    searchTerm,
+    selectedTagId,
+    eventTagsMap,
+    showPastEvents,
+    showOnlyFavourites,
+    favouriteIds,
+  ])
 
   const pageSize = isMobile ? 6 : 9
   const { currentPage, totalPages, pagedItems, goToPage } = usePagination(filteredEvents, pageSize)
@@ -249,13 +260,14 @@ function App() {
             <div className="filter-periodo">
               <Filter size={18} />
               <select
-                value={selectedPeriodo}
-                onChange={(e) => setSelectedPeriodo(e.target.value)}
+                value={selectedTagId}
+                onChange={(e) => setSelectedTagId(e.target.value)}
                 className="periodo-select"
               >
-                {PERIODOS.map((periodo) => (
-                  <option key={periodo} value={periodo}>
-                    {periodo}
+                <option value="">Todas as tags</option>
+                {allTags.map((tag) => (
+                  <option key={tag.id} value={String(tag.id)}>
+                    {tag.nome}
                   </option>
                 ))}
               </select>
@@ -334,7 +346,6 @@ function App() {
                       variant="full"
                       isPast={isPast}
                       isToday={isToday}
-                      showDescription
                       showLocation
                       showActionButton
                       style={{ animationDelay: `${index * 0.1}s` }}

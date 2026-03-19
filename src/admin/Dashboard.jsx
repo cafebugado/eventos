@@ -37,9 +37,10 @@ import {
   UserCog,
   Settings,
   Heart,
+  GitBranch,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { getSession, signOut, getCurrentUser } from '../services/authService'
+import { getSession, signOut } from '../services/authService'
 import {
   getEvents,
   createEvent,
@@ -66,7 +67,14 @@ import {
   getEventTags,
   setEventTags,
 } from '../services/tagService'
-import { getUsersWithRoles, assignUserRole, removeUserRole } from '../services/roleService'
+import {
+  getUsersWithRoles,
+  getUsersWithRolesForAdmin,
+  assignUserRole,
+  adminAssignUserRole,
+  removeUserRole,
+  adminRemoveUserRole,
+} from '../services/roleService'
 import { getMyProfile, upsertMyProfile } from '../services/profileService'
 import Pagination from '../components/Pagination'
 import RichText from '../components/RichText'
@@ -79,6 +87,7 @@ import './Admin.css'
 import '../components/UpcomingEvents.css'
 import BackButton from '../components/BackButton'
 import EventCard from '../components/EventCard'
+import GithubStats from './GithubStats'
 import BgEventos from '../assets/eventos.png'
 
 const DAY_NAMES = [
@@ -315,26 +324,7 @@ function Dashboard() {
   } = useForm()
 
   const sortedEvents = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    return [...eventos].sort((a, b) => {
-      const dateA = parseDateValue(a.data_evento)
-      const dateB = parseDateValue(b.data_evento)
-      const isAFuture = dateA && dateA >= today
-      const isBFuture = dateB && dateB >= today
-
-      if (isAFuture && !isBFuture) {
-        return -1
-      }
-      if (!isAFuture && isBFuture) {
-        return 1
-      }
-      if (isAFuture) {
-        return dateA - dateB
-      }
-      return dateB - dateA
-    })
+    return [...eventos].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
   }, [eventos])
 
   const filteredEvents = useMemo(
@@ -372,7 +362,7 @@ function Dashboard() {
         return
       }
 
-      const user = await getCurrentUser()
+      const user = session.user
       if (user) {
         setUserEmail(user.email)
         setUserId(user.id)
@@ -522,6 +512,15 @@ function Dashboard() {
   }
 
   const onSubmit = async (data) => {
+    const nomeNorm = data.nome.trim().toLowerCase()
+    const duplicateEvent = eventos.find(
+      (e) => e.nome.trim().toLowerCase() === nomeNorm && (!editingEvent || e.id !== editingEvent.id)
+    )
+    if (duplicateEvent) {
+      showNotification('Já existe um evento com esse nome.', 'error')
+      return
+    }
+
     setIsSubmitting(true)
     try {
       let imageUrl = data.imagem || null
@@ -647,6 +646,11 @@ function Dashboard() {
         avatar_url: profileGitHubPreview?.avatar_url || null,
       })
       setUserProfile(saved)
+      setProfileGitHubPreview(
+        saved.github_username
+          ? { github_username: saved.github_username, avatar_url: saved.avatar_url }
+          : null
+      )
       setIsEditingProfile(false)
       showNotification('Perfil salvo com sucesso!')
     } catch {
@@ -671,6 +675,11 @@ function Dashboard() {
   }
 
   const handleCancelEditProfile = () => {
+    setProfileGitHubPreview(
+      userProfile?.github_username
+        ? { github_username: userProfile.github_username, avatar_url: userProfile.avatar_url }
+        : null
+    )
     setIsEditingProfile(false)
   }
 
@@ -835,6 +844,15 @@ function Dashboard() {
   }
 
   const onSubmitTag = async (data) => {
+    const nomeTagNorm = data.nome.trim().toLowerCase()
+    const duplicateTag = tags.find(
+      (t) => t.nome.trim().toLowerCase() === nomeTagNorm && (!editingTag || t.id !== editingTag.id)
+    )
+    if (duplicateTag) {
+      showNotification('Já existe uma tag com esse nome.', 'error')
+      return
+    }
+
     setIsSubmittingTag(true)
     try {
       if (editingTag) {
@@ -884,15 +902,27 @@ function Dashboard() {
   const loadUsers = useCallback(async () => {
     try {
       setLoadingUsers(true)
-      const data = await getUsersWithRoles()
-      setUsers(data)
+      const data =
+        userRole === 'admin' ? await getUsersWithRolesForAdmin() : await getUsersWithRoles()
+      const getDisplayName = (u) =>
+        u.nome ? `${u.nome}${u.sobrenome ? ` ${u.sobrenome}` : ''}` : u.email
+      const sorted = [...(data || [])].sort((a, b) => {
+        if (a.email === userEmail) {
+          return -1
+        }
+        if (b.email === userEmail) {
+          return 1
+        }
+        return getDisplayName(a).localeCompare(getDisplayName(b), 'pt-BR', { sensitivity: 'base' })
+      })
+      setUsers(sorted)
     } catch (error) {
       console.error('Erro ao carregar usuarios:', error)
       showNotification('Erro ao carregar usuarios', 'error')
     } finally {
       setLoadingUsers(false)
     }
-  }, [showNotification])
+  }, [showNotification, userRole])
 
   useEffect(() => {
     if (activeTab === 'usuarios' && permissions.canManageUsers) {
@@ -903,7 +933,11 @@ function Dashboard() {
   const handleAssignRole = async (userId, newRole) => {
     setSavingRoleFor(userId)
     try {
-      await assignUserRole(userId, newRole)
+      if (userRole === 'admin') {
+        await adminAssignUserRole(userId, newRole)
+      } else {
+        await assignUserRole(userId, newRole)
+      }
       showNotification('Role atualizada com sucesso!')
       await loadUsers()
       setEditingRoles((prev) => {
@@ -927,7 +961,11 @@ function Dashboard() {
     ) {
       setSavingRoleFor(userId)
       try {
-        await removeUserRole(userId)
+        if (userRole === 'admin') {
+          await adminRemoveUserRole(userId)
+        } else {
+          await removeUserRole(userId)
+        }
         showNotification('Role removida com sucesso!')
         await loadUsers()
       } catch (error) {
@@ -1004,6 +1042,15 @@ function Dashboard() {
             >
               <Users size={20} />
               <span>Contribuintes</span>
+            </button>
+          )}
+          {permissions.canManageContributors && (
+            <button
+              className={`menu-item ${activeTab === 'repositorio' ? 'active' : ''}`}
+              onClick={() => setActiveTab('repositorio')}
+            >
+              <GitBranch size={20} />
+              <span>Repositório</span>
             </button>
           )}
           {permissions.canManageUsers && (
@@ -1105,7 +1152,8 @@ function Dashboard() {
               {activeTab !== 'contribuintes' &&
                 activeTab !== 'tags' &&
                 activeTab !== 'usuarios' &&
-                activeTab !== 'configuracoes' && (
+                activeTab !== 'configuracoes' &&
+                activeTab !== 'repositorio' && (
                   <>
                     {/* Stats */}
                     <div className="stats-grid">
@@ -1296,6 +1344,11 @@ function Dashboard() {
                                           src={evento.imagem || BgEventos}
                                           alt={evento.nome}
                                           className="event-thumbnail"
+                                          loading="lazy"
+                                          decoding="async"
+                                          onError={(e) => {
+                                            e.target.src = BgEventos
+                                          }}
                                         />
                                       </td>
                                       <td data-label="Nome do Evento">
@@ -1418,9 +1471,8 @@ function Dashboard() {
                                   <tr>
                                     <th>Imagem</th>
                                     <th>Nome do Evento</th>
-                                    <th>Data</th>
-                                    <th>Horário</th>
-                                    <th>Período</th>
+                                    <th>Data do Evento</th>
+                                    <th>Cadastrado em</th>
                                     <th>Ações</th>
                                   </tr>
                                 </thead>
@@ -1441,6 +1493,11 @@ function Dashboard() {
                                             src={evento.imagem || BgEventos}
                                             alt={evento.nome}
                                             className="event-thumbnail"
+                                            loading="lazy"
+                                            decoding="async"
+                                            onError={(e) => {
+                                              e.target.src = BgEventos
+                                            }}
                                           />
                                         </td>
                                         <td data-label="Nome do Evento">
@@ -1454,14 +1511,13 @@ function Dashboard() {
                                             <span className="badge badge-encerrado">Encerrado</span>
                                           )}
                                         </td>
-                                        <td data-label="Data">{evento.data_evento}</td>
-                                        <td data-label="Horário">{evento.horario}</td>
-                                        <td data-label="Período">
-                                          <span
-                                            className={`badge badge-${evento.periodo?.toLowerCase()}`}
-                                          >
-                                            {evento.periodo}
-                                          </span>
+                                        <td data-label="Data do Evento">{evento.data_evento}</td>
+                                        <td data-label="Cadastrado em">
+                                          {evento.created_at
+                                            ? new Date(evento.created_at).toLocaleDateString(
+                                                'pt-BR'
+                                              )
+                                            : '-'}
                                         </td>
                                         <td data-label="Ações">
                                           <div className="action-buttons">
@@ -1610,7 +1666,7 @@ function Dashboard() {
                       <table className="events-table">
                         <thead>
                           <tr>
-                            <th>Email</th>
+                            <th>Nome</th>
                             <th>Role Atual</th>
                             <th>Nova Role</th>
                             <th>Acoes</th>
@@ -1620,10 +1676,17 @@ function Dashboard() {
                           {users.map((u) => {
                             const isCurrentUser = u.email === userEmail
                             const pendingRole = editingRoles[u.id]
+                            // Admin nao pode alterar roles de admin ou superior
+                            const isProtectedRole =
+                              userRole === 'admin' &&
+                              (u.role === 'admin' || u.role === 'super_admin')
+                            const displayName = u.nome
+                              ? `${u.nome}${u.sobrenome ? ` ${u.sobrenome}` : ''}`
+                              : u.email
                             return (
                               <tr key={u.id} className={isCurrentUser ? 'event-row-current' : ''}>
-                                <td data-label="Email">
-                                  <span className="user-email-cell">{u.email}</span>
+                                <td data-label="Nome">
+                                  <span className="user-email-cell">{displayName}</span>
                                   {isCurrentUser && <span className="badge badge-you">Voce</span>}
                                 </td>
                                 <td data-label="Role Atual">
@@ -1645,12 +1708,26 @@ function Dashboard() {
                                         [u.id]: e.target.value,
                                       }))
                                     }
-                                    disabled={isCurrentUser || savingRoleFor === u.id}
+                                    disabled={
+                                      isCurrentUser || savingRoleFor === u.id || isProtectedRole
+                                    }
                                   >
-                                    <option value="">Selecione...</option>
-                                    <option value="super_admin">Super Admin</option>
-                                    <option value="admin">Administrador</option>
-                                    <option value="moderador">Moderador</option>
+                                    {!u.role && <option value="">Selecione...</option>}
+                                    {isProtectedRole && u.role === 'super_admin' && (
+                                      <option value="super_admin">Super Admin</option>
+                                    )}
+                                    {isProtectedRole && u.role === 'admin' && (
+                                      <option value="admin">Administrador</option>
+                                    )}
+                                    {!isProtectedRole && userRole === 'super_admin' && (
+                                      <option value="super_admin">Super Admin</option>
+                                    )}
+                                    {!isProtectedRole && userRole === 'super_admin' && (
+                                      <option value="admin">Administrador</option>
+                                    )}
+                                    {!isProtectedRole && (
+                                      <option value="moderador">Moderador</option>
+                                    )}
                                   </select>
                                 </td>
                                 <td data-label="Acoes">
@@ -1658,8 +1735,12 @@ function Dashboard() {
                                     {pendingRole && pendingRole !== u.role && (
                                       <button
                                         className="btn-icon btn-edit"
-                                        onClick={() => handleAssignRole(u.id, pendingRole)}
-                                        disabled={isCurrentUser || savingRoleFor === u.id}
+                                        onClick={() =>
+                                          !isProtectedRole && handleAssignRole(u.id, pendingRole)
+                                        }
+                                        disabled={
+                                          isCurrentUser || savingRoleFor === u.id || isProtectedRole
+                                        }
                                         title="Salvar role"
                                       >
                                         {savingRoleFor === u.id ? (
@@ -1671,10 +1752,16 @@ function Dashboard() {
                                     )}
                                     {u.role && (
                                       <button
-                                        className="btn-icon btn-delete"
-                                        onClick={() => handleRemoveRole(u.id)}
-                                        disabled={isCurrentUser || savingRoleFor === u.id}
-                                        title="Remover role"
+                                        className={`btn-icon ${isProtectedRole ? 'btn-delete-locked' : 'btn-delete'}`}
+                                        onClick={() => !isProtectedRole && handleRemoveRole(u.id)}
+                                        disabled={
+                                          isCurrentUser || savingRoleFor === u.id || isProtectedRole
+                                        }
+                                        title={
+                                          isProtectedRole
+                                            ? 'Sem permissão para remover este usuário'
+                                            : 'Remover role'
+                                        }
                                       >
                                         <Trash2 size={16} />
                                       </button>
@@ -1788,12 +1875,19 @@ function Dashboard() {
                 </div>
               )}
 
+              {/* Repositório GitHub Section */}
+              {activeTab === 'repositorio' && permissions.canManageContributors && (
+                <div className="events-section">
+                  <GithubStats />
+                </div>
+              )}
+
               {/* Configurações Section */}
               {activeTab === 'configuracoes' && (
                 <div className="settings-section">
                   <div className="section-header">
                     <h2>Configurações do Perfil</h2>
-                    {!isEditingProfile && (
+                    {!isEditingProfile && permissions.canSaveSettings && (
                       <button
                         className="btn-icon btn-edit"
                         onClick={handleEditProfile}
@@ -1804,7 +1898,7 @@ function Dashboard() {
                     )}
                   </div>
 
-                  {isEditingProfile ? (
+                  {isEditingProfile && permissions.canSaveSettings ? (
                     <form onSubmit={handleSubmitProfile(onSubmitProfile)} className="settings-form">
                       <div className="settings-avatar-area">
                         {profileGitHubPreview?.avatar_url ? (
@@ -1915,6 +2009,12 @@ function Dashboard() {
                             {userEmail?.charAt(0).toUpperCase() || 'A'}
                           </div>
                         )}
+                        {(userProfile?.nome || userProfile?.sobrenome) && (
+                          <div className="settings-avatar-name">
+                            {userProfile.nome}
+                            {userProfile.sobrenome ? ` ${userProfile.sobrenome}` : ''}
+                          </div>
+                        )}
                       </div>
 
                       <div className="settings-profile-info">
@@ -1932,7 +2032,14 @@ function Dashboard() {
                           <span className="settings-info-label">GitHub</span>
                           <span className="settings-info-value">
                             {userProfile?.github_username ? (
-                              `@${userProfile.github_username}`
+                              <a
+                                href={`https://github.com/${userProfile.github_username}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="settings-github-link"
+                              >
+                                @{userProfile.github_username}
+                              </a>
                             ) : (
                               <span className="settings-info-empty">Não informado</span>
                             )}

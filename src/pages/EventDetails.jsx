@@ -13,10 +13,8 @@ import {
 import { getEventById } from '../services/eventService'
 import { getEventTags } from '../services/tagService'
 import BackButton from '../components/BackButton'
-import Header from '../components/Header'
-import Footer from '../components/Footer'
-import FloatingMenu from '../components/FloatingMenu'
 import RichText from '../components/RichText'
+import Layout from '../layout/Layout'
 import SEOHead from '../components/SEOHead'
 import ShareButtons from '../components/ShareButtons'
 import EventRecommendations from '../components/EventRecommendations'
@@ -129,7 +127,6 @@ function EventDetails() {
   if (loading) {
     return (
       <div className="event-details-page">
-        <Header />
         <main className="details-main">
           <div className="details-container">
             <div className="skeleton-back-button"></div>
@@ -158,7 +155,6 @@ function EventDetails() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     )
   }
@@ -185,8 +181,7 @@ function EventDetails() {
     const errorInfo = errorMessages[error] || errorMessages.SERVER_ERROR
 
     return (
-      <div className="event-details-page">
-        <Header />
+      <Layout>
         <main className="details-main">
           <div className="details-container">
             <BackButton onClick={() => navigate('/eventos')} label="Voltar para Eventos" />
@@ -207,8 +202,7 @@ function EventDetails() {
             </div>
           </div>
         </main>
-        <Footer />
-      </div>
+      </Layout>
     )
   }
 
@@ -218,7 +212,7 @@ function EventDetails() {
   const isPast = eventDate < today
 
   return (
-    <div className="event-details-page">
+    <Layout>
       <SEOHead
         title={event.nome}
         description={event.descricao}
@@ -229,7 +223,6 @@ function EventDetails() {
           publishedTime: event.created_at,
         }}
       />
-      <Header />
 
       <main className="details-main">
         <div className="details-container">
@@ -237,7 +230,15 @@ function EventDetails() {
 
           <div className={`event-details-card ${isPast ? 'evento-encerrado' : ''}`}>
             <div className="event-image-container">
-              <img src={event.imagem || BgEventos} alt={event.nome} />
+              <img
+                src={event.imagem || BgEventos}
+                alt={event.nome}
+                loading="lazy"
+                decoding="async"
+                onError={(e) => {
+                  e.target.src = BgEventos
+                }}
+              />
               {isPast ? (
                 <div className="event-badge card-badge-encerrado">Encerrado</div>
               ) : (
@@ -400,10 +401,7 @@ function EventDetails() {
       </main>
 
       <EventRecommendations currentEvent={event} currentEventTags={eventTags} />
-
-      <Footer />
-      <FloatingMenu />
-    </div>
+    </Layout>
   )
 }
 

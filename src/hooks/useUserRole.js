@@ -12,6 +12,7 @@ const PERMISSIONS = {
     canManageContributors: true,
     canManageUsers: true,
     canUploadImages: true,
+    canSaveSettings: true,
   },
   admin: {
     canCreateEvents: true,
@@ -20,8 +21,9 @@ const PERMISSIONS = {
     canManageTags: true,
     canDeleteTags: true,
     canManageContributors: true,
-    canManageUsers: false,
+    canManageUsers: true,
     canUploadImages: true,
+    canSaveSettings: true,
   },
   moderador: {
     canCreateEvents: true,
@@ -32,6 +34,7 @@ const PERMISSIONS = {
     canManageContributors: false,
     canManageUsers: false,
     canUploadImages: true,
+    canSaveSettings: true,
   },
 }
 
@@ -44,6 +47,7 @@ const NO_PERMISSIONS = {
   canManageContributors: false,
   canManageUsers: false,
   canUploadImages: false,
+  canSaveSettings: false,
 }
 
 export const ROLE_LABELS = {
