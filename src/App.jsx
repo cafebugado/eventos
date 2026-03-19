@@ -39,6 +39,13 @@ function App() {
   const isMobile = useMediaQuery('(max-width: 768px)')
 
   // Funcao para carregar eventos do Supabase
+    useEffect(()=>{
+      const stored = localStorage.getItem('favourites')
+      if (!stored) {
+        localStorage.setItem("favourites",'[]')
+      } 
+  },[])
+
   const loadEvents = async () => {
     setLoading(true)
     setError(null)
@@ -91,6 +98,11 @@ function App() {
   }
 
   useEffect(() => {
+    const stored = localStorage.getItem('favourites')
+      if (!stored) {
+        localStorage.setItem("favourites",'[]')
+      } 
+
     loadEvents()
   }, [])
 
@@ -100,14 +112,14 @@ function App() {
       const stored = localStorage.getItem('favourites')
       if (!stored) {
         return []
-      } // Return empty array if nothing stored
+      } 
 
       const parsed = JSON.parse(stored)
       // Ensure it's an array
       return Array.isArray(parsed) ? parsed : []
     } catch (error) {
       console.error('Failed to parse favourites from localStorage:', error)
-      return [] // Return empty array on error
+      return [] 
     }
   })
   const favouriteIds = useMemo(() => new Set(favourites.map((fav) => fav?.id)), [favourites])

@@ -47,6 +47,13 @@ function EventDetails() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [id])
+  useEffect(()=>{
+      const stored = localStorage.getItem('favourites')
+      console.log(stored)
+      if (!stored) {
+        localStorage.setItem("favourites",'[]')
+      } 
+  },[])
 
   // Funcao para carregar evento do Supabase
   const loadEvent = async () => {
