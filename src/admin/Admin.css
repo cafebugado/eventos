@@ -218,25 +218,136 @@
   top: 0;
   bottom: 0;
   z-index: 100;
+  transition: width 0.25s ease;
+}
+
+.admin-sidebar--collapsed {
+  width: 80px;
+}
+
+.admin-sidebar--collapsed .menu-item {
+  justify-content: center;
+  padding: 1rem 0;
+  gap: 0;
+}
+
+.admin-sidebar--collapsed .menu-item svg {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px;
+  min-height: 28px;
+}
+
+/* Tooltip fixo nos ícones quando sidebar fechada */
+.sidebar-tooltip {
+  position: fixed;
+  left: 92px;
+  transform: translateY(-50%);
+  background: var(--text-primary);
+  color: var(--background);
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.4rem;
+  box-shadow: 0 4px 12px var(--shadow);
+  pointer-events: none;
+  z-index: 9999;
+  animation: tooltip-in 0.12s ease;
+}
+
+.sidebar-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: var(--text-primary);
+}
+
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.admin-sidebar--collapsed .sidebar-footer {
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-sidebar--collapsed .user-info {
+  justify-content: center;
 }
 
 .sidebar-header {
-  padding: 1.5rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 72px;
 }
 
-.sidebar-header h2 {
-  font-size: 1.5rem;
+.admin-sidebar--collapsed .sidebar-header {
+  justify-content: center;
+  padding: 1rem;
+}
+
+.sidebar-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.sidebar-header-text h2 {
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
   font-weight: 700;
   color: var(--primary-blue);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.sidebar-header span {
-  font-size: 0.75rem;
+.sidebar-header-text span {
+  font-size: clamp(0.65rem, 1vw, 0.75rem);
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Toggle button */
+.sidebar-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle-btn:hover {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary-blue);
+  border-color: var(--primary-blue);
 }
 
 .sidebar-menu {
@@ -245,6 +356,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .menu-item {
@@ -262,6 +375,7 @@
   transition: all 0.2s ease;
   width: 100%;
   text-align: left;
+  white-space: nowrap;
 }
 
 .menu-item:hover {
@@ -496,6 +610,11 @@
   margin-left: 260px;
   display: flex;
   flex-direction: column;
+  transition: margin-left 0.25s ease;
+}
+
+.admin-main--collapsed {
+  margin-left: 80px;
 }
 
 /* Top Bar */
@@ -1113,38 +1232,13 @@
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
-  .admin-sidebar {
-    width: 80px;
-  }
-
-  .sidebar-header h2,
-  .sidebar-header span,
-  .menu-item span,
-  .user-details {
-    display: none;
-  }
-
-  .menu-item {
-    justify-content: center;
-    padding: 1rem;
-  }
-
-  .user-info {
-    justify-content: center;
-  }
-
-  .admin-main {
-    margin-left: 80px;
-  }
-}
-
 @media (max-width: 768px) {
   .admin-sidebar {
     display: none;
   }
 
-  .admin-main {
+  .admin-main,
+  .admin-main--collapsed {
     margin-left: 0;
   }
 

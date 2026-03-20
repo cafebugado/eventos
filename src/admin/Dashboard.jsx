@@ -81,6 +81,8 @@ import RichText from '../components/RichText'
 import useMediaQuery from '../hooks/useMediaQuery'
 import useUserRole, { ROLE_LABELS } from '../hooks/useUserRole'
 import usePagination from '../hooks/usePagination'
+import { useSidebarCollapse } from '../hooks/useSidebarCollapse'
+import { AdminSidebar } from './AdminSidebar'
 import { filterEventsByQuery } from '../utils/eventSearch'
 import { stripRichText } from '../utils/richText'
 import './Admin.css'
@@ -89,7 +91,7 @@ import BackButton from '../components/BackButton'
 import EventCard from '../components/EventCard'
 import GithubStats from './GithubStats'
 import BgEventos from '../assets/eventos.png'
-
+import { MESSAGES } from '../constants/messages'
 const DAY_NAMES = [
   'Domingo',
   'Segunda-feira',
@@ -166,6 +168,7 @@ function Dashboard() {
   const [editingEvent, setEditingEvent] = useState(null)
   const [notification, setNotification] = useState(null)
   const [activeTab, setActiveTab] = useState('eventos')
+  const { isCollapsed, toggle: toggleSidebar } = useSidebarCollapse()
   const [stats, setStats] = useState({ total: 0, noturno: 0, diurno: 0 })
   const [userEmail, setUserEmail] = useState('')
   const [userId, setUserId] = useState(null)
@@ -215,7 +218,7 @@ function Dashboard() {
   }, [])
 
   const mensagemMotivacional = useMemo(() => {
-    const frases = [
+    const frasesModeradorGeral = [
       'Cada evento que você cadastra conecta pessoas. Obrigado! 💙',
       'Sua contribuição faz a comunidade crescer mais forte. 🚀',
       'Você é parte essencial desta comunidade. Valeu! 🙌',
@@ -225,9 +228,43 @@ function Dashboard() {
       'A comunidade é mais forte com você nela. Obrigado! 🤝',
       'Você transforma informação em conexão. Isso é incrível! 🎯',
     ]
+
+    const frasesAdmin = [
+      'A plataforma está nas mãos certas. Bora construir! 🛠️',
+      'Você tem o poder de moldar essa comunidade. Use bem! 🔑',
+      'Grandes responsabilidades, grandes conquistas. Vamos nessa! 🏆',
+      'Cada decisão sua impacta toda a comunidade. Obrigado! 🌐',
+      'Liderança é sobre servir. E você faz isso muito bem! 🙏',
+      'O painel está pronto, os dados te esperam. Vamos trabalhar! 📊',
+      'Com visão de admin vem visão de futuro. Que dia produtivo! 🔭',
+      'Você mantém a engrenagem girando. A comunidade agradece! ⚙️',
+      'Mais um dia de fazer a diferença nos bastidores. Valeu! 🎬',
+      'O melhor admin é aquele que nem precisa ser notado. E você é ótimo! 🥇',
+    ]
+
+    const frasesSuperAdmin = [
+      'Poder total, responsabilidade total. Que dia poderoso! 👑',
+      'Super admin na área! A plataforma está em boas mãos. 🦸',
+      'Você comanda tudo aqui. Que essa sessão seja produtiva! 🚀',
+      'Acesso total, visão total. Bora fazer acontecer! 🌟',
+      'O arquiteto da plataforma entrou na sala. Vamos construir! 🏗️',
+      'Com grandes poderes vêm grandes dashboards. Aproveite! 📈',
+      'Super admin ativo. A comunidade está em modo seguro! 🛡️',
+      'Você é o guardião desta plataforma. Obrigado pela dedicação! 🔐',
+      'Tudo sob seu comando. Que sessão incrível vai ser essa! ⚡',
+      'O nível mais alto de confiança. E você merece cada bit! 💎',
+    ]
+
     const dia = new Date().getDate()
-    return frases[dia % frases.length]
-  }, [])
+
+    if (userRole === 'super_admin') {
+      return frasesSuperAdmin[dia % frasesSuperAdmin.length]
+    }
+    if (userRole === 'admin') {
+      return frasesAdmin[dia % frasesAdmin.length]
+    }
+    return frasesModeradorGeral[dia % frasesModeradorGeral.length]
+  }, [userRole])
 
   const primeiroNome = userProfile?.nome || userEmail?.split('@')[0] || ''
 
@@ -348,7 +385,7 @@ function Dashboard() {
       setStats(statsData)
     } catch (error) {
       console.error('Erro ao carregar eventos:', error)
-      showNotification('Erro ao carregar eventos', 'error')
+      showNotification(MESSAGES.events.loadError, 'error')
     } finally {
       setLoading(false)
     }
@@ -414,7 +451,7 @@ function Dashboard() {
       navigate('/admin')
     } catch (error) {
       console.error('Erro ao fazer logout:', error)
-      showNotification('Erro ao fazer logout', 'error')
+      showNotification(MESSAGES.user.logoutError, 'error')
     }
   }
 
@@ -481,11 +518,11 @@ function Dashboard() {
     const file = e.target.files[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        showNotification('Imagem deve ter no máximo 5MB', 'error')
+        showNotification(MESSAGES.images.imageErrorLength, 'error')
         return
       }
       if (!file.type.startsWith('image/')) {
-        showNotification('Arquivo deve ser uma imagem', 'error')
+        showNotification(MESSAGES.images.imageTypeError, 'error')
         return
       }
       setImageFile(file)
@@ -532,7 +569,7 @@ function Dashboard() {
           imageUrl = await uploadEventImage(imageFile)
         } catch (uploadError) {
           console.error('Erro no upload:', uploadError)
-          showNotification('Erro ao fazer upload da imagem', 'error')
+          showNotification(MESSAGES.images.uploadError, 'error')
           setIsSubmitting(false)
           setIsUploading(false)
           return
@@ -562,20 +599,20 @@ function Dashboard() {
       if (editingEvent) {
         savedEvent = await updateEvent(editingEvent.id, eventData)
         await setEventTags(editingEvent.id, selectedTags)
-        showNotification('Evento atualizado com sucesso!')
+        showNotification(MESSAGES.events.updateSucess)
       } else {
         savedEvent = await createEvent(eventData)
         if (selectedTags.length > 0) {
           await setEventTags(savedEvent.id, selectedTags)
         }
-        showNotification('Evento criado com sucesso!')
+        showNotification(MESSAGES.events.createSucess)
       }
 
       closeModal()
       await loadEvents()
     } catch (error) {
       console.error('Erro ao salvar evento:', error)
-      showNotification('Erro ao salvar evento', 'error')
+      showNotification(MESSAGES.events.saveError, 'error')
     } finally {
       setIsSubmitting(false)
       setIsUploading(false)
@@ -586,11 +623,11 @@ function Dashboard() {
     if (window.confirm('Tem certeza que deseja excluir este evento?')) {
       try {
         await deleteEventService(id)
-        showNotification('Evento excluído com sucesso!')
+        showNotification(MESSAGES.events.deleteSucess)
         await loadEvents()
       } catch (error) {
         console.error('Erro ao excluir evento:', error)
-        showNotification('Erro ao excluir evento', 'error')
+        showNotification(MESSAGES.events.deleteError, 'error')
       }
     }
   }
@@ -603,7 +640,7 @@ function Dashboard() {
       setContributors(data)
     } catch (error) {
       console.error('Erro ao carregar contribuintes:', error)
-      showNotification('Erro ao carregar contribuintes', 'error')
+      showNotification(MESSAGES.contributors.loadError, 'error')
     } finally {
       setLoadingContributors(false)
     }
@@ -629,7 +666,7 @@ function Dashboard() {
         avatar_url: userData.avatar_url,
       })
     } catch (error) {
-      showNotification(error.message || 'Erro ao buscar usuário do GitHub', 'error')
+      showNotification(error.message || MESSAGES.user.gitHubError, 'error')
       setProfileGitHubPreview(null)
     } finally {
       setIsFetchingProfileGitHub(false)
@@ -652,9 +689,9 @@ function Dashboard() {
           : null
       )
       setIsEditingProfile(false)
-      showNotification('Perfil salvo com sucesso!')
+      showNotification(MESSAGES.user.updateProfileSuccess)
     } catch {
-      showNotification('Erro ao salvar perfil', 'error')
+      showNotification(MESSAGES.user.updateProfileError, 'error')
     } finally {
       setIsSavingProfile(false)
     }
@@ -695,7 +732,7 @@ function Dashboard() {
       setGitHubPreview(userData)
       setContributorValue('nome', userData.nome)
     } catch (error) {
-      showNotification(error.message || 'Erro ao buscar usuário do GitHub', 'error')
+      showNotification(error.message || MESSAGES.user.gitHubError, 'error')
       setGitHubPreview(null)
     } finally {
       setIsFetchingGitHub(false)
@@ -738,20 +775,17 @@ function Dashboard() {
 
   const onSubmitContributor = async (data) => {
     if (!gitHubPreview) {
-      showNotification('Busque um usuário do GitHub antes de salvar', 'error')
+      showNotification(MESSAGES.contributors.githubNotice, 'error')
       return
     }
 
     if (data.linkedin_url && !isValidLinkedInUrl(data.linkedin_url)) {
-      showNotification(
-        'URL do LinkedIn inválida. Use o formato: https://linkedin.com/in/usuario',
-        'error'
-      )
+      showNotification(MESSAGES.contributors.linkedinError, 'error')
       return
     }
 
     if (data.portfolio_url && !isValidPortfolioUrl(data.portfolio_url)) {
-      showNotification('URL do portfólio inválida. Use uma URL válida com https://', 'error')
+      showNotification(MESSAGES.contributors.portfolioError, 'error')
       return
     }
 
@@ -768,17 +802,17 @@ function Dashboard() {
 
       if (editingContributor) {
         await updateContributor(editingContributor.id, contributorData)
-        showNotification('Contribuinte atualizado com sucesso!')
+        showNotification(MESSAGES.contributors.updateSucess)
       } else {
         await createContributor(contributorData)
-        showNotification('Contribuinte adicionado com sucesso!')
+        showNotification(MESSAGES.contributors.createContributor)
       }
 
       closeContributorModal()
       await loadContributors()
     } catch (error) {
       console.error('Erro ao salvar contribuinte:', error)
-      showNotification(error.message || 'Erro ao salvar contribuinte', 'error')
+      showNotification(error.message || MESSAGES.contributors.saveError, 'error')
     } finally {
       setIsSubmittingContributor(false)
     }
@@ -788,11 +822,11 @@ function Dashboard() {
     if (window.confirm('Tem certeza que deseja excluir este contribuinte?')) {
       try {
         await deleteContributorService(id)
-        showNotification('Contribuinte excluído com sucesso!')
+        showNotification(MESSAGES.contributors.deleteSucess)
         await loadContributors()
       } catch (error) {
         console.error('Erro ao excluir contribuinte:', error)
-        showNotification('Erro ao excluir contribuinte', 'error')
+        showNotification(MESSAGES.contributors.deleteError, 'error')
       }
     }
   }
@@ -805,7 +839,7 @@ function Dashboard() {
       setTags(data)
     } catch (error) {
       console.error('Erro ao carregar tags:', error)
-      showNotification('Erro ao carregar tags', 'error')
+      showNotification(MESSAGES.tags.loadError, 'error')
     } finally {
       setLoadingTags(false)
     }
@@ -857,16 +891,16 @@ function Dashboard() {
     try {
       if (editingTag) {
         await updateTag(editingTag.id, data)
-        showNotification('Tag atualizada com sucesso!')
+        showNotification(MESSAGES.tags.updateTag)
       } else {
         await createTag(data)
-        showNotification('Tag criada com sucesso!')
+        showNotification(MESSAGES.tags.createTag)
       }
       closeTagModal()
       await loadTags()
     } catch (error) {
       console.error('Erro ao salvar tag:', error)
-      showNotification(error.message || 'Erro ao salvar tag', 'error')
+      showNotification(error.message || MESSAGES.tags.saveError, 'error')
     } finally {
       setIsSubmittingTag(false)
     }
@@ -882,11 +916,11 @@ function Dashboard() {
     }
     try {
       await deleteTagService(confirmDeleteTag.id)
-      showNotification('Tag excluída com sucesso!')
+      showNotification(MESSAGES.tags.deleteTag)
       await loadTags()
     } catch (error) {
       console.error('Erro ao excluir tag:', error)
-      showNotification('Erro ao excluir tag', 'error')
+      showNotification(MESSAGES.tags.deleteError, 'error')
     } finally {
       setConfirmDeleteTag(null)
     }
@@ -918,7 +952,7 @@ function Dashboard() {
       setUsers(sorted)
     } catch (error) {
       console.error('Erro ao carregar usuarios:', error)
-      showNotification('Erro ao carregar usuarios', 'error')
+      showNotification(MESSAGES.user.loadError, 'error')
     } finally {
       setLoadingUsers(false)
     }
@@ -938,7 +972,7 @@ function Dashboard() {
       } else {
         await assignUserRole(userId, newRole)
       }
-      showNotification('Role atualizada com sucesso!')
+      showNotification(MESSAGES.user.updateRoleSuccess)
       await loadUsers()
       setEditingRoles((prev) => {
         const next = { ...prev }
@@ -947,18 +981,14 @@ function Dashboard() {
       })
     } catch (error) {
       console.error('Erro ao atribuir role:', error)
-      showNotification(error.message || 'Erro ao atribuir role', 'error')
+      showNotification(error.message || MESSAGES.user.updateRoleError, 'error')
     } finally {
       setSavingRoleFor(null)
     }
   }
 
   const handleRemoveRole = async (userId) => {
-    if (
-      window.confirm(
-        'Tem certeza que deseja remover a role deste usuario? Ele perdera todo acesso de escrita.'
-      )
-    ) {
+    if (window.confirm(MESSAGES.user.removeRoleConfirm)) {
       setSavingRoleFor(userId)
       try {
         if (userRole === 'admin') {
@@ -966,11 +996,11 @@ function Dashboard() {
         } else {
           await removeUserRole(userId)
         }
-        showNotification('Role removida com sucesso!')
+        showNotification(MESSAGES.user.removeRoleSuccess)
         await loadUsers()
       } catch (error) {
         console.error('Erro ao remover role:', error)
-        showNotification(error.message || 'Erro ao remover role', 'error')
+        showNotification(error.message || MESSAGES.user.removeRoleError, 'error')
       } finally {
         setSavingRoleFor(null)
       }
@@ -1012,105 +1042,25 @@ function Dashboard() {
   return (
     <div className="admin-dashboard">
       {/* Sidebar */}
-      <aside className="admin-sidebar">
-        <div className="sidebar-header">
-          <h2>Eventos</h2>
-          <span>Café Bugado Admin</span>
-        </div>
-
-        <nav className="sidebar-menu">
-          <button
-            className={`menu-item ${activeTab === 'eventos' ? 'active' : ''}`}
-            onClick={() => setActiveTab('eventos')}
-          >
-            <Calendar size={20} />
-            <span>Eventos</span>
-          </button>
-          {permissions.canManageTags && (
-            <button
-              className={`menu-item ${activeTab === 'tags' ? 'active' : ''}`}
-              onClick={() => setActiveTab('tags')}
-            >
-              <Tag size={20} />
-              <span>Tags</span>
-            </button>
-          )}
-          {permissions.canManageContributors && (
-            <button
-              className={`menu-item ${activeTab === 'contribuintes' ? 'active' : ''}`}
-              onClick={() => setActiveTab('contribuintes')}
-            >
-              <Users size={20} />
-              <span>Contribuintes</span>
-            </button>
-          )}
-          {permissions.canManageContributors && (
-            <button
-              className={`menu-item ${activeTab === 'repositorio' ? 'active' : ''}`}
-              onClick={() => setActiveTab('repositorio')}
-            >
-              <GitBranch size={20} />
-              <span>Repositório</span>
-            </button>
-          )}
-          {permissions.canManageUsers && (
-            <button
-              className={`menu-item ${activeTab === 'usuarios' ? 'active' : ''}`}
-              onClick={() => setActiveTab('usuarios')}
-            >
-              <UserCog size={20} />
-              <span>Usuarios</span>
-            </button>
-          )}
-          <button
-            className={`menu-item ${activeTab === 'configuracoes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('configuracoes')}
-          >
-            <Settings size={20} />
-            <span>Configurações</span>
-          </button>
-          <button className="menu-item" onClick={() => window.open('/', '_blank')}>
-            <ExternalLink size={20} />
-            <span>Ver Site</span>
-          </button>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="user-info">
-            {userProfile?.avatar_url ? (
-              <img
-                src={userProfile.avatar_url}
-                alt="avatar"
-                className="user-avatar user-avatar-img"
-              />
-            ) : (
-              <div className="user-avatar">{userEmail?.charAt(0).toUpperCase() || 'A'}</div>
-            )}
-            <div className="user-details">
-              <span className="user-name">
-                {userProfile?.nome
-                  ? `${userProfile.nome}${userProfile.sobrenome ? ` ${userProfile.sobrenome}` : ''}`
-                  : userRole
-                    ? ROLE_LABELS[userRole] || userRole
-                    : 'Sem Role'}
-              </span>
-              <span className="user-email">
-                {userRole ? ROLE_LABELS[userRole] || userRole : 'Sem Role'}
-              </span>
-            </div>
-          </div>
-          <button className="logout-btn" onClick={handleLogout}>
-            <LogOut size={20} />
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        permissions={permissions}
+        userProfile={userProfile}
+        userEmail={userEmail}
+        userRole={userRole}
+        roleLabels={ROLE_LABELS}
+        onLogout={handleLogout}
+        isCollapsed={isCollapsed}
+        onToggle={toggleSidebar}
+      />
 
       {/* Main Content */}
-      <main className="admin-main">
+      <main className={`admin-main${isCollapsed ? ' admin-main--collapsed' : ''}`}>
         {/* Top Bar */}
         <header className="admin-topbar">
           <div className="topbar-left">
-            {userRole === 'moderador' ? (
+            {userRole === 'moderador' || userRole === 'admin' || userRole === 'super_admin' ? (
               <div className="topbar-greeting">
                 <h1>
                   {saudacao}, {primeiroNome}!

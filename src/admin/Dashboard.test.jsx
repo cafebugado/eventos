@@ -113,7 +113,6 @@ describe('Dashboard', () => {
     renderWithRouter(<Dashboard />)
 
     await waitFor(() => {
-      expect(screen.getByText('Dashboard')).toBeInTheDocument()
       expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
     })
 
@@ -587,7 +586,7 @@ describe('Dashboard', () => {
       })
 
       const sidebarButtons = screen.getAllByRole('button')
-      const usuariosBtn = sidebarButtons.find((btn) => btn.textContent.includes('Usuarios'))
+      const usuariosBtn = sidebarButtons.find((btn) => btn.textContent.includes('Usuários'))
       expect(usuariosBtn).toBeDefined()
     })
 
@@ -601,7 +600,7 @@ describe('Dashboard', () => {
       })
 
       const sidebarButtons = screen.getAllByRole('button')
-      const usuariosBtn = sidebarButtons.find((btn) => btn.textContent.includes('Usuarios'))
+      const usuariosBtn = sidebarButtons.find((btn) => btn.textContent.includes('Usuários'))
       expect(usuariosBtn).toBeDefined()
     })
 
