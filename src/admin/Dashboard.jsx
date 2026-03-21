@@ -1843,7 +1843,12 @@ function Dashboard() {
 
               {/* Galeria Section */}
               {activeTab === 'galeria' && (
-                <GalleryAdmin showNotification={showNotification} eventos={eventos} />
+                <GalleryAdmin
+                  showNotification={showNotification}
+                  eventos={eventos}
+                  userRole={userRole}
+                  userId={userId}
+                />
               )}
 
               {/* Configurações Section */}
