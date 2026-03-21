@@ -1,0 +1,89 @@
+/* GalleryPhotoGrid — prefixo: gpg- */
+
+.gpg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px;
+}
+
+.gpg-item {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: var(--border);
+  border-radius: 8px;
+}
+
+.gpg-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.gpg-item:hover img {
+  transform: scale(1.06);
+}
+
+.gpg-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, transparent 100%);
+  padding: 0.75rem;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+  text-align: left;
+}
+
+.gpg-item:hover .gpg-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.gpg-caption {
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+  line-height: 1.3;
+}
+
+.gpg-poster-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.gpg-poster-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.7rem;
+}
+
+@media (max-width: 768px) {
+  .gpg-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .gpg-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+  }
+
+  .gpg-item {
+    border-radius: 4px;
+  }
+}

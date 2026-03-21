@@ -1,0 +1,144 @@
+/* GalleryFilters — prefixo: gf- */
+
+.gf-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* Search row */
+.gf-search-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.gf-search-box {
+  position: relative;
+  flex: 1;
+  max-width: 420px;
+}
+
+.gf-search-icon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.gf-search-input {
+  width: 100%;
+  padding: 0.625rem 2.5rem 0.625rem 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.gf-search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.gf-search-input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.gf-clear-input {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.gf-clear-input:hover {
+  color: var(--text-primary);
+}
+
+.gf-clear-all {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.5rem 0.875rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.gf-clear-all:hover {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+}
+
+/* Community chips */
+.gf-communities-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.gf-community-chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.375rem 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gf-community-chip:hover {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+}
+
+.gf-chip-active {
+  background: var(--primary-blue);
+  border-color: var(--primary-blue);
+  color: #fff;
+}
+
+.gf-chip-active:hover {
+  color: #fff;
+}
+
+/* Count */
+.gf-count {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .gf-search-box {
+    max-width: 100%;
+  }
+
+  .gf-search-row {
+    flex-wrap: wrap;
+  }
+}

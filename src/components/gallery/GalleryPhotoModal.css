@@ -1,0 +1,261 @@
+/* GalleryPhotoModal — prefixo: gpm- */
+
+.gpm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: gpm-fade-in 0.2s ease;
+  padding: 1rem;
+}
+
+@keyframes gpm-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.gpm-container {
+  background: var(--surface);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 860px;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: gpm-slide-up 0.25s ease;
+}
+
+@keyframes gpm-slide-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Topbar */
+.gpm-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.gpm-event-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.gpm-counter {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.1rem 0.55rem;
+}
+
+.gpm-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--background);
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.gpm-close:hover {
+  background: var(--border);
+  transform: scale(1.05);
+}
+
+/* Image area */
+.gpm-image-area {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  min-height: 0;
+}
+
+.gpm-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+  animation: gpm-fade-in 0.2s ease;
+}
+
+/* Nav buttons */
+.gpm-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.gpm-nav:hover:not(.gpm-nav-disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.gpm-nav-disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.gpm-nav-prev {
+  left: 0.75rem;
+}
+.gpm-nav-next {
+  right: 0.75rem;
+}
+
+/* Info */
+.gpm-info {
+  padding: 0.875rem 1.25rem 0.75rem;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.gpm-caption {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.4rem;
+}
+
+.gpm-poster-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.gpm-poster-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.gpm-poster-item strong {
+  color: var(--primary-blue);
+  font-weight: 600;
+}
+
+/* Thumbnails */
+.gpm-thumbnails {
+  display: flex;
+  gap: 4px;
+  padding: 0.75rem 1.25rem;
+  overflow-x: auto;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  scrollbar-width: thin;
+}
+
+.gpm-thumbnails::-webkit-scrollbar {
+  height: 4px;
+}
+
+.gpm-thumbnails::-webkit-scrollbar-track {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.gpm-thumbnails::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 2px;
+}
+
+.gpm-thumb {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    opacity 0.2s ease;
+  opacity: 0.55;
+}
+
+.gpm-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gpm-thumb:hover {
+  opacity: 0.8;
+}
+
+.gpm-thumb-active {
+  border-color: var(--primary-blue);
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .gpm-container {
+    border-radius: 12px;
+    max-height: 98vh;
+  }
+
+  .gpm-nav {
+    width: 36px;
+    height: 36px;
+  }
+
+  .gpm-thumb {
+    width: 44px;
+    height: 44px;
+  }
+}
