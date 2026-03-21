@@ -1,20 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Plus, Users, Trash2, Edit2, X } from 'lucide-react'
+import {
+  getCommunities,
+  createCommunity,
+  updateCommunity,
+  deleteCommunity,
+} from '../services/communityService'
 import './GalleryAdmin.css'
 
 function CommunityModal({ community, onClose, onSave }) {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: { nome: community?.nome || '' },
   })
 
   const isEditing = Boolean(community?.id)
 
-  const onSubmit = (data) => onSave({ ...community, ...data })
+  const onSubmit = async (data) => {
+    await onSave({ ...community, ...data })
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -48,11 +56,16 @@ function CommunityModal({ community, onClose, onSave }) {
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancelar
             </button>
-            <button type="submit" className="btn-primary">
-              {isEditing ? 'Salvar' : 'Criar'}
+            <button type="submit" className="btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar'}
             </button>
           </div>
         </form>
@@ -98,9 +111,25 @@ function ConfirmDeleteModal({ communityName, onConfirm, onCancel }) {
 
 function CommunityAdmin({ showNotification }) {
   const [communities, setCommunities] = useState([])
+  const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingCommunity, setEditingCommunity] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
+
+  useEffect(() => {
+    const loadCommunities = async () => {
+      try {
+        const data = await getCommunities()
+        setCommunities(data)
+      } catch (error) {
+        console.error('Erro ao carregar comunidades:', error)
+        showNotification('Erro ao carregar comunidades.', 'error')
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadCommunities()
+  }, [showNotification])
 
   const openCreateModal = () => {
     setEditingCommunity(null)
@@ -117,21 +146,38 @@ function CommunityAdmin({ showNotification }) {
     setEditingCommunity(null)
   }
 
-  const handleSave = (data) => {
-    if (data.id) {
-      setCommunities((prev) => prev.map((c) => (c.id === data.id ? data : c)))
-      showNotification('Comunidade atualizada com sucesso!', 'success')
-    } else {
-      setCommunities((prev) => [...prev, { ...data, id: `community_${Date.now()}` }])
-      showNotification('Comunidade criada com sucesso!', 'success')
+  const handleSave = async (data) => {
+    try {
+      if (data.id) {
+        const updated = await updateCommunity(data.id, { nome: data.nome })
+        setCommunities((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+        showNotification('Comunidade atualizada com sucesso!', 'success')
+      } else {
+        const created = await createCommunity({ nome: data.nome })
+        setCommunities((prev) => [...prev, created].sort((a, b) => a.nome.localeCompare(b.nome)))
+        showNotification('Comunidade criada com sucesso!', 'success')
+      }
+      closeModal()
+    } catch (error) {
+      const msg =
+        error?.code === '23505'
+          ? 'Já existe uma comunidade com esse nome.'
+          : 'Erro ao salvar comunidade.'
+      showNotification(msg, 'error')
     }
-    closeModal()
   }
 
-  const handleDeleteConfirm = () => {
-    setCommunities((prev) => prev.filter((c) => c.id !== confirmDelete.id))
-    showNotification('Comunidade excluída com sucesso!', 'success')
-    setConfirmDelete(null)
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteCommunity(confirmDelete.id)
+      setCommunities((prev) => prev.filter((c) => c.id !== confirmDelete.id))
+      showNotification('Comunidade excluída com sucesso!', 'success')
+    } catch (error) {
+      console.error('Erro ao excluir comunidade:', error)
+      showNotification('Erro ao excluir comunidade.', 'error')
+    } finally {
+      setConfirmDelete(null)
+    }
   }
 
   return (
@@ -144,7 +190,11 @@ function CommunityAdmin({ showNotification }) {
         </button>
       </div>
 
-      {communities.length === 0 ? (
+      {loading ? (
+        <div className="empty-state">
+          <p>Carregando comunidades...</p>
+        </div>
+      ) : communities.length === 0 ? (
         <div className="empty-state">
           <Users size={48} />
           <h3>Nenhuma comunidade cadastrada</h3>
