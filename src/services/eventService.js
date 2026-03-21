@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { withRetry } from '../lib/apiClient'
+import { parseEventDate, getToday } from '../utils/eventDate'
 
 // Buscar todos os eventos (com retry automático)
 export async function getEvents() {
@@ -143,20 +144,15 @@ export async function getUpcomingEvents(limit = 3) {
     { context: 'getUpcomingEvents' }
   )
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = getToday()
 
   const upcoming = data
     .filter((event) => {
       if (!event.data_evento) {
         return false
       }
-      const parts = event.data_evento.split('/')
-      if (parts.length === 3) {
-        const eventDate = new Date(parts[2], parts[1] - 1, parts[0])
-        return eventDate >= today
-      }
-      return new Date(event.data_evento) >= today
+      const eventDate = parseEventDate(event.data_evento)
+      return eventDate && eventDate >= today
     })
     .slice(0, limit)
 
@@ -221,8 +217,7 @@ export async function getRecommendedEvents(
   currentEventDate,
   limit = 3
 ) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = getToday()
 
   const currentTagIds = new Set((currentEventTags || []).map((t) => t.id))
   const currentWeek = getISOWeek(currentEventDate)
@@ -261,19 +256,13 @@ export async function getRecommendedEvents(
     if (!ev.data_evento) {
       return false
     }
-    const parts = ev.data_evento.split('/')
-    if (parts.length === 3) {
-      const evDate = new Date(parts[2], parts[1] - 1, parts[0])
-      return evDate >= today
-    }
-    return new Date(ev.data_evento) >= today
+    const evDate = parseEventDate(ev.data_evento)
+    return evDate && evDate >= today
   })
 
   // Pontuar e ordenar cada candidato
   const scored = candidates.map((ev) => {
-    const parts = ev.data_evento.split('/')
-    const evDate =
-      parts.length === 3 ? new Date(parts[2], parts[1] - 1, parts[0]) : new Date(ev.data_evento)
+    const evDate = parseEventDate(ev.data_evento)
 
     const evTags = allTagsMap[String(ev.id)] || []
     const sharedTagCount = evTags.filter((t) => currentTagIds.has(t.id)).length

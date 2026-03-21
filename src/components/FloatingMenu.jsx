@@ -1,16 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Home, Calendar, Users, Mail, Images, Sun, Moon, X, Menu } from 'lucide-react'
+import { Sun, Moon, X, Menu } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
+import { NAVIGATION_ITEMS } from '../constants/navigation'
 import './FloatingMenu.css'
-
-const NAVIGATION_ITEMS = [
-  { path: '/', label: 'Inicio', icon: Home },
-  { path: '/eventos', label: 'Eventos', icon: Calendar },
-  { path: '/sobre', label: 'Sobre', icon: Users },
-  { path: '/galeria', label: 'Galeria', icon: Images },
-  { path: '/contato', label: 'Contato', icon: Mail },
-]
 
 function FloatingMenu() {
   const { isDarkMode, toggleTheme } = useTheme()
