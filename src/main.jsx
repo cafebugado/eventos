@@ -6,6 +6,8 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import { initSentry, captureError } from './lib/sentry.js'
 import { initWebVitals } from './lib/vitals.js'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import { ThemeProvider } from './context/ThemeProvider.jsx'
+import ScrollToTop from './components/ScrollToTop/ScrollToTop.jsx'
 import Home from './pages/Home.jsx'
 import App from './App.jsx'
 import EventDetails from './pages/EventDetails.jsx'
@@ -32,21 +34,24 @@ window.addEventListener('unhandledrejection', (event) => {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/eventos" element={<App />} />
-          <Route path="/eventos/:id" element={<EventDetails />} />
-          <Route path="/sobre" element={<About />} />
-          <Route path="/contato" element={<Contact />} />
-          <Route path="/galeria" element={<Gallery />} />
-          <Route path="/admin" element={<Login />} />
-          <Route path="/admin/dashboard" element={<Dashboard />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Analytics />
-        <SpeedInsights />
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/eventos" element={<App />} />
+            <Route path="/eventos/:id" element={<EventDetails />} />
+            <Route path="/sobre" element={<About />} />
+            <Route path="/contato" element={<Contact />} />
+            <Route path="/galeria" element={<Gallery />} />
+            <Route path="/admin" element={<Login />} />
+            <Route path="/admin/dashboard" element={<Dashboard />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <ScrollToTop />
+          <Analytics />
+          <SpeedInsights />
+        </BrowserRouter>
+      </ThemeProvider>
     </ErrorBoundary>
   </StrictMode>
 )

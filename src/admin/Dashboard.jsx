@@ -79,6 +79,7 @@ import { getMyProfile, upsertMyProfile } from '../services/profileService'
 import Pagination from '../components/Pagination'
 import RichText from '../components/RichText'
 import useMediaQuery from '../hooks/useMediaQuery'
+import { useTheme } from '../hooks/useTheme'
 import useUserRole, { ROLE_LABELS } from '../hooks/useUserRole'
 import usePagination from '../hooks/usePagination'
 import { useSidebarCollapse } from '../hooks/useSidebarCollapse'
@@ -96,6 +97,14 @@ import CommunityAdmin from './CommunityAdmin'
 import BgEventos from '../assets/eventos.png'
 import { MESSAGES } from '../constants/messages'
 import { LocationSelector } from '../components/LocationSelector'
+import {
+  isEventPast,
+  parseEventDate,
+  getToday,
+  formatDateToInput,
+  formatDateToDisplay,
+} from '../utils/eventDate'
+
 const DAY_NAMES = [
   'Domingo',
   'Segunda-feira',
@@ -106,68 +115,23 @@ const DAY_NAMES = [
   'Sábado',
 ]
 
-const PAGE_SIZES = {
-  desktop: 20,
-  mobile: 10,
-}
-
-const DATE_INPUT_REGEX = /^\d{4}-\d{2}-\d{2}$/
-const DATE_BR_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/
-
-const parseDateValue = (value) => {
-  if (!value) {
-    return null
-  }
-
-  if (DATE_INPUT_REGEX.test(value)) {
-    const [year, month, day] = value.split('-').map(Number)
-    return new Date(year, month - 1, day)
-  }
-
-  const brMatch = value.match(DATE_BR_REGEX)
-  if (brMatch) {
-    const [, day, month, year] = brMatch
-    return new Date(Number(year), Number(month) - 1, Number(day))
-  }
-
-  const parsed = new Date(value)
-  return Number.isNaN(parsed.getTime()) ? null : parsed
-}
-
-const formatDateToInput = (value) => {
-  const date = parseDateValue(value)
-  if (!date) {
-    return ''
-  }
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-const formatDateToDisplay = (value) => {
-  const date = parseDateValue(value)
-  if (!date) {
-    return ''
-  }
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  return `${day}/${month}/${year}`
-}
-
 const getDayName = (value) => {
-  const date = parseDateValue(value)
+  const date = parseEventDate(value)
   if (!date) {
     return ''
   }
   return DAY_NAMES[date.getDay()]
 }
 
+const PAGE_SIZES = {
+  desktop: 20,
+  mobile: 10,
+}
+
 function Dashboard() {
   const [eventos, setEventos] = useState([])
   const [loading, setLoading] = useState(true)
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const { isDarkMode, toggleTheme } = useTheme()
   const [showModal, setShowModal] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const [notification, setNotification] = useState(null)
@@ -277,9 +241,7 @@ function Dashboard() {
       return null
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
+    const today = getToday()
     const startOfWeek = new Date(today)
     startOfWeek.setDate(today.getDate() - today.getDay())
     const endOfWeek = new Date(startOfWeek)
@@ -290,13 +252,13 @@ function Dashboard() {
 
     // todos os eventos da plataforma que acontecem esta semana
     const estaSemana = eventos.filter((e) => {
-      const d = parseDateValue(e.data_evento)
+      const d = parseEventDate(e.data_evento)
       return d && d >= startOfWeek && d <= endOfWeek
     }).length
 
     // todos os eventos da plataforma que ainda vão acontecer
     const futuros = eventos.filter((e) => {
-      const d = parseDateValue(e.data_evento)
+      const d = parseEventDate(e.data_evento)
       return d && d >= today
     }).length
 
@@ -309,23 +271,21 @@ function Dashboard() {
   )
 
   const eventosEstaSemana = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = getToday()
     const startOfWeek = new Date(today)
     startOfWeek.setDate(today.getDate() - today.getDay())
     const endOfWeek = new Date(startOfWeek)
     endOfWeek.setDate(startOfWeek.getDate() + 6)
     return eventos.filter((e) => {
-      const d = parseDateValue(e.data_evento)
+      const d = parseEventDate(e.data_evento)
       return d && d >= startOfWeek && d <= endOfWeek
     })
   }, [eventos])
 
   const eventosProximos = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = getToday()
     return eventos.filter((e) => {
-      const d = parseDateValue(e.data_evento)
+      const d = parseEventDate(e.data_evento)
       return d && d >= today
     })
   }, [eventos])
@@ -424,30 +384,11 @@ function Dashboard() {
         })
       }
 
-      const savedTheme = localStorage.getItem('theme')
-      if (savedTheme === 'dark') {
-        setIsDarkMode(true)
-        document.documentElement.setAttribute('data-theme', 'dark')
-      }
-
       await loadEvents()
     }
 
     init()
   }, [navigate, loadEvents])
-
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode
-    setIsDarkMode(newTheme)
-
-    if (newTheme) {
-      document.documentElement.setAttribute('data-theme', 'dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.removeAttribute('data-theme')
-      localStorage.setItem('theme', 'light')
-    }
-  }
 
   const handleLogout = async () => {
     try {
@@ -1178,10 +1119,7 @@ function Dashboard() {
                         ) : (
                           <div className="upcoming-grid">
                             {eventosEstaSemana.map((evento) => {
-                              const evDate = parseDateValue(evento.data_evento)
-                              const hoje = new Date()
-                              hoje.setHours(0, 0, 0, 0)
-                              const encerrado = evDate && evDate < hoje
+                              const encerrado = isEventPast(evento.data_evento)
                               return (
                                 <EventCard
                                   key={evento.id}
@@ -1261,10 +1199,7 @@ function Dashboard() {
                               </thead>
                               <tbody>
                                 {eventosContribuicoes.map((evento) => {
-                                  const eventDate = parseDateValue(evento.data_evento)
-                                  const today = new Date()
-                                  today.setHours(0, 0, 0, 0)
-                                  const isPast = eventDate && eventDate < today
+                                  const isPast = isEventPast(evento.data_evento)
                                   return (
                                     <tr key={evento.id} className={isPast ? 'event-row-past' : ''}>
                                       <td data-label="Imagem">
@@ -1406,10 +1341,7 @@ function Dashboard() {
                                 </thead>
                                 <tbody>
                                   {pagedItems.map((evento) => {
-                                    const eventDate = parseDateValue(evento.data_evento)
-                                    const today = new Date()
-                                    today.setHours(0, 0, 0, 0)
-                                    const isPast = eventDate && eventDate < today
+                                    const isPast = isEventPast(evento.data_evento)
 
                                     return (
                                       <tr
