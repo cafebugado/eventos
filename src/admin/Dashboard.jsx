@@ -85,6 +85,7 @@ import { useSidebarCollapse } from '../hooks/useSidebarCollapse'
 import { AdminSidebar } from './AdminSidebar'
 import { filterEventsByQuery } from '../utils/eventSearch'
 import { stripRichText } from '../utils/richText'
+import { Modal, ConfirmModal } from '../components/Modal'
 import './Admin.css'
 import '../components/UpcomingEvents.css'
 import BackButton from '../components/BackButton'
@@ -94,6 +95,7 @@ import GalleryAdmin from './GalleryAdmin'
 import CommunityAdmin from './CommunityAdmin'
 import BgEventos from '../assets/eventos.png'
 import { MESSAGES } from '../constants/messages'
+import { LocationSelector } from '../components/LocationSelector'
 const DAY_NAMES = [
   'Domingo',
   'Segunda-feira',
@@ -1010,36 +1012,8 @@ function Dashboard() {
   }
 
   const watchModalidade = watch('modalidade')
-
-  const ESTADOS_BR = [
-    'AC',
-    'AL',
-    'AP',
-    'AM',
-    'BA',
-    'CE',
-    'DF',
-    'ES',
-    'GO',
-    'MA',
-    'MT',
-    'MS',
-    'MG',
-    'PA',
-    'PB',
-    'PR',
-    'PE',
-    'PI',
-    'RJ',
-    'RN',
-    'RS',
-    'RO',
-    'RR',
-    'SC',
-    'SP',
-    'SE',
-    'TO',
-  ]
+  const watchEstado = watch('estado')
+  const watchCidade = watch('cidade')
 
   return (
     <div className="admin-dashboard">
@@ -2037,603 +2011,547 @@ function Dashboard() {
         </div>
       </main>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingEvent ? 'Editar Evento' : 'Criar Novo Evento'}</h2>
-              <button className="modal-close" onClick={closeModal}>
-                <X size={24} />
-              </button>
+      {/* Modal de Evento */}
+      <Modal
+        isOpen={showModal}
+        onClose={closeModal}
+        title={editingEvent ? 'Editar Evento' : 'Criar Novo Evento'}
+        size="lg"
+        footer={null}
+      >
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'contents' }}>
+          <div className="form-row">
+            <div className="form-field">
+              <label>
+                <Calendar size={16} />
+                Nome do Evento
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: Workshop de React"
+                {...register('nome', { required: 'Nome é obrigatório' })}
+              />
+              {errors.nome && <span className="field-error">{errors.nome.message}</span>}
             </div>
+          </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
+          <div className="form-row">
+            <div className="form-field">
+              <label>
+                <FileText size={16} />
+                Descrição do Evento
+              </label>
+              <textarea placeholder="Descreva o evento..." rows="3" {...register('descricao')} />
+              <span className="field-helper">
+                Suporta Markdown: **negrito**, *italico*, listas com &quot;-&quot; e links
+                [texto](https://...)
+              </span>
+              {descricaoValue && (
+                <div className="rich-text-preview">
+                  <span className="preview-label">Pré-visualização</span>
+                  <RichText content={descricaoValue} className="preview-content" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="form-row two-cols">
+            <div className="form-field">
+              <label>
+                <CalendarDays size={16} />
+                Data do Evento
+              </label>
+              <input
+                type="date"
+                placeholder="Selecione uma data"
+                {...register('data_evento', {
+                  required: 'Data é obrigatória',
+                  onChange: (event) => syncDayOfWeek(event.target.value),
+                })}
+              />
+              {errors.data_evento && (
+                <span className="field-error">{errors.data_evento.message}</span>
+              )}
+            </div>
+            <div className="form-field">
+              <label>
+                <Clock size={16} />
+                Horário
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: 19:00"
+                {...register('horario', { required: 'Horário é obrigatório' })}
+              />
+              {errors.horario && <span className="field-error">{errors.horario.message}</span>}
+            </div>
+          </div>
+
+          <div className="form-row two-cols">
+            <div className="form-field">
+              <label>
+                <Calendar size={16} />
+                Dia da Semana
+              </label>
+              <select {...register('dia_semana', { required: 'Dia da semana é obrigatório' })}>
+                <option value="">Selecione...</option>
+                <option value="Segunda-feira">Segunda-feira</option>
+                <option value="Terça-feira">Terça-feira</option>
+                <option value="Quarta-feira">Quarta-feira</option>
+                <option value="Quinta-feira">Quinta-feira</option>
+                <option value="Sexta-feira">Sexta-feira</option>
+                <option value="Sábado">Sábado</option>
+                <option value="Domingo">Domingo</option>
+              </select>
+              {errors.dia_semana && (
+                <span className="field-error">{errors.dia_semana.message}</span>
+              )}
+            </div>
+            <div className="form-field">
+              <label>
+                <Tag size={16} />
+                Período
+              </label>
+              <select {...register('periodo', { required: 'Período é obrigatório' })}>
+                <option value="">Selecione...</option>
+                <option value="Matinal">Matinal</option>
+                <option value="Diurno">Diurno</option>
+                <option value="Vespertino">Vespertino</option>
+                <option value="Noturno">Noturno</option>
+              </select>
+              {errors.periodo && <span className="field-error">{errors.periodo.message}</span>}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-field">
+              <label>
+                <LinkIcon size={16} />
+                Link do Evento
+              </label>
+              <input
+                type="url"
+                placeholder="https://..."
+                {...register('link', { required: 'Link é obrigatório' })}
+              />
+              {errors.link && <span className="field-error">{errors.link.message}</span>}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-field">
+              <label>
+                <Monitor size={16} />
+                Modalidade
+              </label>
+              <select {...register('modalidade')}>
+                <option value="">Selecione...</option>
+                <option value="Presencial">Presencial</option>
+                <option value="Online">Online</option>
+                <option value="Híbrido">Híbrido</option>
+              </select>
+            </div>
+          </div>
+
+          {watchModalidade && watchModalidade !== 'Online' && (
+            <>
               <div className="form-row">
                 <div className="form-field">
                   <label>
-                    <Calendar size={16} />
-                    Nome do Evento
+                    <MapPin size={16} />
+                    Endereço
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: Workshop de React"
-                    {...register('nome', { required: 'Nome é obrigatório' })}
+                    placeholder="Ex: Av. Paulista, 1000 - Bela Vista"
+                    {...register('endereco')}
                   />
-                  {errors.nome && <span className="field-error">{errors.nome.message}</span>}
                 </div>
               </div>
 
               <div className="form-row">
-                <div className="form-field">
-                  <label>
-                    <FileText size={16} />
-                    Descrição do Evento
-                  </label>
-                  <textarea
-                    placeholder="Descreva o evento..."
-                    rows="3"
-                    {...register('descricao')}
-                  />
+                <LocationSelector
+                  estado={watchEstado}
+                  cidade={watchCidade}
+                  onEstadoChange={(uf) => setValue('estado', uf, { shouldValidate: true })}
+                  onCidadeChange={(city) => setValue('cidade', city, { shouldValidate: true })}
+                />
+              </div>
+            </>
+          )}
+
+          {permissions.canManageTags && (
+            <div className="form-row">
+              <div className="form-field">
+                <label>
+                  <Tag size={16} />
+                  Tags de Tecnologia
+                </label>
+                {tags.length === 0 ? (
                   <span className="field-helper">
-                    Suporta Markdown: **negrito**, *italico*, listas com &quot;-&quot; e links
-                    [texto](https://...)
+                    Nenhuma tag cadastrada. Crie tags na aba &quot;Tags&quot; primeiro.
                   </span>
-                  {descricaoValue && (
-                    <div className="rich-text-preview">
-                      <span className="preview-label">Pré-visualização</span>
-                      <RichText content={descricaoValue} className="preview-content" />
+                ) : (
+                  <div className="tags-selector">
+                    {tags.map((tag) => (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        className={`tag-selector-item ${selectedTags.includes(tag.id) ? 'selected' : ''}`}
+                        style={{
+                          '--tag-color': tag.cor || '#2563eb',
+                        }}
+                        onClick={() => toggleTagSelection(tag.id)}
+                      >
+                        {tag.nome}
+                        {selectedTags.includes(tag.id) && <CheckCircle size={14} />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {permissions.canUploadImages && (
+            <div className="form-row">
+              <div className="form-field">
+                <label>
+                  <Image size={16} />
+                  Imagem do Evento
+                </label>
+
+                <div className="image-upload-container">
+                  {imagePreview ? (
+                    <div className="image-preview">
+                      <img src={imagePreview} alt="Preview" />
+                      <button type="button" className="remove-image" onClick={removeImage}>
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className="image-upload-area"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload size={32} />
+                      <p>Clique para fazer upload</p>
+                      <span>PNG, JPG até 5MB</span>
                     </div>
                   )}
-                </div>
-              </div>
-
-              <div className="form-row two-cols">
-                <div className="form-field">
-                  <label>
-                    <CalendarDays size={16} />
-                    Data do Evento
-                  </label>
                   <input
-                    type="date"
-                    placeholder="Selecione uma data"
-                    {...register('data_evento', {
-                      required: 'Data é obrigatória',
-                      onChange: (event) => syncDayOfWeek(event.target.value),
-                    })}
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    style={{ display: 'none' }}
                   />
-                  {errors.data_evento && (
-                    <span className="field-error">{errors.data_evento.message}</span>
-                  )}
                 </div>
-                <div className="form-field">
-                  <label>
-                    <Clock size={16} />
-                    Horário
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ex: 19:00"
-                    {...register('horario', { required: 'Horário é obrigatório' })}
-                  />
-                  {errors.horario && <span className="field-error">{errors.horario.message}</span>}
-                </div>
-              </div>
 
-              <div className="form-row two-cols">
-                <div className="form-field">
-                  <label>
-                    <Calendar size={16} />
-                    Dia da Semana
-                  </label>
-                  <select {...register('dia_semana', { required: 'Dia da semana é obrigatório' })}>
-                    <option value="">Selecione...</option>
-                    <option value="Segunda-feira">Segunda-feira</option>
-                    <option value="Terça-feira">Terça-feira</option>
-                    <option value="Quarta-feira">Quarta-feira</option>
-                    <option value="Quinta-feira">Quinta-feira</option>
-                    <option value="Sexta-feira">Sexta-feira</option>
-                    <option value="Sábado">Sábado</option>
-                    <option value="Domingo">Domingo</option>
-                  </select>
-                  {errors.dia_semana && (
-                    <span className="field-error">{errors.dia_semana.message}</span>
-                  )}
-                </div>
-                <div className="form-field">
-                  <label>
-                    <Tag size={16} />
-                    Período
-                  </label>
-                  <select {...register('periodo', { required: 'Período é obrigatório' })}>
-                    <option value="">Selecione...</option>
-                    <option value="Matinal">Matinal</option>
-                    <option value="Diurno">Diurno</option>
-                    <option value="Vespertino">Vespertino</option>
-                    <option value="Noturno">Noturno</option>
-                  </select>
-                  {errors.periodo && <span className="field-error">{errors.periodo.message}</span>}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-field">
-                  <label>
-                    <LinkIcon size={16} />
-                    Link do Evento
-                  </label>
+                <div className="image-url-option">
+                  <span>ou cole a URL da imagem:</span>
                   <input
                     type="url"
                     placeholder="https://..."
-                    {...register('link', { required: 'Link é obrigatório' })}
+                    {...register('imagem')}
+                    onChange={(e) => {
+                      if (e.target.value && !imageFile) {
+                        setImagePreview(e.target.value)
+                      }
+                    }}
                   />
-                  {errors.link && <span className="field-error">{errors.link.message}</span>}
                 </div>
               </div>
+            </div>
+          )}
 
-              <div className="form-row">
-                <div className="form-field">
-                  <label>
-                    <Monitor size={16} />
-                    Modalidade
-                  </label>
-                  <select {...register('modalidade')}>
-                    <option value="">Selecione...</option>
-                    <option value="Presencial">Presencial</option>
-                    <option value="Online">Online</option>
-                    <option value="Híbrido">Híbrido</option>
-                  </select>
-                </div>
-              </div>
-
-              {watchModalidade && watchModalidade !== 'Online' && (
+          <div className="modal-footer">
+            <button type="button" className="btn-secondary" onClick={closeModal}>
+              Cancelar
+            </button>
+            <button type="submit" className="btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? (
                 <>
-                  <div className="form-row">
-                    <div className="form-field">
-                      <label>
-                        <MapPin size={16} />
-                        Endereço
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Ex: Av. Paulista, 1000 - Bela Vista"
-                        {...register('endereco')}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row two-cols">
-                    <div className="form-field">
-                      <label>
-                        <MapPin size={16} />
-                        Cidade
-                      </label>
-                      <input type="text" placeholder="Ex: São Paulo" {...register('cidade')} />
-                    </div>
-                    <div className="form-field">
-                      <label>
-                        <MapPin size={16} />
-                        Estado
-                      </label>
-                      <select {...register('estado')}>
-                        <option value="">Selecione...</option>
-                        {ESTADOS_BR.map((uf) => (
-                          <option key={uf} value={uf}>
-                            {uf}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                  <span className="button-spinner"></span>
+                  {isUploading ? 'Enviando imagem...' : 'Salvando...'}
+                </>
+              ) : (
+                <>
+                  <Save size={18} />
+                  {editingEvent ? 'Salvar Alterações' : 'Criar Evento'}
                 </>
               )}
-
-              {permissions.canManageTags && (
-                <div className="form-row">
-                  <div className="form-field">
-                    <label>
-                      <Tag size={16} />
-                      Tags de Tecnologia
-                    </label>
-                    {tags.length === 0 ? (
-                      <span className="field-helper">
-                        Nenhuma tag cadastrada. Crie tags na aba &quot;Tags&quot; primeiro.
-                      </span>
-                    ) : (
-                      <div className="tags-selector">
-                        {tags.map((tag) => (
-                          <button
-                            key={tag.id}
-                            type="button"
-                            className={`tag-selector-item ${selectedTags.includes(tag.id) ? 'selected' : ''}`}
-                            style={{
-                              '--tag-color': tag.cor || '#2563eb',
-                            }}
-                            onClick={() => toggleTagSelection(tag.id)}
-                          >
-                            {tag.nome}
-                            {selectedTags.includes(tag.id) && <CheckCircle size={14} />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {permissions.canUploadImages && (
-                <div className="form-row">
-                  <div className="form-field">
-                    <label>
-                      <Image size={16} />
-                      Imagem do Evento
-                    </label>
-
-                    <div className="image-upload-container">
-                      {imagePreview ? (
-                        <div className="image-preview">
-                          <img src={imagePreview} alt="Preview" />
-                          <button type="button" className="remove-image" onClick={removeImage}>
-                            <X size={16} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div
-                          className="image-upload-area"
-                          onClick={() => fileInputRef.current?.click()}
-                        >
-                          <Upload size={32} />
-                          <p>Clique para fazer upload</p>
-                          <span>PNG, JPG até 5MB</span>
-                        </div>
-                      )}
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageSelect}
-                        style={{ display: 'none' }}
-                      />
-                    </div>
-
-                    <div className="image-url-option">
-                      <span>ou cole a URL da imagem:</span>
-                      <input
-                        type="url"
-                        placeholder="https://..."
-                        {...register('imagem')}
-                        onChange={(e) => {
-                          if (e.target.value && !imageFile) {
-                            setImagePreview(e.target.value)
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={closeModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-primary" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <span className="button-spinner"></span>
-                      {isUploading ? 'Enviando imagem...' : 'Salvando...'}
-                    </>
-                  ) : (
-                    <>
-                      <Save size={18} />
-                      {editingEvent ? 'Salvar Alterações' : 'Criar Evento'}
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
 
-      {/* Contributor Modal */}
-      {showContributorModal && (
-        <div className="modal-overlay" onClick={closeContributorModal}>
-          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingContributor ? 'Editar Contribuinte' : 'Adicionar Contribuinte'}</h2>
-              <button className="modal-close" onClick={closeContributorModal}>
-                <X size={24} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitContributor(onSubmitContributor)} className="modal-form">
-              <div className="form-row">
-                <div className="form-field">
-                  <label>
-                    <Github size={16} />
-                    Username do GitHub
-                  </label>
-                  <div className="github-search-row">
-                    <input
-                      type="text"
-                      placeholder="Ex: octocat"
-                      {...registerContributor('github_username', {
-                        required: 'Username do GitHub é obrigatório',
-                        validate: (value) =>
-                          isValidGitHubUsername(value) || 'Username do GitHub inválido',
-                      })}
-                    />
-                    <button
-                      type="button"
-                      className="btn-primary btn-fetch-github"
-                      onClick={() => {
-                        const input = document.querySelector('input[name="github_username"]')
-                        if (input) {
-                          handleFetchGitHub(input.value)
-                        }
-                      }}
-                      disabled={isFetchingGitHub}
-                    >
-                      {isFetchingGitHub ? (
-                        <Loader2 size={16} className="spinning" />
-                      ) : (
-                        <Search size={16} />
-                      )}
-                      Buscar
-                    </button>
-                  </div>
-                  {contributorErrors.github_username && (
-                    <span className="field-error">{contributorErrors.github_username.message}</span>
-                  )}
-                </div>
-              </div>
-
-              {gitHubPreview && (
-                <div className="github-preview">
-                  <img
-                    src={gitHubPreview.avatar_url}
-                    alt={gitHubPreview.nome}
-                    className="github-preview-avatar"
-                  />
-                  <div className="github-preview-info">
-                    <span className="github-preview-name">{gitHubPreview.nome}</span>
-                    <span className="github-preview-username">
-                      @{gitHubPreview.github_username}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div className="form-row">
-                <div className="form-field">
-                  <label>
-                    <Users size={16} />
-                    Nome Completo
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Nome do contribuinte (preenchido pelo GitHub)"
-                    {...registerContributor('nome', { required: 'Nome é obrigatório' })}
-                  />
-                  {contributorErrors.nome && (
-                    <span className="field-error">{contributorErrors.nome.message}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-field">
-                  <label>
-                    <Linkedin size={16} />
-                    LinkedIn (opcional)
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://linkedin.com/in/usuario"
-                    {...registerContributor('linkedin_url', {
-                      validate: (value) =>
-                        !value ||
-                        isValidLinkedInUrl(value) ||
-                        'URL do LinkedIn inválida. Use: https://linkedin.com/in/usuario',
-                    })}
-                  />
-                  {contributorErrors.linkedin_url && (
-                    <span className="field-error">{contributorErrors.linkedin_url.message}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-field">
-                  <label>
-                    <ExternalLink size={16} />
-                    Portfólio (opcional)
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://meusite.com"
-                    {...registerContributor('portfolio_url', {
-                      validate: (value) =>
-                        !value ||
-                        isValidPortfolioUrl(value) ||
-                        'URL do portfólio inválida. Use uma URL válida com https://',
-                    })}
-                  />
-                  {contributorErrors.portfolio_url && (
-                    <span className="field-error">{contributorErrors.portfolio_url.message}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={closeContributorModal}>
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={isSubmittingContributor || !gitHubPreview}
-                >
-                  {isSubmittingContributor ? (
-                    <>
-                      <span className="button-spinner"></span>
-                      Salvando...
-                    </>
-                  ) : (
-                    <>
-                      <Save size={18} />
-                      {editingContributor ? 'Salvar Alterações' : 'Adicionar Contribuinte'}
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Confirmação: Excluir Tag */}
-      {confirmDeleteTag && (
-        <div className="modal-overlay" onClick={() => setConfirmDeleteTag(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Excluir Tag</h2>
-              <button className="modal-close" onClick={() => setConfirmDeleteTag(null)}>
-                <X size={24} />
-              </button>
-            </div>
-            <div className="modal-form">
-              <div className="form-row">
-                <p>
-                  Tem certeza que deseja excluir a tag{' '}
-                  <strong>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '2px 10px',
-                        borderRadius: '999px',
-                        backgroundColor: confirmDeleteTag.cor || '#2563eb',
-                        color: '#fff',
-                        fontSize: '0.85em',
-                      }}
-                    >
-                      {confirmDeleteTag.nome}
-                    </span>
-                  </strong>
-                  ? Ela será removida de todos os eventos.
-                </p>
-              </div>
-              <div className="modal-footer">
+      {/* Modal de Contribuinte */}
+      <Modal
+        isOpen={showContributorModal}
+        onClose={closeContributorModal}
+        title={editingContributor ? 'Editar Contribuinte' : 'Adicionar Contribuinte'}
+        size="lg"
+        footer={null}
+      >
+        <form
+          onSubmit={handleSubmitContributor(onSubmitContributor)}
+          style={{ display: 'contents' }}
+        >
+          <div className="form-row">
+            <div className="form-field">
+              <label>
+                <Github size={16} />
+                Username do GitHub
+              </label>
+              <div className="github-search-row">
+                <input
+                  type="text"
+                  placeholder="Ex: octocat"
+                  {...registerContributor('github_username', {
+                    required: 'Username do GitHub é obrigatório',
+                    validate: (value) =>
+                      isValidGitHubUsername(value) || 'Username do GitHub inválido',
+                  })}
+                />
                 <button
                   type="button"
-                  className="btn-secondary"
-                  onClick={() => setConfirmDeleteTag(null)}
+                  className="btn-primary btn-fetch-github"
+                  onClick={() => {
+                    const input = document.querySelector('input[name="github_username"]')
+                    if (input) {
+                      handleFetchGitHub(input.value)
+                    }
+                  }}
+                  disabled={isFetchingGitHub}
                 >
-                  Cancelar
-                </button>
-                <button type="button" className="btn-danger" onClick={confirmDeleteTagAction}>
-                  <Trash2 size={18} />
-                  Excluir
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tag Modal */}
-      {showTagModal && (
-        <div className="modal-overlay" onClick={closeTagModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingTag ? 'Editar Tag' : 'Criar Nova Tag'}</h2>
-              <button className="modal-close" onClick={closeTagModal}>
-                <X size={24} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitTag(onSubmitTag)} className="modal-form">
-              <div className="form-row">
-                <div className="form-field">
-                  <label>
-                    <Tag size={16} />
-                    Nome da Tag
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ex: React, Node.js, Python"
-                    {...registerTag('nome', { required: 'Nome é obrigatório' })}
-                  />
-                  {tagErrors.nome && <span className="field-error">{tagErrors.nome.message}</span>}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-field form-field-color">
-                  <label>
-                    <Palette size={16} />
-                    Cor da Tag
-                  </label>
-                  <div className="color-picker-row">
-                    <input
-                      type="color"
-                      className="color-picker-input"
-                      value={watchTag('cor') || '#2563eb'}
-                      onChange={(e) => setTagValue('cor', e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      placeholder="#2563eb"
-                      {...registerTag('cor')}
-                      style={{
-                        borderLeftWidth: '4px',
-                        borderLeftColor: watchTag('cor') || '#2563eb',
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Tag Preview */}
-              <div className="form-row">
-                <div className="form-field">
-                  <span className="preview-label">Preview</span>
-                  <div className="tag-preview-container">
-                    <span
-                      className="tag-preview-badge"
-                      style={{
-                        '--tag-color': watchTag('cor') || '#2563eb',
-                      }}
-                    >
-                      {watchTag('nome') || 'Nome da Tag'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={closeTagModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-primary" disabled={isSubmittingTag}>
-                  {isSubmittingTag ? (
-                    <>
-                      <span className="button-spinner"></span>
-                      Salvando...
-                    </>
+                  {isFetchingGitHub ? (
+                    <Loader2 size={16} className="spinning" />
                   ) : (
-                    <>
-                      <Save size={18} />
-                      {editingTag ? 'Salvar Alterações' : 'Criar Tag'}
-                    </>
+                    <Search size={16} />
                   )}
+                  Buscar
                 </button>
               </div>
-            </form>
+              {contributorErrors.github_username && (
+                <span className="field-error">{contributorErrors.github_username.message}</span>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+
+          {gitHubPreview && (
+            <div className="github-preview">
+              <img
+                src={gitHubPreview.avatar_url}
+                alt={gitHubPreview.nome}
+                className="github-preview-avatar"
+              />
+              <div className="github-preview-info">
+                <span className="github-preview-name">{gitHubPreview.nome}</span>
+                <span className="github-preview-username">@{gitHubPreview.github_username}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="form-row">
+            <div className="form-field">
+              <label>
+                <Users size={16} />
+                Nome Completo
+              </label>
+              <input
+                type="text"
+                placeholder="Nome do contribuinte (preenchido pelo GitHub)"
+                {...registerContributor('nome', { required: 'Nome é obrigatório' })}
+              />
+              {contributorErrors.nome && (
+                <span className="field-error">{contributorErrors.nome.message}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-field">
+              <label>
+                <Linkedin size={16} />
+                LinkedIn (opcional)
+              </label>
+              <input
+                type="url"
+                placeholder="https://linkedin.com/in/usuario"
+                {...registerContributor('linkedin_url', {
+                  validate: (value) =>
+                    !value ||
+                    isValidLinkedInUrl(value) ||
+                    'URL do LinkedIn inválida. Use: https://linkedin.com/in/usuario',
+                })}
+              />
+              {contributorErrors.linkedin_url && (
+                <span className="field-error">{contributorErrors.linkedin_url.message}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-field">
+              <label>
+                <ExternalLink size={16} />
+                Portfólio (opcional)
+              </label>
+              <input
+                type="url"
+                placeholder="https://meusite.com"
+                {...registerContributor('portfolio_url', {
+                  validate: (value) =>
+                    !value ||
+                    isValidPortfolioUrl(value) ||
+                    'URL do portfólio inválida. Use uma URL válida com https://',
+                })}
+              />
+              {contributorErrors.portfolio_url && (
+                <span className="field-error">{contributorErrors.portfolio_url.message}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="modal-footer">
+            <button type="button" className="btn-secondary" onClick={closeContributorModal}>
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={isSubmittingContributor || !gitHubPreview}
+            >
+              {isSubmittingContributor ? (
+                <>
+                  <span className="button-spinner"></span>
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save size={18} />
+                  {editingContributor ? 'Salvar Alterações' : 'Adicionar Contribuinte'}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Confirmar Exclusão de Tag */}
+      <ConfirmModal
+        isOpen={Boolean(confirmDeleteTag)}
+        onClose={() => setConfirmDeleteTag(null)}
+        onConfirm={confirmDeleteTagAction}
+        title="Excluir Tag"
+        message={
+          <>
+            Tem certeza que deseja excluir a tag{' '}
+            <strong>
+              <span
+                style={{
+                  display: 'inline-block',
+                  padding: '2px 10px',
+                  borderRadius: '999px',
+                  backgroundColor: confirmDeleteTag?.cor || '#2563eb',
+                  color: '#fff',
+                  fontSize: '0.85em',
+                }}
+              >
+                {confirmDeleteTag?.nome}
+              </span>
+            </strong>
+            ? Ela será removida de todos os eventos.
+          </>
+        }
+        confirmLabel="Excluir"
+      />
+
+      {/* Modal de Tag */}
+      <Modal
+        isOpen={showTagModal}
+        onClose={closeTagModal}
+        title={editingTag ? 'Editar Tag' : 'Criar Nova Tag'}
+        size="md"
+        footer={null}
+      >
+        <form onSubmit={handleSubmitTag(onSubmitTag)} style={{ display: 'contents' }}>
+          <div className="form-row">
+            <div className="form-field">
+              <label>
+                <Tag size={16} />
+                Nome da Tag
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: React, Node.js, Python"
+                {...registerTag('nome', { required: 'Nome é obrigatório' })}
+              />
+              {tagErrors.nome && <span className="field-error">{tagErrors.nome.message}</span>}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-field form-field-color">
+              <label>
+                <Palette size={16} />
+                Cor da Tag
+              </label>
+              <div className="color-picker-row">
+                <input
+                  type="color"
+                  className="color-picker-input"
+                  value={watchTag('cor') || '#2563eb'}
+                  onChange={(e) => setTagValue('cor', e.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="#2563eb"
+                  {...registerTag('cor')}
+                  style={{
+                    borderLeftWidth: '4px',
+                    borderLeftColor: watchTag('cor') || '#2563eb',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-field">
+              <span className="preview-label">Preview</span>
+              <div className="tag-preview-container">
+                <span
+                  className="tag-preview-badge"
+                  style={{ '--tag-color': watchTag('cor') || '#2563eb' }}
+                >
+                  {watchTag('nome') || 'Nome da Tag'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="modal-footer">
+            <button type="button" className="btn-secondary" onClick={closeTagModal}>
+              Cancelar
+            </button>
+            <button type="submit" className="btn-primary" disabled={isSubmittingTag}>
+              {isSubmittingTag ? (
+                <>
+                  <span className="button-spinner"></span>
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save size={18} />
+                  {editingTag ? 'Salvar Alterações' : 'Criar Tag'}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Notification */}
       {notification && (

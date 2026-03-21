@@ -1,18 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import {
-  Calendar,
-  Clock,
-  CalendarDays,
-  ArrowUpRight,
-  MapPin,
-  Monitor,
-  Video,
-  Wifi,
-} from 'lucide-react'
+import { Calendar, Clock, CalendarDays, ArrowUpRight, Monitor, Video, Wifi } from 'lucide-react'
 import { getEventById } from '../services/eventService'
 import { getEventTags } from '../services/tagService'
 import BackButton from '../components/BackButton'
+import EventLocation from '../components/EventLocation'
 import RichText from '../components/RichText'
 import Layout from '../layout/Layout'
 import SEOHead from '../components/SEOHead'
@@ -318,56 +310,12 @@ function EventDetails() {
                 )}
               </div>
 
-              {event.endereco && event.modalidade !== 'Online' && (
-                <div className="event-location">
-                  <div className="location-info">
-                    <MapPin size={20} />
-                    <div className="location-text">
-                      <span className="location-address">{event.endereco}</span>
-                      {(event.cidade || event.estado) && (
-                        <span className="location-city">
-                          {[event.cidade, event.estado].filter(Boolean).join(' - ')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      [event.endereco, event.cidade, event.estado].filter(Boolean).join(', ')
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="location-map-link"
-                  >
-                    <MapPin size={16} />
-                    Ver no Google Maps
-                  </a>
-                </div>
-              )}
-
-              {!event.endereco && event.cidade && event.modalidade !== 'Online' && (
-                <div className="event-location">
-                  <div className="location-info">
-                    <MapPin size={20} />
-                    <div className="location-text">
-                      <span className="location-city">
-                        {[event.cidade, event.estado].filter(Boolean).join(' - ')}
-                      </span>
-                    </div>
-                  </div>
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      [event.cidade, event.estado].filter(Boolean).join(', ')
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="location-map-link"
-                  >
-                    <MapPin size={16} />
-                    Ver no Google Maps
-                  </a>
-                </div>
-              )}
+              <EventLocation
+                endereco={event.endereco}
+                cidade={event.cidade}
+                estado={event.estado}
+                modalidade={event.modalidade}
+              />
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
                 <a

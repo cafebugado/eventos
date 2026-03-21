@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { Plus, Users, Trash2, Edit2, X } from 'lucide-react'
+import { Plus, Users, Trash2, Edit2 } from 'lucide-react'
 import {
   getCommunities,
   createCommunity,
   updateCommunity,
   deleteCommunity,
 } from '../services/communityService'
+import { Modal, ConfirmModal } from '../components/Modal'
 import './GalleryAdmin.css'
 
 function CommunityModal({ community, onClose, onSave }) {
@@ -25,87 +26,58 @@ function CommunityModal({ community, onClose, onSave }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-content"
-        style={{ maxWidth: 420, width: '100%' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="modal-header">
-          <h2>{isEditing ? 'Editar Comunidade' : 'Nova Comunidade'}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Fechar">
-            <X size={24} />
-          </button>
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={isEditing ? 'Editar Comunidade' : 'Nova Comunidade'}
+      size="sm"
+      footer={null}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'contents' }}>
+        <div className="form-row">
+          <div className="form-field">
+            <label>
+              <Users size={15} />
+              Nome da Comunidade
+            </label>
+            <input
+              type="text"
+              placeholder="Ex: Cafe Bugado"
+              {...register('nome', { required: 'Nome é obrigatório' })}
+              autoFocus
+            />
+            {errors.nome && <span className="field-error">{errors.nome.message}</span>}
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
-          <div className="form-row">
-            <div className="form-field">
-              <label>
-                <Users size={15} />
-                Nome da Comunidade
-              </label>
-              <input
-                type="text"
-                placeholder="Ex: Cafe Bugado"
-                {...register('nome', { required: 'Nome é obrigatório' })}
-                autoFocus
-              />
-              {errors.nome && <span className="field-error">{errors.nome.message}</span>}
-            </div>
-          </div>
-
-          <div className="form-actions">
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </button>
-            <button type="submit" className="btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="modal-footer">
+          <button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>
+            Cancelar
+          </button>
+          <button type="submit" className="btn-primary" disabled={isSubmitting}>
+            {isSubmitting ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar'}
+          </button>
+        </div>
+      </form>
+    </Modal>
   )
 }
 
 function ConfirmDeleteModal({ communityName, onConfirm, onCancel }) {
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div
-        className="modal-content"
-        style={{ maxWidth: 400, width: '100%' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="modal-header">
-          <h2>Excluir Comunidade</h2>
-          <button className="modal-close" onClick={onCancel} aria-label="Fechar">
-            <X size={24} />
-          </button>
-        </div>
-        <div className="ga-confirm-body">
-          <Trash2 size={40} className="ga-confirm-icon" />
-          <p>
-            Tem certeza que deseja excluir a comunidade <strong>{communityName}</strong>? Esta ação
-            não pode ser desfeita.
-          </p>
-        </div>
-        <div className="ga-confirm-modal-actions">
-          <button type="button" className="btn-secondary" onClick={onCancel}>
-            Cancelar
-          </button>
-          <button type="button" className="btn-danger" onClick={onConfirm}>
-            <Trash2 size={16} />
-            Excluir
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmModal
+      isOpen
+      onClose={onCancel}
+      onConfirm={onConfirm}
+      title="Excluir Comunidade"
+      message={
+        <>
+          Tem certeza que deseja excluir a comunidade <strong>{communityName}</strong>? Esta ação
+          não pode ser desfeita.
+        </>
+      }
+      confirmLabel="Excluir"
+    />
   )
 }
 
