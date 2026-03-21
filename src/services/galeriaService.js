@@ -29,14 +29,19 @@ export async function getAlbuns() {
         throw error
       }
 
-      // Buscar perfis dos criadores separadamente para evitar ambiguidade de FK
-      const creatorIds = [...new Set(data.map((a) => a.created_by).filter(Boolean))]
+      // Coletar todos os user IDs (criadores de álbuns + uploaders de fotos)
+      const creatorIds = data.map((a) => a.created_by).filter(Boolean)
+      const uploaderIds = data.flatMap((a) =>
+        (a.galeria_fotos || []).map((f) => f.uploaded_by).filter(Boolean)
+      )
+      const allUserIds = [...new Set([...creatorIds, ...uploaderIds])]
+
       let profilesMap = {}
-      if (creatorIds.length > 0) {
+      if (allUserIds.length > 0) {
         const { data: profiles } = await supabase
           .from('user_profiles')
-          .select('user_id, nome_completo, username')
-          .in('user_id', creatorIds)
+          .select('user_id, nome, sobrenome')
+          .in('user_id', allUserIds)
         if (profiles) {
           profilesMap = Object.fromEntries(profiles.map((p) => [p.user_id, p]))
         }
@@ -45,6 +50,10 @@ export async function getAlbuns() {
       return data.map((album) => ({
         ...album,
         user_profiles: profilesMap[album.created_by] || null,
+        galeria_fotos: (album.galeria_fotos || []).map((foto) => ({
+          ...foto,
+          uploader_profile: profilesMap[foto.uploaded_by] || null,
+        })),
       }))
     },
     { context: 'getAlbuns' }
@@ -81,7 +90,7 @@ export async function createAlbum({ evento_id, comunidade_id }) {
       if (data.created_by) {
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('user_id, nome_completo, username')
+          .select('user_id, nome, sobrenome')
           .eq('user_id', data.created_by)
           .maybeSingle()
         user_profiles = profile
@@ -126,7 +135,7 @@ export async function updateAlbum(id, { evento_id, comunidade_id }) {
       if (data.created_by) {
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('user_id, nome_completo, username')
+          .select('user_id, nome, sobrenome')
           .eq('user_id', data.created_by)
           .maybeSingle()
         user_profiles = profile

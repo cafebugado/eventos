@@ -2,7 +2,7 @@ import { useEffect, useCallback } from 'react'
 import { X, ChevronLeft, ChevronRight, User, Calendar, Images } from 'lucide-react'
 import './GalleryPhotoModal.css'
 
-function GalleryPhotoModal({ event, photoIndex, onClose, onPrev, onNext }) {
+function GalleryPhotoModal({ event, photoIndex, onClose, onPrev, onNext, onGoTo }) {
   const photo = event?.photos[photoIndex]
   const hasPrev = photoIndex > 0
   const hasNext = photoIndex < event?.photos.length - 1
@@ -83,16 +83,20 @@ function GalleryPhotoModal({ event, photoIndex, onClose, onPrev, onNext }) {
 
         {/* Informações da foto */}
         <div className="gpm-info">
-          <p className="gpm-caption">{photo.caption}</p>
+          {photo.caption && <p className="gpm-caption">{photo.caption}</p>}
           <div className="gpm-poster-details">
-            <span className="gpm-poster-item">
-              <User size={14} />
-              Postado por <strong>{photo.postedBy}</strong>
-            </span>
-            <span className="gpm-poster-item">
-              <Calendar size={14} />
-              {photo.postedAt}
-            </span>
+            {photo.postedBy && (
+              <span className="gpm-poster-item">
+                <User size={14} />
+                Postado por <strong>{photo.postedBy}</strong>
+              </span>
+            )}
+            {photo.postedAt && (
+              <span className="gpm-poster-item">
+                <Calendar size={14} />
+                {photo.postedAt}
+              </span>
+            )}
           </div>
         </div>
 
@@ -102,13 +106,7 @@ function GalleryPhotoModal({ event, photoIndex, onClose, onPrev, onNext }) {
             <button
               key={p.id}
               className={`gpm-thumb ${idx === photoIndex ? 'gpm-thumb-active' : ''}`}
-              onClick={() => {
-                if (idx < photoIndex) {
-                  onPrev(idx)
-                } else if (idx > photoIndex) {
-                  onNext(idx)
-                }
-              }}
+              onClick={() => onGoTo(idx)}
               aria-label={`Ir para foto ${idx + 1}`}
             >
               <img src={p.thumb} alt={p.caption} />

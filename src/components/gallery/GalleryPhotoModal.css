@@ -98,20 +98,34 @@
 /* Image area */
 .gpm-image-area {
   position: relative;
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #000;
-  min-height: 0;
+  height: 460px;
+  flex-shrink: 0;
 }
 
 .gpm-image {
   max-width: 100%;
   max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
   display: block;
   animation: gpm-fade-in 0.2s ease;
+}
+
+@media (max-height: 700px) {
+  .gpm-image-area {
+    height: 320px;
+  }
+}
+
+@media (max-width: 600px) {
+  .gpm-image-area {
+    height: 260px;
+  }
 }
 
 /* Nav buttons */

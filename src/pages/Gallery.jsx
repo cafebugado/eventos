@@ -8,7 +8,7 @@ import { useGallery } from '../hooks/useGallery'
 import './Gallery.css'
 
 function Gallery() {
-  const { events } = useGallery()
+  const { events, loading, error } = useGallery()
 
   const [modal, setModal] = useState({ event: null, photoIndex: 0 })
 
@@ -34,7 +34,9 @@ function Gallery() {
     }))
   }, [])
 
-  const isEmpty = events.length === 0
+  const goToIndex = useCallback((index) => {
+    setModal((prev) => ({ ...prev, photoIndex: index }))
+  }, [])
 
   return (
     <Layout>
@@ -57,12 +59,28 @@ function Gallery() {
               juntas. Sua comunidade também pode fazer parte disso.
             </p>
 
-            {isEmpty ? (
+            {loading && (
+              <div className="gallery-empty">
+                <Images size={48} />
+                <p>Carregando galeria...</p>
+              </div>
+            )}
+
+            {!loading && error && (
+              <div className="gallery-empty">
+                <Images size={48} />
+                <p>Erro ao carregar a galeria. Tente novamente mais tarde.</p>
+              </div>
+            )}
+
+            {!loading && !error && events.length === 0 && (
               <div className="gallery-empty">
                 <Images size={48} />
                 <p>Nenhum evento encontrado para os filtros selecionados.</p>
               </div>
-            ) : (
+            )}
+
+            {!loading && !error && events.length > 0 && (
               <div className="gallery-events-list">
                 {events.map((event) => (
                   <GalleryEventCard key={event.id} event={event} onPhotoClick={openModal} />
@@ -80,6 +98,7 @@ function Gallery() {
           onClose={closeModal}
           onPrev={goToPrev}
           onNext={goToNext}
+          onGoTo={goToIndex}
         />
       )}
     </Layout>
