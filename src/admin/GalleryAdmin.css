@@ -353,44 +353,6 @@
   padding: 1rem 0;
 }
 
-/* Confirm delete modal */
-.ga-confirm-modal {
-  max-width: 400px;
-  width: 100%;
-}
-
-.ga-confirm-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem 1.5rem 0.5rem;
-  text-align: center;
-}
-
-.ga-confirm-icon {
-  color: #dc2626;
-  opacity: 0.8;
-}
-
-.ga-confirm-body p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.ga-confirm-body strong {
-  color: var(--text-primary);
-}
-
-.ga-confirm-modal .form-actions,
-.ga-confirm-modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem 1.5rem;
-}
-
 /* Spinner */
 @keyframes ga-spin {
   from {
