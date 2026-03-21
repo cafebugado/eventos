@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Sun, Moon, Home, Calendar, Users, Mail } from 'lucide-react'
+import { Sun, Moon, Home, Calendar, Users, Mail, Images } from 'lucide-react'
 import './Header.css'
 
 const NAVIGATION_ITEMS = [
   { path: '/', label: 'Inicio', icon: Home },
   { path: '/eventos', label: 'Eventos', icon: Calendar },
   { path: '/sobre', label: 'Sobre', icon: Users },
+  { path: '/galeria', label: 'Galeria', icon: Images },
   { path: '/contato', label: 'Contato', icon: Mail },
 ]
 

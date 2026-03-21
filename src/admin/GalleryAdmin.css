@@ -1,0 +1,479 @@
+/* ================================
+   Gallery Admin Styles
+   ================================ */
+
+/* Search bar */
+.ga-search-bar {
+  margin-bottom: 1.5rem;
+}
+
+.ga-search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--background);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+.ga-search-input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+}
+
+/* Albums list — máximo 3 por linha, distribui automaticamente */
+.ga-albums-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 1rem;
+}
+
+/* Album card */
+.ga-album-card {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  transition: box-shadow 0.2s;
+}
+
+.ga-album-card:hover {
+  box-shadow: 0 4px 16px var(--shadow);
+}
+
+.ga-album-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ga-album-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ga-album-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ga-album-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ga-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.ga-album-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.ga-expand-btn {
+  color: var(--text-secondary);
+}
+
+.ga-expand-btn:hover {
+  color: var(--primary-blue);
+  background: color-mix(in srgb, var(--primary-blue) 10%, transparent);
+}
+
+/* Preview thumbnails */
+.ga-album-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.ga-preview-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 0.4rem;
+  border: 1px solid var(--border);
+}
+
+.ga-preview-more {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Expanded photos grid */
+.ga-album-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.ga-photo-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ga-photo-item img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 0.4rem;
+  border: 1px solid var(--border);
+}
+
+.ga-photo-caption {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Botão de legenda (clicável para editar) */
+.ga-legenda-btn {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.2rem 0.25rem;
+  text-align: left;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 0.25rem;
+  transition: background 0.15s;
+}
+
+.ga-legenda-btn:hover {
+  background: color-mix(in srgb, var(--primary-blue) 10%, transparent);
+  color: var(--primary-blue);
+}
+
+.ga-legenda-empty {
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* Edição inline de legenda */
+.ga-legenda-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.2rem;
+}
+
+.ga-legenda-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.7rem;
+  border: 1px solid var(--primary-blue);
+  border-radius: 0.25rem;
+  background: var(--background);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.ga-legenda-save,
+.ga-legenda-cancel {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.ga-legenda-save {
+  background: var(--primary-blue);
+  color: white;
+}
+
+.ga-legenda-cancel {
+  background: var(--border);
+  color: var(--text-secondary);
+}
+
+/* Modal */
+.ga-modal {
+  width: 100%;
+  max-width: 640px;
+}
+
+/* Photos section inside modal */
+.ga-photos-section {
+  border-top: 1px solid var(--border);
+  padding-top: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.ga-photos-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 1rem;
+}
+
+/* Photo form */
+.ga-photo-form {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ga-photo-form input[type='text'],
+.ga-photo-form input[type='url'] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--background);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.ga-photo-form input[type='text']:focus,
+.ga-photo-form input[type='url']:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.ga-photo-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ga-upload-container {
+  margin-bottom: 0;
+}
+
+.ga-photo-form-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ga-add-photo-btn {
+  flex-shrink: 0;
+  align-self: flex-end;
+  white-space: nowrap;
+}
+
+/* Photos list in modal */
+.ga-photos-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.ga-photo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ga-photo-thumb-wrap {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 0.4rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.ga-photo-thumb-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ga-photo-delete {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.ga-photo-thumb-wrap:hover .ga-photo-delete {
+  opacity: 1;
+}
+
+.ga-no-photos {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  padding: 1rem 0;
+}
+
+/* Confirm delete modal */
+.ga-confirm-modal {
+  max-width: 400px;
+  width: 100%;
+}
+
+.ga-confirm-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 0.5rem;
+  text-align: center;
+}
+
+.ga-confirm-icon {
+  color: #dc2626;
+  opacity: 0.8;
+}
+
+.ga-confirm-body p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.ga-confirm-body strong {
+  color: var(--text-primary);
+}
+
+.ga-confirm-modal .form-actions,
+.ga-confirm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+/* Spinner */
+@keyframes ga-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ga-spin {
+  animation: ga-spin 0.8s linear infinite;
+}
+
+/* Author meta badge */
+.ga-meta-author {
+  color: var(--primary-blue);
+  font-weight: 500;
+}
+
+/* Modal hint text */
+.ga-modal-hint {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--primary-blue) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-blue) 20%, transparent);
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Expanded state wrapper */
+.ga-album-expanded {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Fotos dentro do modal de edição */
+.ga-modal-fotos {
+  border-top: 1px solid var(--border);
+  padding-top: 1.25rem;
+  margin-top: 0.25rem;
+}
+
+.ga-modal-fotos-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 1rem;
+}
+
+/* Add foto modal body */
+.ga-add-foto-modal-body {
+  padding: 0 0 0.5rem;
+}
+
+.ga-add-foto-album-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0 0 1.25rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .ga-photo-form-row {
+    flex-direction: column;
+  }
+
+  .ga-add-photo-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ga-album-header {
+    flex-wrap: wrap;
+  }
+}

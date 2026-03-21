@@ -33,6 +33,8 @@ describe('AdminSidebar', () => {
     expect(screen.getByRole('button', { name: 'Contribuintes' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Repositório' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Usuários' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Comunidades' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Galeria' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Configurações' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ver Site' })).toBeInTheDocument()
   })
