@@ -10,21 +10,8 @@ import SEOHead from './components/SEOHead'
 import EventCard from './components/EventCard'
 import useMediaQuery from './hooks/useMediaQuery'
 import usePagination from './hooks/usePagination'
+import { isEventPast, isEventToday, sortEventsByDate } from './utils/eventDate'
 import './App.css'
-
-// Funcao para converter data no formato DD/MM/YYYY para objeto Date
-function parseEventDate(dateStr) {
-  if (!dateStr) {
-    return new Date(0)
-  }
-  const parts = dateStr.split('/')
-  if (parts.length === 3) {
-    // Formato DD/MM/YYYY
-    return new Date(parts[2], parts[1] - 1, parts[0])
-  }
-  // Tenta parse direto se estiver em outro formato
-  return new Date(dateStr)
-}
 
 function App() {
   const [agenda, setAgenda] = useState([])
@@ -44,34 +31,7 @@ function App() {
     setError(null)
     try {
       const events = await getEvents()
-      // Ordena eventos por data mais proxima primeiro
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      const sortedEvents = events.sort((a, b) => {
-        const dateA = parseEventDate(a.data_evento)
-        const dateB = parseEventDate(b.data_evento)
-
-        // Eventos futuros vem primeiro, ordenados por proximidade
-        const isAFuture = dateA >= today
-        const isBFuture = dateB >= today
-
-        if (isAFuture && !isBFuture) {
-          return -1
-        }
-        if (!isAFuture && isBFuture) {
-          return 1
-        }
-
-        // Ambos futuros: mais proximo primeiro
-        if (isAFuture) {
-          return dateA - dateB
-        }
-        // Ambos passados: mais recente primeiro
-        return dateB - dateA
-      })
-
-      setAgenda(sortedEvents)
+      setAgenda(sortEventsByDate(events))
 
       // Carrega tags de todos os eventos e lista de tags
       try {
@@ -143,9 +103,6 @@ function App() {
 
   // Filtra e ordena eventos client-side
   const filteredEvents = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
     return agenda.filter((event) => {
       // Filtro de busca por nome/descricao
       const searchLower = searchTerm.toLowerCase()
@@ -160,9 +117,7 @@ function App() {
         (eventTagsMap[event.id] || []).some((tag) => String(tag.id) === selectedTagId)
 
       // Filtro de eventos passados
-      const eventDate = parseEventDate(event.data_evento)
-      const isPastEvent = eventDate < today
-      const matchesPastFilter = showPastEvents || !isPastEvent
+      const matchesPastFilter = showPastEvents || !isEventPast(event.data_evento)
 
       // Filtro de favoritos
       const matchesFavourite = !showOnlyFavourites || favouriteIds.has(event.id)
@@ -320,11 +275,8 @@ function App() {
             <>
               <div className="eventos-grid">
                 {pagedItems.map((item, index) => {
-                  const today = new Date()
-                  today.setHours(0, 0, 0, 0)
-                  const eventDate = parseEventDate(item.data_evento)
-                  const isToday = eventDate.getTime() === today.getTime()
-                  const isPast = eventDate < today
+                  const isPast = isEventPast(item.data_evento)
+                  const isToday = isEventToday(item.data_evento)
 
                   return (
                     <EventCard
