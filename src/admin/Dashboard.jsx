@@ -90,6 +90,8 @@ import '../components/UpcomingEvents.css'
 import BackButton from '../components/BackButton'
 import EventCard from '../components/EventCard'
 import GithubStats from './GithubStats'
+import GalleryAdmin from './GalleryAdmin'
+import CommunityAdmin from './CommunityAdmin'
 import BgEventos from '../assets/eventos.png'
 import { MESSAGES } from '../constants/messages'
 const DAY_NAMES = [
@@ -1103,7 +1105,9 @@ function Dashboard() {
                 activeTab !== 'tags' &&
                 activeTab !== 'usuarios' &&
                 activeTab !== 'configuracoes' &&
-                activeTab !== 'repositorio' && (
+                activeTab !== 'repositorio' &&
+                activeTab !== 'galeria' &&
+                activeTab !== 'comunidades' && (
                   <>
                     {/* Stats */}
                     <div className="stats-grid">
@@ -1830,6 +1834,16 @@ function Dashboard() {
                 <div className="events-section">
                   <GithubStats />
                 </div>
+              )}
+
+              {/* Comunidades Section */}
+              {activeTab === 'comunidades' && (
+                <CommunityAdmin showNotification={showNotification} />
+              )}
+
+              {/* Galeria Section */}
+              {activeTab === 'galeria' && (
+                <GalleryAdmin showNotification={showNotification} eventos={eventos} />
               )}
 
               {/* Configurações Section */}

@@ -10,6 +10,7 @@ import {
   GitBranch,
   ChevronLeft,
   ChevronRight,
+  Images,
 } from 'lucide-react'
 
 const MENU_ITEMS = [
@@ -28,6 +29,8 @@ const MENU_ITEMS = [
     permission: 'canManageContributors',
   },
   { id: 'usuarios', label: 'Usuários', icon: UserCog, permission: 'canManageUsers' },
+  { id: 'comunidades', label: 'Comunidades', icon: Users, permission: null },
+  { id: 'galeria', label: 'Galeria', icon: Images, permission: null },
   { id: 'configuracoes', label: 'Configurações', icon: Settings, permission: null },
 ]
 
