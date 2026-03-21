@@ -79,6 +79,7 @@ import { getMyProfile, upsertMyProfile } from '../services/profileService'
 import Pagination from '../components/Pagination'
 import RichText from '../components/RichText'
 import useMediaQuery from '../hooks/useMediaQuery'
+import { useTheme } from '../hooks/useTheme'
 import useUserRole, { ROLE_LABELS } from '../hooks/useUserRole'
 import usePagination from '../hooks/usePagination'
 import { useSidebarCollapse } from '../hooks/useSidebarCollapse'
@@ -167,7 +168,7 @@ const getDayName = (value) => {
 function Dashboard() {
   const [eventos, setEventos] = useState([])
   const [loading, setLoading] = useState(true)
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const { isDarkMode, toggleTheme } = useTheme()
   const [showModal, setShowModal] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const [notification, setNotification] = useState(null)
@@ -424,30 +425,11 @@ function Dashboard() {
         })
       }
 
-      const savedTheme = localStorage.getItem('theme')
-      if (savedTheme === 'dark') {
-        setIsDarkMode(true)
-        document.documentElement.setAttribute('data-theme', 'dark')
-      }
-
       await loadEvents()
     }
 
     init()
   }, [navigate, loadEvents])
-
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode
-    setIsDarkMode(newTheme)
-
-    if (newTheme) {
-      document.documentElement.setAttribute('data-theme', 'dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.removeAttribute('data-theme')
-      localStorage.setItem('theme', 'light')
-    }
-  }
 
   const handleLogout = async () => {
     try {
