@@ -1,6 +1,6 @@
 # Eventos - Comunidade Café Bugado
 
-Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e participar dos melhores eventos, com design limpo, dark mode, painel administrativo e animações suaves.
+Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e participar dos melhores eventos, com design limpo, dark mode, painel administrativo, galeria de fotos e animações suaves.
 
 **Site:** [cafebugado.com.br](https://cafebugado.com.br)
 
@@ -14,22 +14,29 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 - **Responsivo** - Design mobile-first que funciona em todos os dispositivos
 - **Tempo Real** - Sincronização automática com banco de dados Supabase
 - **Curadoria** - Eventos selecionados e verificados pela comunidade
+- **Favoritos** - Marque eventos favoritos com persistência em localStorage
+- **Recomendações** - Sugestões baseadas em tags e proximidade de data (lazy-load)
+- **Galeria de Fotos** - Galeria pública de fotos da comunidade por álbuns de evento
+- **Compartilhamento** - Botões para compartilhar eventos em redes sociais
+- **SEO Otimizado** - Meta tags dinâmicas e Open Graph por página
 
 ### Painel Administrativo
 
 - **Autenticação** - Login seguro via Supabase Auth
-- **CRUD de Eventos** - Criar, editar, visualizar e excluir eventos
+- **CRUD de Eventos** - Criar, editar, visualizar e excluir eventos com upload de imagem
 - **Tags de Tecnologia** - CRUD de tags com cor customizada e preview em tempo real
 - **Modalidade** - Presencial, Online ou Híbrido para cada evento
 - **Localização** - Endereço, cidade e estado com link para Google Maps
-- **Upload de Imagens** - Upload direto para Supabase Storage
-- **Estatísticas** - Visualização de eventos por período
+- **Estatísticas** - Visualização de eventos por período com stats clicáveis
 - **Validação de Formulários** - React Hook Form com validações
-- **Controle de Acesso (RBAC)** - Permissões granulares por papel: super_admin, admin e moderador
-- **Perfil de Usuário** - Todos os papéis podem configurar nome, sobrenome e avatar via GitHub
-- **Dashboard do Moderador** - Stats clicáveis com visualização de contribuições, eventos da semana e próximos eventos
-- **Recomendações de Eventos** - Sugestões baseadas em tags e proximidade de data carregadas via lazy-load na página de detalhe
-- **EventCard Reutilizável** - Componente unificado com variantes `compact` e `full` usado em toda a aplicação
+- **RBAC** - Controle de acesso granular por papel: `super_admin`, `admin` e `moderador`
+- **Perfil de Usuário** - Todos os papéis editam nome, sobrenome e avatar via GitHub
+- **Comunidades** - CRUD de comunidades com controle de acesso por papel
+- **Galeria Admin** - Gerenciamento de álbuns e fotos por evento (upload, legenda, ordem)
+- **Contribuintes** - CRUD de contribuintes com validação de perfil GitHub
+- **Estatísticas GitHub** - Stats do repositório diretamente no dashboard
+- **Gerenciamento de Usuários** - Atribuição de papéis (apenas `super_admin`)
+- **EventCard Reutilizável** - Componente unificado com variantes `compact` e `full`
 
 ## Tecnologias Utilizadas
 
@@ -38,16 +45,24 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 | Tecnologia       | Versão  | Descrição                    |
 | ---------------- | ------- | ---------------------------- |
 | React            | 19.1.1  | Biblioteca para interfaces   |
-| React Router DOM | 7.13.0  | Roteamento SPA               |
-| React Hook Form  | 7.54.2  | Gerenciamento de formulários |
-| Lucide React     | 0.469.0 | Biblioteca de ícones         |
+| React Router DOM | 7.13.1  | Roteamento SPA               |
+| React Hook Form  | 7.71.2  | Gerenciamento de formulários |
+| Lucide React     | 0.577.0 | Biblioteca de ícones         |
 | Vite             | 7.1.2   | Build tool moderno           |
 
 ### Backend & Database
 
 | Tecnologia | Versão | Descrição                  |
 | ---------- | ------ | -------------------------- |
-| Supabase   | 2.93.2 | PostgreSQL, Auth e Storage |
+| Supabase   | 2.99.1 | PostgreSQL, Auth e Storage |
+
+### Monitoramento & Analytics
+
+| Ferramenta            | Descrição                         |
+| --------------------- | --------------------------------- |
+| Sentry                | Rastreamento de erros em produção |
+| Vercel Analytics      | Análise de tráfego                |
+| Vercel Speed Insights | Métricas de performance           |
 
 ### Qualidade de Código
 
@@ -61,12 +76,13 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 
 ### Testes
 
-| Ferramenta      | Versão | Descrição                  |
-| --------------- | ------ | -------------------------- |
-| Vitest          | 4.0.18 | Framework de testes        |
-| Testing Library | 16.3.2 | Utilitários de teste React |
-| MSW             | 2.12.7 | Mock de APIs               |
-| jsdom           | 27.4.0 | Ambiente DOM para testes   |
+| Ferramenta      | Versão  | Descrição                  |
+| --------------- | ------- | -------------------------- |
+| Vitest          | 4.0.18  | Framework de testes        |
+| Testing Library | 16.3.2  | Utilitários de teste React |
+| Playwright      | 1.58.2  | Testes E2E                 |
+| MSW             | 2.12.10 | Mock de APIs               |
+| jsdom           | 29.0.0  | Ambiente DOM para testes   |
 
 ## Instalação
 
@@ -81,7 +97,7 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/seu-usuario/agendas_eventos.git
+git clone https://github.com/cafebugado/agendas_eventos.git
 cd agendas_eventos
 ```
 
@@ -106,8 +122,13 @@ cp .env.example .env
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_ANON_KEY=sua-anon-key-aqui
 
-# Google Sheets (opcional - legado)
-VITE_GOOGLE_SHEET_URL=https://docs.google.com/spreadsheets/...
+# Sentry (opcional - rastreamento de erros em produção)
+VITE_SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
+
+# GitHub (opcional - stats do repositório no dashboard)
+VITE_GITHUB_TOKEN=ghp_seu_token_aqui
+VITE_GITHUB_REPO=cafebugado/agendas_eventos
+VITE_GITHUB_REPO_BACKEND=cafebugado/backendEventos
 ```
 
 5. Execute o projeto:
@@ -123,7 +144,7 @@ npm run dev
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/seu-usuario/agendas_eventos.git
+git clone https://github.com/cafebugado/agendas_eventos.git
 cd agendas_eventos
 ```
 
@@ -165,6 +186,8 @@ pnpm test             # Executa testes em modo watch
 pnpm test:run         # Executa testes uma vez
 pnpm test:ui          # Interface visual para testes
 pnpm test:coverage    # Relatório de cobertura
+pnpm test:e2e         # Testes E2E com Playwright
+pnpm test:e2e:ui      # Testes E2E com interface visual
 ```
 
 ## Docker
@@ -179,6 +202,14 @@ docker-compose up app-dev
 docker-compose up app-dev -d
 
 # Acesse: http://localhost:5173
+```
+
+### Staging
+
+```bash
+docker-compose --profile staging up app-staging
+
+# Acesse: http://localhost:3000
 ```
 
 ### Produção
@@ -221,157 +252,188 @@ docker-compose build --no-cache
 ```
 agendas_eventos/
 ├── src/
-│   ├── admin/                    # Painel administrativo
-│   │   ├── Login.jsx             # Página de login
-│   │   ├── Login.test.jsx        # Testes do login
-│   │   ├── Dashboard.jsx         # Dashboard de eventos
-│   │   ├── Dashboard.test.jsx    # Testes do dashboard
-│   │   └── Admin.css             # Estilos do admin
+│   ├── admin/                        # Painel administrativo
+│   │   ├── Login.jsx                 # Página de login
+│   │   ├── Login.test.jsx
+│   │   ├── Dashboard.jsx             # Dashboard multi-abas (~1500 linhas)
+│   │   ├── Dashboard.test.jsx
+│   │   ├── AdminSidebar.jsx          # Sidebar colapsável
+│   │   ├── AdminSidebar.test.jsx
+│   │   ├── GalleryAdmin.jsx          # Gerenciamento de álbuns e fotos
+│   │   ├── GalleryAdmin.test.jsx
+│   │   ├── CommunityAdmin.jsx        # Gerenciamento de comunidades
+│   │   ├── CommunityAdmin.test.jsx
+│   │   ├── GithubStats.jsx           # Stats do repositório GitHub
+│   │   └── Admin.css
 │   │
-│   ├── components/               # Componentes reutilizáveis
-│   │   ├── EventCard.jsx         # Card de evento (variant compact/full)
-│   │   ├── EventCard.test.jsx    # Testes do EventCard
-│   │   ├── EventCard.css         # Estilos do EventCard
-│   │   ├── EventRecommendations.jsx  # Recomendações lazy no detalhe do evento
-│   │   ├── EventRecommendations.css  # Estilos das recomendações
-│   │   ├── UpcomingEvents.jsx    # Seção de próximos eventos (home)
-│   │   └── ...                   # Demais componentes
+│   ├── components/                   # Componentes reutilizáveis
+│   │   ├── EventCard.jsx             # Card de evento (variant compact/full)
+│   │   ├── EventCard.test.jsx
+│   │   ├── EventCard.css
+│   │   ├── EventRecommendations.jsx  # Recomendações lazy no detalhe
+│   │   ├── EventRecommendations.css
+│   │   ├── UpcomingEvents.jsx        # Próximos eventos (home)
+│   │   ├── Header.jsx                # Navegação com toggle de tema
+│   │   ├── Footer.jsx
+│   │   ├── Pagination.jsx
+│   │   ├── ShareButtons.jsx          # Compartilhamento em redes sociais
+│   │   ├── SEOHead.jsx               # Meta tags dinâmicas
+│   │   ├── SEOHead.test.jsx
+│   │   ├── ErrorBoundary.jsx
+│   │   ├── Testimonials.jsx
+│   │   ├── ContributorsGrid.jsx
+│   │   ├── gallery/
+│   │   │   ├── GalleryEventCard.jsx  # Card de evento na galeria
+│   │   │   ├── GalleryEventCard.test.jsx
+│   │   │   └── GalleryPhotoModal.jsx # Modal de visualização de foto
+│   │   └── favourite-event/
+│   │       └── favouriteEventButton.jsx
 │   │
-│   ├── pages/                    # Páginas públicas
-│   │   ├── Home.jsx              # Landing page
-│   │   ├── Home.test.jsx         # Testes da home
-│   │   ├── NotFound.jsx          # Página 404
-│   │   └── NotFound.test.jsx     # Testes do 404
+│   ├── pages/                        # Páginas públicas
+│   │   ├── Home.jsx                  # Landing page
+│   │   ├── Home.test.jsx
+│   │   ├── About.jsx                 # Sobre + grid de contribuintes
+│   │   ├── About.test.jsx
+│   │   ├── Contact.jsx               # Formulário de contato
+│   │   ├── Gallery.jsx               # Galeria de fotos da comunidade
+│   │   ├── EventDetails.jsx          # Detalhe de evento
+│   │   ├── NotFound.jsx
+│   │   └── NotFound.test.jsx
 │   │
-│   ├── services/                 # Serviços e API
-│   │   ├── authService.js        # Autenticação
-│   │   ├── authService.test.js   # Testes de auth
-│   │   ├── eventService.js       # CRUD de eventos
-│   │   ├── eventService.test.js  # Testes de eventos
-│   │   ├── contributorService.js # CRUD de contribuintes
-│   │   ├── profileService.js     # Perfil do usuário (nome, sobrenome, avatar)
-│   │   └── tagService.js         # CRUD de tags e associação
+│   ├── services/                     # Serviços e lógica de negócio
+│   │   ├── authService.js            # Autenticação
+│   │   ├── authService.test.js
+│   │   ├── eventService.js           # CRUD eventos + recomendações
+│   │   ├── eventService.test.js
+│   │   ├── tagService.js             # CRUD tags + associação evento-tag
+│   │   ├── contributorService.js     # CRUD contribuintes + validação GitHub
+│   │   ├── contributorService.test.js
+│   │   ├── communityService.js       # CRUD comunidades
+│   │   ├── communityService.test.js
+│   │   ├── galeriaService.js         # Álbuns e fotos da galeria
+│   │   ├── galeriaService.test.js
+│   │   ├── profileService.js         # Perfil do usuário
+│   │   ├── profileService.test.js
+│   │   ├── roleService.js            # Gerenciamento de papéis (RBAC)
+│   │   └── githubService.js          # GitHub API
 │   │
-│   ├── lib/                      # Configurações
-│   │   └── supabase.js           # Cliente Supabase
+│   ├── lib/                          # Configurações e utilitários base
+│   │   ├── supabase.js               # Cliente Supabase
+│   │   ├── apiClient.js              # withRetry() para todas as chamadas
+│   │   └── sentry.js                 # Configuração do Sentry
 │   │
-│   ├── test/                     # Infraestrutura de testes
-│   │   ├── setup.js              # Configuração global
-│   │   ├── utils.jsx             # Utilitários de teste
-│   │   └── mocks/                # Mocks de API
-│   │       ├── server.js         # Servidor MSW
-│   │       └── handlers.js       # Handlers de mock
+│   ├── hooks/                        # Custom React hooks
+│   │   ├── useUserRole.js            # Papel do usuário autenticado
+│   │   ├── useMediaQuery.js          # Responsividade
+│   │   ├── usePagination.js          # Paginação
+│   │   ├── useSidebarCollapse.js     # Estado da sidebar (localStorage)
+│   │   └── useGallery.js             # Lógica da galeria
 │   │
-│   ├── assets/                   # Assets estáticos
-│   ├── App.jsx                   # Listagem de eventos
-│   ├── App.css                   # Estilos principais
-│   └── main.jsx                  # Entrada com rotas
+│   ├── utils/                        # Funções utilitárias
+│   │   ├── eventSearch.js            # Lógica de filtro de eventos
+│   │   └── richText.js               # Utilitários de texto rico
+│   │
+│   ├── constants/                    # Constantes
+│   │   └── messages.js
+│   │
+│   ├── test/                         # Infraestrutura de testes
+│   │   ├── setup.js
+│   │   ├── utils.jsx
+│   │   └── mocks/
+│   │       ├── server.js             # Servidor MSW
+│   │       └── handlers.js           # Handlers de mock
+│   │
+│   ├── assets/
+│   ├── App.jsx                       # Listagem de eventos (/eventos)
+│   ├── App.css
+│   └── main.jsx                      # Entrada com rotas
 │
-├── public/                       # Arquivos públicos
-│   └── eventos.png               # Imagem padrão
+├── e2e/                              # Testes E2E (Playwright)
+├── docs/                             # Documentação adicional
+├── api/                              # Serverless functions (Vercel)
+├── public/
+│
+├── supabase/
+│   └── migrations/                   # 15 migrations (schema completo)
 │
 ├── .github/
-│   ├── workflows/                # CI/CD
-│   │   ├── ci.yml                # Pipeline principal
-│   │   ├── pr-developer.yml      # PRs para developer
-│   │   └── pr-main.yml           # PRs para main
-│   └── (workflows apenas)
+│   └── workflows/
+│       ├── ci.yml                    # Pipeline principal
+│       ├── pr-developer.yml          # PRs para developer
+│       ├── pr-main.yml               # PRs para main
+│       └── release.yml               # Releases com versionamento
 │
-├── supabase/                     # Configurações Supabase
-├── Dockerfile                    # Build de produção (multi-stage)
-├── Dockerfile.dev                # Build de desenvolvimento
-├── docker-compose.yml            # Orquestração dos containers
-├── nginx.conf                    # Configuração do Nginx (produção)
-├── .dockerignore                 # Arquivos ignorados pelo Docker
-└── dist/                         # Build de produção
+├── Dockerfile                        # Build de produção (multi-stage)
+├── Dockerfile.dev                    # Build de desenvolvimento
+├── docker-compose.yml                # Orquestração (dev/staging/prod)
+├── nginx.conf                        # Nginx com headers de segurança
+├── vercel.json                       # Configuração Vercel
+└── dist/                             # Build de produção
 ```
 
 ## Rotas da Aplicação
 
-| Rota               | Componente   | Descrição                |
-| ------------------ | ------------ | ------------------------ |
-| `/`                | Home         | Landing page             |
-| `/eventos`         | App          | Listagem de eventos      |
-| `/evento/:id`      | EventDetails | Detalhes do evento       |
-| `/admin`           | Login        | Login administrativo     |
-| `/admin/dashboard` | Dashboard    | Gerenciamento de eventos |
-| `/*`               | NotFound     | Página 404               |
+| Rota               | Componente   | Descrição                       |
+| ------------------ | ------------ | ------------------------------- |
+| `/`                | Home         | Landing page                    |
+| `/eventos`         | App          | Listagem de eventos com filtros |
+| `/eventos/:id`     | EventDetails | Detalhe do evento               |
+| `/sobre`           | About        | Sobre a comunidade              |
+| `/contato`         | Contact      | Formulário de contato           |
+| `/galeria`         | Gallery      | Galeria de fotos da comunidade  |
+| `/admin`           | Login        | Login administrativo            |
+| `/admin/dashboard` | Dashboard    | Painel de gerenciamento         |
+| `/*`               | NotFound     | Página 404                      |
 
 ## Configuração do Supabase
 
 Para configurar o Supabase, consulte o guia detalhado em [SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 
-### Tabela de Eventos
+O schema completo está em `supabase/migrations/` (15 arquivos).
 
-```sql
-CREATE TABLE eventos (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  nome VARCHAR(255) NOT NULL,
-  descricao TEXT,
-  data_evento DATE NOT NULL,
-  horario TIME NOT NULL,
-  dia_semana VARCHAR(20),
-  periodo VARCHAR(20),
-  link TEXT,
-  imagem TEXT,
-  modalidade TEXT,
-  endereco TEXT,
-  cidade TEXT,
-  estado TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
+### Tabelas Principais
 
-### Tabela de Tags
-
-```sql
-CREATE TABLE tags (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  nome TEXT NOT NULL UNIQUE,
-  cor TEXT DEFAULT '#2563eb',
-  created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-### Tabela de Associação Evento-Tags
-
-```sql
-CREATE TABLE evento_tags (
-  evento_id UUID REFERENCES eventos(id) ON DELETE CASCADE,
-  tag_id UUID REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (evento_id, tag_id)
-);
-```
+| Tabela           | Descrição                                          |
+| ---------------- | -------------------------------------------------- |
+| `eventos`        | Eventos da comunidade com modalidade e localização |
+| `tags`           | Tags de tecnologia com cor customizada             |
+| `evento_tags`    | Associação N:N entre eventos e tags                |
+| `contribuintes`  | Contribuintes com perfil GitHub                    |
+| `comunidades`    | Comunidades associadas a eventos                   |
+| `galeria_albuns` | Álbuns de fotos por evento/comunidade              |
+| `galeria_fotos`  | Fotos com legenda, ordem e storage_path            |
+| `user_roles`     | Papéis dos usuários (RBAC)                         |
+| `user_profiles`  | Perfis dos usuários autenticados                   |
 
 ### Controle de Acesso (RBAC)
 
-| Permissão               | super_admin | admin | moderador          |
-| ----------------------- | ----------- | ----- | ------------------ |
-| Criar eventos           | ✅          | ✅    | ✅                 |
-| Editar eventos          | ✅          | ✅    | ✅                 |
-| Excluir eventos         | ✅          | ✅    | Apenas os próprios |
-| Criar tags              | ✅          | ✅    | ✅                 |
-| Editar tags             | ✅          | ✅    | Apenas as próprias |
-| Excluir tags            | ✅          | ✅    | Apenas as próprias |
-| Gerenciar contribuintes | ✅          | ✅    | ❌                 |
-| Gerenciar usuários      | ✅          | ❌    | ❌                 |
-| Upload de imagens       | ✅          | ✅    | ✅                 |
+| Permissão                   | super_admin | admin | moderador          |
+| --------------------------- | ----------- | ----- | ------------------ |
+| Criar eventos               | ✅          | ✅    | ✅                 |
+| Editar eventos              | ✅          | ✅    | ✅                 |
+| Excluir eventos             | ✅          | ✅    | Apenas os próprios |
+| Criar/editar tags           | ✅          | ✅    | Apenas as próprias |
+| Excluir tags                | ✅          | ✅    | Apenas as próprias |
+| Gerenciar contribuintes     | ✅          | ✅    | ❌                 |
+| Gerenciar comunidades       | ✅          | ✅    | Apenas as próprias |
+| Gerenciar galeria (álbuns)  | ✅          | ✅    | ✅                 |
+| Upload de imagens/fotos     | ✅          | ✅    | ✅                 |
+| Gerenciar usuários (papéis) | ✅          | ❌    | ❌                 |
+| Editar próprio perfil       | ✅          | ✅    | ✅                 |
+
+> **Bootstrap:** O primeiro usuário a se cadastrar recebe automaticamente o papel `super_admin`.
+
+### Configuração do Storage
+
+No painel do Supabase, certifique-se de que o bucket `imagens` existe e é público. Adicione as policies de upload para usuários autenticados em `imagens/galeria/**`.
 
 ### Períodos Disponíveis
 
-- Matinal
-- Diurno
-- Vespertino
-- Noturno
+- Matinal · Diurno · Vespertino · Noturno
 
 ### Modalidades Disponíveis
 
-- Presencial
-- Online
-- Híbrido
+- Presencial · Online · Híbrido
 
 ## CI/CD
 
@@ -379,11 +441,19 @@ O projeto utiliza GitHub Actions para integração e entrega contínuas.
 
 ### Workflows
 
-| Workflow           | Trigger        | Descrição                              |
-| ------------------ | -------------- | -------------------------------------- |
-| `ci.yml`           | Push/PR        | Lint, build e upload de artefatos      |
-| `pr-developer.yml` | PR → developer | Validação de origem + CI               |
-| `pr-main.yml`      | PR → main      | Validação rigorosa + análise de bundle |
+| Workflow           | Trigger        | Descrição                                             |
+| ------------------ | -------------- | ----------------------------------------------------- |
+| `ci.yml`           | Push/PR        | Lint, segurança, testes (cobertura), build            |
+| `pr-developer.yml` | PR → developer | Validação de origem + CI (1 aprovação)                |
+| `pr-main.yml`      | PR → main      | Validação rigorosa + análise de bundle (2 aprovações) |
+| `release.yml`      | Tag de release | Versionamento semântico                               |
+
+### Etapas do CI
+
+1. **Lint** — Prettier + ESLint
+2. **Security** — `pnpm audit` + scan de secrets expostos + validação de headers do nginx
+3. **Test** — Vitest com relatório de cobertura (Codecov)
+4. **Build** — Build de produção + upload do artefato `dist/`
 
 ### Fluxo de Branches
 
@@ -392,20 +462,6 @@ feature/* ──┐
 fix/*     ──┼──► developer (1 aprovação) ──► main (2 aprovações)
 hotfix/*  ──┘
 ```
-
-### Requisitos para Merge
-
-**Branch `developer`:**
-
-- Origem: `feature/*`, `fix/*` ou `hotfix/*`
-- CI passando (lint + build)
-- 1 aprovação de revisão
-
-**Branch `main` (produção):**
-
-- Origem: apenas `developer`
-- CI passando (lint + build)
-- 2 aprovações de revisão
 
 ## Padrões de Código
 
@@ -420,7 +476,7 @@ Tipos: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
 Exemplos:
 
 ```bash
-feat(admin): adiciona upload de imagens
+feat(galeria): adiciona upload de fotos por álbum
 fix(eventos): corrige filtro por período
 docs(readme): atualiza instruções de instalação
 ```
@@ -457,13 +513,19 @@ pnpm test:ui
 
 # Com cobertura
 pnpm test:coverage
+
+# Testes E2E
+pnpm test:e2e
+pnpm test:e2e:ui
 ```
 
 ### Estrutura de Testes
 
-- **Unit tests**: Serviços (`authService`, `eventService`)
-- **Component tests**: Componentes React com Testing Library
-- **Mocks**: MSW para simular APIs do Supabase
+- **Unit tests** — Serviços: `authService`, `eventService`, `contributorService`, `communityService`, `profileService`, `galeriaService`
+- **Component tests** — `EventCard`, `SEOHead`, `Home`, `About`, `NotFound`, `GalleryEventCard`, `AdminSidebar`, `CommunityAdmin`, `GalleryAdmin`, `Dashboard`, `Login`
+- **Hook tests** — `useSidebarCollapse`
+- **E2E tests** — Playwright em `e2e/`
+- **Mocks** — MSW para simular APIs do Supabase
 
 ## Personalização
 
@@ -501,11 +563,14 @@ As cores estão definidas em CSS custom properties:
 
 ## Deploy
 
-O projeto está configurado para deploy na Vercel.
+O projeto está configurado para deploy na Vercel com geração automática de imagens Open Graph.
 
-### Configuração (vercel.json)
+### Vercel (recomendado)
+
+Deploy automático a cada push na branch `main`. Configure as variáveis de ambiente no painel da Vercel.
 
 ```json
+// vercel.json (SPA routing)
 {
   "rewrites": [{ "source": "/(.*)", "destination": "/" }]
 }
@@ -533,13 +598,13 @@ Consulte o guia completo em [CONTRIBUTING.md](docs/CONTRIBUTING.md).
 ## Documentação Adicional
 
 - [SETUP_INICIAL.md](docs/SETUP_INICIAL.md) - Montagem do ambiente (primeira vez)
-- [FLUXO_DE_TRABALHO.md](docs/FLUXO_DE_TRABALHO.md) - Fluxo de trabalho diario (Git, commits, PRs)
+- [FLUXO_DE_TRABALHO.md](docs/FLUXO_DE_TRABALHO.md) - Fluxo de trabalho diário (Git, commits, PRs)
 - [FLUXO_DOCKER.md](docs/FLUXO_DOCKER.md) - Fluxo de trabalho com Docker
-- [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Solucao de problemas comuns
-- [CONTRIBUTING.md](docs/CONTRIBUTING.md) - Guia de contribuicao
-- [SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) - Configuracao do Supabase
-- [DOCKER_SETUP.md](docs/DOCKER_SETUP.md) - Instalacao e configuracao do Docker
-- [BRANCH_PROTECTION.md](docs/BRANCH_PROTECTION.md) - Regras de protecao de branches
+- [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Solução de problemas comuns
+- [CONTRIBUTING.md](docs/CONTRIBUTING.md) - Guia de contribuição
+- [SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) - Configuração do Supabase
+- [DOCKER_SETUP.md](docs/DOCKER_SETUP.md) - Instalação e configuração do Docker
+- [BRANCH_PROTECTION.md](docs/BRANCH_PROTECTION.md) - Regras de proteção de branches
 
 ## Licença
 
@@ -547,7 +612,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 ## Autores
 
-- **Dario Reis** - _Desenvolvedor Full Stack | Criando soluções com React, Node.js, AWS e IA_ - [@darioreisjr](https://github.com/darioreisjr)
+- **Dario Reis** - _Desenvolvedor Full Stack | React, Node.js, AWS e IA_ - [@darioreisjr](https://github.com/darioreisjr)
 - **Julia Krisnarane** - _Back-end | Java | Spring Boot | AWS Cloud & IA_ - [@krisnarane](https://github.com/krisnarane)
 
 ## Agradecimentos
