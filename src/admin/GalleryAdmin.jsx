@@ -23,6 +23,7 @@ import {
   deleteFoto,
   updateFotoLegenda,
 } from '../services/galeriaService'
+import { Modal, ConfirmModal } from '../components/Modal'
 import './GalleryAdmin.css'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -423,108 +424,100 @@ function AlbumModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content modal-large ga-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{isEditing ? 'Editar Álbum' : 'Novo Álbum de Fotos'}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Fechar">
-            <X size={24} />
-          </button>
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={isEditing ? 'Editar Álbum' : 'Novo Álbum de Fotos'}
+      size="lg"
+      footer={null}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'contents' }}>
+        <div className="form-row">
+          <div className="form-field">
+            <label>
+              <Calendar size={15} />
+              Evento
+            </label>
+            <select
+              {...register('evento_id', { required: 'Selecione um evento' })}
+              defaultValue={album?.evento_id || ''}
+            >
+              <option value="">Selecione um evento...</option>
+              {eventos.map((ev) => (
+                <option key={ev.id} value={String(ev.id)}>
+                  {ev.nome} — {ev.data_evento}
+                </option>
+              ))}
+            </select>
+            {errors.evento_id && <span className="field-error">{errors.evento_id.message}</span>}
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
-          {/* Evento */}
-          <div className="form-row">
-            <div className="form-field">
-              <label>
-                <Calendar size={15} />
-                Evento
-              </label>
-              <select
-                {...register('evento_id', { required: 'Selecione um evento' })}
-                defaultValue={album?.evento_id || ''}
-              >
-                <option value="">Selecione um evento...</option>
-                {eventos.map((ev) => (
-                  <option key={ev.id} value={String(ev.id)}>
-                    {ev.nome} — {ev.data_evento}
-                  </option>
-                ))}
-              </select>
-              {errors.evento_id && <span className="field-error">{errors.evento_id.message}</span>}
-            </div>
+        <div className="form-row">
+          <div className="form-field">
+            <label>
+              <Users size={15} />
+              Comunidade
+            </label>
+            <select
+              {...register('comunidade_id', { required: 'Selecione uma comunidade' })}
+              defaultValue={album?.comunidade_id || ''}
+            >
+              <option value="">Selecione uma comunidade...</option>
+              {comunidades.map((c) => (
+                <option key={c.id} value={String(c.id)}>
+                  {c.nome}
+                </option>
+              ))}
+            </select>
+            {errors.comunidade_id && (
+              <span className="field-error">{errors.comunidade_id.message}</span>
+            )}
           </div>
+        </div>
 
-          {/* Comunidade */}
-          <div className="form-row">
-            <div className="form-field">
-              <label>
-                <Users size={15} />
-                Comunidade
-              </label>
-              <select
-                {...register('comunidade_id', { required: 'Selecione uma comunidade' })}
-                defaultValue={album?.comunidade_id || ''}
-              >
-                <option value="">Selecione uma comunidade...</option>
-                {comunidades.map((c) => (
-                  <option key={c.id} value={String(c.id)}>
-                    {c.nome}
-                  </option>
-                ))}
-              </select>
-              {errors.comunidade_id && (
-                <span className="field-error">{errors.comunidade_id.message}</span>
-              )}
-            </div>
-          </div>
+        {!isEditing && (
+          <p className="ga-modal-hint">
+            Após criar o álbum, clique no lápis para gerenciar as fotos.
+          </p>
+        )}
 
-          {!isEditing && (
-            <p className="ga-modal-hint">
-              Após criar o álbum, clique no lápis para gerenciar as fotos.
+        {isEditing && (
+          <div className="ga-modal-fotos">
+            <p className="ga-modal-fotos-title">
+              <Images size={14} />
+              Fotos ({fotos.length})
             </p>
-          )}
-
-          {/* Fotos do álbum (somente ao editar) */}
-          {isEditing && (
-            <div className="ga-modal-fotos">
-              <p className="ga-modal-fotos-title">
-                <Images size={14} />
-                Fotos ({fotos.length})
-              </p>
-              {fotos.length > 0 ? (
-                <div className="ga-photos-list">
-                  {fotos.map((foto) => (
-                    <PhotoCard
-                      key={foto.id}
-                      photo={foto}
-                      onDelete={(fotoId, storagePath) =>
-                        onFotoDeleted(album.id, fotoId, storagePath)
-                      }
-                      onLegendaUpdate={(fotoId, legenda) =>
-                        onFotoLegendaUpdate(album.id, fotoId, legenda)
-                      }
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className="ga-no-photos">Nenhuma foto ainda. Use o botão + para adicionar.</p>
-              )}
-            </div>
-          )}
-
-          <div className="form-actions">
-            <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
-              Cancelar
-            </button>
-            <button type="submit" className="btn-primary" disabled={saving}>
-              {saving ? <Loader2 size={16} className="ga-spin" /> : null}
-              {isEditing ? 'Salvar Alterações' : 'Criar Álbum'}
-            </button>
+            {fotos.length > 0 ? (
+              <div className="ga-photos-list">
+                {fotos.map((foto) => (
+                  <PhotoCard
+                    key={foto.id}
+                    photo={foto}
+                    onDelete={(fotoId, storagePath) => onFotoDeleted(album.id, fotoId, storagePath)}
+                    onLegendaUpdate={(fotoId, legenda) =>
+                      onFotoLegendaUpdate(album.id, fotoId, legenda)
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="ga-no-photos">Nenhuma foto ainda. Use o botão + para adicionar.</p>
+            )}
           </div>
-        </form>
-      </div>
-    </div>
+        )}
+
+        <div className="modal-footer">
+          <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
+            Cancelar
+          </button>
+          <button type="submit" className="btn-primary" disabled={saving}>
+            {saving ? <Loader2 size={16} className="ga-spin" /> : null}
+            {isEditing ? 'Salvar Alterações' : 'Criar Álbum'}
+          </button>
+        </div>
+      </form>
+    </Modal>
   )
 }
 
@@ -532,23 +525,15 @@ function AlbumModal({
 
 function AddFotoModal({ album, onClose, onAdded }) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content ga-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Adicionar Foto</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Fechar">
-            <X size={24} />
-          </button>
-        </div>
-        <div className="ga-add-foto-modal-body">
-          <p className="ga-add-foto-album-name">
-            <Images size={14} />
-            {album.eventos?.nome || 'Álbum'}
-          </p>
-          <PhotoForm albumId={album.id} onAdded={onAdded} />
-        </div>
+    <Modal isOpen onClose={onClose} title="Adicionar Foto" size="md" footer={null}>
+      <div className="ga-add-foto-modal-body">
+        <p className="ga-add-foto-album-name">
+          <Images size={14} />
+          {album.eventos?.nome || 'Álbum'}
+        </p>
+        <PhotoForm albumId={album.id} onAdded={onAdded} />
       </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -556,33 +541,21 @@ function AddFotoModal({ album, onClose, onAdded }) {
 
 function ConfirmDeleteModal({ album, onConfirm, onCancel, deleting }) {
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal-content ga-confirm-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Excluir Álbum</h2>
-          <button className="modal-close" onClick={onCancel} aria-label="Fechar">
-            <X size={24} />
-          </button>
-        </div>
-        <div className="ga-confirm-body">
-          <Trash2 size={40} className="ga-confirm-icon" />
-          <p>
-            Tem certeza que deseja excluir o álbum de{' '}
-            <strong>{album.eventos?.nome || 'este evento'}</strong>? Todas as fotos serão removidas.
-            Esta ação não pode ser desfeita.
-          </p>
-        </div>
-        <div className="form-actions">
-          <button type="button" className="btn-secondary" onClick={onCancel} disabled={deleting}>
-            Cancelar
-          </button>
-          <button type="button" className="btn-danger" onClick={onConfirm} disabled={deleting}>
-            {deleting ? <Loader2 size={16} className="ga-spin" /> : <Trash2 size={16} />}
-            Excluir
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmModal
+      isOpen
+      onClose={onCancel}
+      onConfirm={onConfirm}
+      title="Excluir Álbum"
+      message={
+        <>
+          Tem certeza que deseja excluir o álbum de{' '}
+          <strong>{album.eventos?.nome || 'este evento'}</strong>? Todas as fotos serão removidas.
+          Esta ação não pode ser desfeita.
+        </>
+      }
+      confirmLabel={deleting ? 'Excluindo...' : 'Excluir'}
+      isLoading={deleting}
+    />
   )
 }
 

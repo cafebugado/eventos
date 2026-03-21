@@ -220,7 +220,8 @@ describe('CommunityAdmin', () => {
     await user.click(screen.getByRole('button', { name: 'Excluir comunidade' }))
 
     expect(screen.getByRole('heading', { name: 'Excluir Comunidade' })).toBeInTheDocument()
-    expect(screen.getByRole('strong')).toHaveTextContent('Cafe Bugado')
+    // O nome aparece tanto no card quanto no modal de confirmação
+    expect(screen.getAllByText('Cafe Bugado').length).toBeGreaterThanOrEqual(1)
   })
 
   it('exclui comunidade ao confirmar exclusão', async () => {

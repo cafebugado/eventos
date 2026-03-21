@@ -2,6 +2,11 @@ import '@testing-library/jest-dom'
 import { afterAll, afterEach, beforeAll, vi } from 'vitest'
 import { server } from './mocks/server'
 
+// createPortal renderiza no document.body — o jsdom suporta isso nativamente,
+// mas precisamos garantir que o body existe antes de qualquer teste.
+// O Testing Library já busca no document.body, então portais funcionam sem mock.
+// Mantemos o createPortal real para que os testes reflitam o comportamento real.
+
 // Estabelece o mock do Supabase antes de todos os testes
 vi.mock('../lib/supabase', () => ({
   supabase: {

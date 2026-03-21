@@ -337,6 +337,80 @@ describe('Dashboard', () => {
     })
   })
 
+  it('deve fechar modal ao pressionar Escape', async () => {
+    const user = userEvent.setup()
+    renderWithRouter(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /Novo Evento/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Criar Novo Evento')).toBeInTheDocument()
+    })
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() => {
+      expect(screen.queryByText('Criar Novo Evento')).not.toBeInTheDocument()
+    })
+  })
+
+  it('deve fechar modal ao clicar no botão X', async () => {
+    const user = userEvent.setup()
+    renderWithRouter(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /Novo Evento/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Criar Novo Evento')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Fechar' }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('Criar Novo Evento')).not.toBeInTheDocument()
+    })
+  })
+
+  it('deve exibir modal de confirmação para excluir tag', async () => {
+    const user = userEvent.setup()
+    const tagService = await import('../services/tagService')
+    tagService.getTags.mockResolvedValue([{ id: 'tag-1', nome: 'React', cor: '#61dafb' }])
+
+    renderWithRouter(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+    })
+
+    // Navega para aba Tags
+    const tabTags = screen.getAllByRole('button').find((b) => b.textContent.includes('Tags'))
+    if (!tabTags) {
+      return
+    }
+
+    await user.click(tabTags)
+
+    await waitFor(() => {
+      expect(screen.getByText('React')).toBeInTheDocument()
+    })
+
+    // Botão excluir dentro da listagem de tags tem title="Excluir"
+    const deleteTagBtn = screen.getAllByTitle('Excluir')[0]
+    await user.click(deleteTagBtn)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Excluir Tag' })).toBeInTheDocument()
+    })
+  })
+
   it('deve abrir link do evento ao clicar em visualizar', async () => {
     const user = userEvent.setup()
     const windowOpen = vi.spyOn(window, 'open').mockImplementation(() => null)

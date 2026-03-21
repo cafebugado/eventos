@@ -37,6 +37,7 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 - **Estatísticas GitHub** - Stats do repositório diretamente no dashboard
 - **Gerenciamento de Usuários** - Atribuição de papéis (apenas `super_admin`)
 - **EventCard Reutilizável** - Componente unificado com variantes `compact` e `full`
+- **Sistema de Modal Unificado** - Componente `Modal` base e `ConfirmModal` com acessibilidade completa (ARIA, ESC, scroll-lock, foco gerenciado)
 
 ## Tecnologias Utilizadas
 
@@ -267,6 +268,12 @@ agendas_eventos/
 │   │   └── Admin.css
 │   │
 │   ├── components/                   # Componentes reutilizáveis
+│   │   ├── Modal/                    # Sistema unificado de modais
+│   │   │   ├── Modal.jsx             # Componente base (portal, ESC, scroll-lock, ARIA)
+│   │   │   ├── Modal.css             # Variantes sm/md/lg + confirm
+│   │   │   ├── ConfirmModal.jsx      # Variante de confirmação destrutiva
+│   │   │   ├── Modal.test.jsx        # 25 testes unitários
+│   │   │   └── index.js              # Barrel export
 │   │   ├── EventCard.jsx             # Card de evento (variant compact/full)
 │   │   ├── EventCard.test.jsx
 │   │   ├── EventCard.css
@@ -285,7 +292,7 @@ agendas_eventos/
 │   │   ├── gallery/
 │   │   │   ├── GalleryEventCard.jsx  # Card de evento na galeria
 │   │   │   ├── GalleryEventCard.test.jsx
-│   │   │   └── GalleryPhotoModal.jsx # Modal de visualização de foto
+│   │   │   └── GalleryPhotoModal.jsx # Modal de visualização de foto (lightbox)
 │   │   └── favourite-event/
 │   │       └── favouriteEventButton.jsx
 │   │
@@ -522,10 +529,48 @@ pnpm test:e2e:ui
 ### Estrutura de Testes
 
 - **Unit tests** — Serviços: `authService`, `eventService`, `contributorService`, `communityService`, `profileService`, `galeriaService`
-- **Component tests** — `EventCard`, `SEOHead`, `Home`, `About`, `NotFound`, `GalleryEventCard`, `AdminSidebar`, `CommunityAdmin`, `GalleryAdmin`, `Dashboard`, `Login`
+- **Component tests** — `Modal`, `ConfirmModal`, `EventCard`, `SEOHead`, `Home`, `About`, `NotFound`, `GalleryEventCard`, `AdminSidebar`, `CommunityAdmin`, `GalleryAdmin`, `Dashboard`, `Login`
 - **Hook tests** — `useSidebarCollapse`
 - **E2E tests** — Playwright em `e2e/`
 - **Mocks** — MSW para simular APIs do Supabase
+
+## Componentes Reutilizáveis
+
+### Sistema de Modal
+
+Todos os diálogos e confirmações da aplicação usam o sistema unificado em `src/components/Modal/`.
+
+```jsx
+import { Modal, ConfirmModal } from '../components/Modal'
+
+// Modal de formulário
+<Modal isOpen={open} onClose={close} title="Criar Evento" size="lg" footer={null}>
+  <form>...</form>
+</Modal>
+
+// Modal de confirmação destrutiva
+<ConfirmModal
+  isOpen={Boolean(itemParaExcluir)}
+  onClose={() => setItem(null)}
+  onConfirm={handleDelete}
+  title="Excluir Item"
+  message={<>Deseja excluir <strong>{item.nome}</strong>?</>}
+  isLoading={deleting}
+/>
+```
+
+| Prop             | Tipo                   | Padrão      | Descrição                               |
+| ---------------- | ---------------------- | ----------- | --------------------------------------- |
+| `isOpen`         | `boolean`              | —           | Controla visibilidade                   |
+| `onClose`        | `() => void`           | —           | Fecha ao clicar no X, overlay ou Escape |
+| `title`          | `string`               | —           | Título do header                        |
+| `size`           | `'sm' \| 'md' \| 'lg'` | `'md'`      | Largura máxima: 400 / 600 / 740px       |
+| `footer`         | `ReactNode \| null`    | `undefined` | Botões de ação; `null` oculta o footer  |
+| `closeOnOverlay` | `boolean`              | `true`      | Fecha ao clicar fora                    |
+
+Recursos incluídos automaticamente: `role="dialog"`, `aria-modal`, `aria-labelledby`, trava de scroll no body, fechamento com `Escape`, movimentação e restauração de foco.
+
+> **Exceções intencionais:** `GalleryPhotoModal` (lightbox de mídia, z-index 2000) e `FloatingMenu` (drawer de navegação mobile) não usam o sistema de Modal pois possuem UI especializada.
 
 ## Personalização
 

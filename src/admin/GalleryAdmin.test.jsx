@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import GalleryAdmin from './GalleryAdmin'
 
@@ -269,6 +269,36 @@ describe('GalleryAdmin — editar e excluir álbum', () => {
 
     expect(screen.queryByRole('heading', { name: 'Excluir Álbum' })).not.toBeInTheDocument()
     expect(deleteAlbum).not.toHaveBeenCalled()
+  })
+
+  it('fecha modal de edição ao pressionar Escape', async () => {
+    const user = userEvent.setup()
+    renderGallery()
+    await waitFor(() => screen.getByText('DevFest Goiânia 2026'))
+
+    await user.click(screen.getByRole('button', { name: 'Editar álbum' }))
+    expect(screen.getByText('Editar Álbum')).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() => {
+      expect(screen.queryByText('Editar Álbum')).not.toBeInTheDocument()
+    })
+  })
+
+  it('fecha modal de edição ao clicar no botão X', async () => {
+    const user = userEvent.setup()
+    renderGallery()
+    await waitFor(() => screen.getByText('DevFest Goiânia 2026'))
+
+    await user.click(screen.getByRole('button', { name: 'Editar álbum' }))
+    expect(screen.getByText('Editar Álbum')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Fechar' }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('Editar Álbum')).not.toBeInTheDocument()
+    })
   })
 })
 
