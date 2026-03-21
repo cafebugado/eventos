@@ -6,6 +6,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import { initSentry, captureError } from './lib/sentry.js'
 import { initWebVitals } from './lib/vitals.js'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import ScrollToTop from './components/ScrollToTop/ScrollToTop.jsx'
 import Home from './pages/Home.jsx'
 import App from './App.jsx'
 import EventDetails from './pages/EventDetails.jsx'
@@ -44,6 +45,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ScrollToTop />
         <Analytics />
         <SpeedInsights />
       </BrowserRouter>
