@@ -95,7 +95,7 @@ import GalleryAdmin from './GalleryAdmin'
 import CommunityAdmin from './CommunityAdmin'
 import BgEventos from '../assets/eventos.png'
 import { MESSAGES } from '../constants/messages'
-import { ESTADOS_BR } from '../constants/brazil'
+import { LocationSelector } from '../components/LocationSelector'
 const DAY_NAMES = [
   'Domingo',
   'Segunda-feira',
@@ -1012,6 +1012,8 @@ function Dashboard() {
   }
 
   const watchModalidade = watch('modalidade')
+  const watchEstado = watch('estado')
+  const watchCidade = watch('cidade')
 
   return (
     <div className="admin-dashboard">
@@ -2167,28 +2169,13 @@ function Dashboard() {
                 </div>
               </div>
 
-              <div className="form-row two-cols">
-                <div className="form-field">
-                  <label>
-                    <MapPin size={16} />
-                    Cidade
-                  </label>
-                  <input type="text" placeholder="Ex: São Paulo" {...register('cidade')} />
-                </div>
-                <div className="form-field">
-                  <label>
-                    <MapPin size={16} />
-                    Estado
-                  </label>
-                  <select {...register('estado')}>
-                    <option value="">Selecione...</option>
-                    {ESTADOS_BR.map((uf) => (
-                      <option key={uf} value={uf}>
-                        {uf}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="form-row">
+                <LocationSelector
+                  estado={watchEstado}
+                  cidade={watchCidade}
+                  onEstadoChange={(uf) => setValue('estado', uf, { shouldValidate: true })}
+                  onCidadeChange={(city) => setValue('cidade', city, { shouldValidate: true })}
+                />
               </div>
             </>
           )}
