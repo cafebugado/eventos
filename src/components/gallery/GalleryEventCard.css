@@ -1,0 +1,99 @@
+/* GalleryEventCard — prefixo: gec- */
+
+.gec-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.gec-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 36px var(--shadow-hover);
+}
+
+/* Cover image */
+.gec-cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.gec-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.gec-card:hover .gec-cover img {
+  transform: scale(1.05);
+}
+
+/* Body */
+.gec-body {
+  padding: 1rem 1.25rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gec-event-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gec-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.gec-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* Footer */
+.gec-footer {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: auto;
+}
+
+.gec-footer strong {
+  color: var(--primary-blue);
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .gec-body {
+    padding: 0.875rem 1rem 0.625rem;
+  }
+
+  .gec-footer {
+    padding: 0.625rem 1rem;
+  }
+}

@@ -11,6 +11,7 @@ import App from './App.jsx'
 import EventDetails from './pages/EventDetails.jsx'
 import About from './pages/About.jsx'
 import Contact from './pages/Contact.jsx'
+import Gallery from './pages/Gallery.jsx'
 import Login from './admin/Login.jsx'
 import Dashboard from './admin/Dashboard.jsx'
 import NotFound from './pages/NotFound.jsx'
@@ -38,6 +39,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/eventos/:id" element={<EventDetails />} />
           <Route path="/sobre" element={<About />} />
           <Route path="/contato" element={<Contact />} />
+          <Route path="/galeria" element={<Gallery />} />
           <Route path="/admin" element={<Login />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="*" element={<NotFound />} />
