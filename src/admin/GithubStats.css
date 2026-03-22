@@ -448,8 +448,47 @@
     grid-column: 1;
   }
 
+  .gh-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gh-repo-tabs {
+    width: 100%;
+  }
+
+  .gh-repo-tab {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .gh-stats-bar {
+    gap: 0.6rem;
+  }
+
+  .gh-repo-link {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .gh-stat--updated {
     margin-left: 0;
     width: 100%;
+  }
+
+  .gh-commit-msg {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .gh-contributor-commits {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.45rem;
+  }
+
+  .gh-card {
+    padding: 0.875rem 1rem;
   }
 }
