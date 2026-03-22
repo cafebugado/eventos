@@ -1305,6 +1305,32 @@
   .modal-overlay {
     padding: 1rem;
   }
+
+  /* Tags — mobile */
+  .tags-admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tag-admin-card {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .tag-admin-card .action-buttons {
+    width: auto;
+    display: flex;
+    grid-template-columns: unset;
+    flex-shrink: 0;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  .tag-admin-card .btn-icon {
+    width: 36px;
+    height: 36px;
+  }
 }
 
 @keyframes spin {
