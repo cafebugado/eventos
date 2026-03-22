@@ -10,7 +10,10 @@ import {
   Images,
   X,
   Menu,
+  Sun,
+  Moon,
 } from 'lucide-react'
+import { useTheme } from '../hooks/useTheme'
 import './AdminMobileNav.css'
 
 const MENU_ITEMS = [
@@ -41,6 +44,7 @@ function AdminMobileNavItem({ id, label, icon: Icon, isActive, index, onClick })
 
 export function AdminMobileNav({ activeTab, onTabChange, permissions }) {
   const [isOpen, setIsOpen] = useState(false)
+  const { isDarkMode, toggleTheme } = useTheme()
 
   const toggleMenu = useCallback(() => setIsOpen((prev) => !prev), [])
 
@@ -92,6 +96,16 @@ export function AdminMobileNav({ activeTab, onTabChange, permissions }) {
         >
           <ExternalLink size={20} />
           <span className="admin-mobile-nav-label">Ver Site</span>
+        </button>
+
+        <button
+          className="admin-mobile-nav-item admin-mobile-theme-toggle"
+          onClick={toggleTheme}
+          style={{ '--item-index': visibleItems.length + 1 }}
+          aria-label={isDarkMode ? 'Modo Claro' : 'Modo Escuro'}
+        >
+          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          <span className="admin-mobile-nav-label">{isDarkMode ? 'Claro' : 'Escuro'}</span>
         </button>
       </nav>
 

@@ -176,6 +176,12 @@
   transition: opacity 0.2s ease;
 }
 
+.admin-mobile-theme-toggle {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.875rem;
+}
+
 /* =============================================
    RESPONSIVE — telas menores
    ============================================= */

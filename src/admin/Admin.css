@@ -1163,6 +1163,10 @@
     gap: 0.75rem;
   }
 
+  .topbar-right .theme-btn {
+    display: none;
+  }
+
   .admin-content {
     padding: 1rem;
   }
