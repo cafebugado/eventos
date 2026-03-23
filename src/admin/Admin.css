@@ -1163,6 +1163,10 @@
     gap: 0.75rem;
   }
 
+  .topbar-right .theme-btn {
+    display: none;
+  }
+
   .admin-content {
     padding: 1rem;
   }
@@ -1197,7 +1201,7 @@
     gap: 0;
     justify-content: center;
     position: fixed;
-    right: 1.25rem;
+    left: 1.25rem;
     bottom: 1.25rem;
     z-index: 900;
     box-shadow: 0 12px 24px var(--shadow);
@@ -1300,6 +1304,78 @@
 
   .modal-overlay {
     padding: 1rem;
+  }
+
+  /* Tags — mobile */
+  .tags-admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tag-admin-card {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .tag-admin-card .action-buttons {
+    width: auto;
+    display: flex;
+    grid-template-columns: unset;
+    flex-shrink: 0;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  .tag-admin-card .btn-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Contribuintes — mobile */
+  .contributors-admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contributor-admin-card {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    grid-template-rows: auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .contributor-admin-avatar {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .contributor-admin-info {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .contributor-admin-name {
+    display: none;
+  }
+
+  .contributor-admin-card .action-buttons {
+    grid-column: 3;
+    grid-row: 1;
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: unset;
+    gap: 0.4rem;
+    align-items: center;
+    align-self: center;
+  }
+
+  .contributor-admin-card .btn-icon {
+    width: 36px;
+    height: 36px;
   }
 }
 

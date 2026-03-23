@@ -1,0 +1,221 @@
+/* =============================================
+   ADMIN MOBILE NAV — visível apenas em mobile
+   ============================================= */
+
+.admin-mobile-nav-container {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .admin-mobile-nav-container {
+    display: block;
+  }
+}
+
+/* =============================================
+   OVERLAY
+   ============================================= */
+
+.admin-mobile-nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1099;
+}
+
+.admin-mobile-nav-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* =============================================
+   FLOATING ACTION BUTTON (FAB)
+   ============================================= */
+
+.admin-mobile-fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: var(--primary-blue);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow:
+    0 4px 12px rgba(37, 99, 235, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1103;
+}
+
+.admin-mobile-fab:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 6px 20px rgba(37, 99, 235, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.admin-mobile-fab:active {
+  transform: scale(0.95);
+}
+
+.admin-mobile-fab.active {
+  background: #1e293b;
+  color: #fff;
+}
+
+[data-theme='dark'] .admin-mobile-fab.active {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.admin-mobile-fab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-mobile-fab.active .admin-mobile-fab-icon {
+  transform: rotate(90deg);
+}
+
+/* =============================================
+   NAV — lista de itens
+   ============================================= */
+
+.admin-mobile-nav {
+  position: fixed;
+  bottom: 6.5rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 1101;
+  pointer-events: none;
+}
+
+.admin-mobile-nav.active {
+  pointer-events: auto;
+}
+
+/* =============================================
+   NAV ITEMS
+   ============================================= */
+
+.admin-mobile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 180px;
+  position: relative;
+
+  /* Animação de entrada */
+  opacity: 0;
+  transform: translateY(20px) scale(0.8);
+  transform-origin: bottom right;
+}
+
+[data-theme='dark'] .admin-mobile-nav-item {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.admin-mobile-nav.active .admin-mobile-nav-item {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition-delay: calc(var(--item-index) * 0.04s);
+}
+
+.admin-mobile-nav-item:hover {
+  background: var(--surface);
+  color: var(--text-primary);
+  transform: translateY(0) scale(1.02);
+  border-color: var(--primary-blue);
+}
+
+.admin-mobile-nav-item.active {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary-blue);
+  border-color: var(--primary-blue);
+}
+
+.admin-mobile-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60%;
+  background: var(--primary-blue);
+  border-radius: 0 4px 4px 0;
+}
+
+.admin-mobile-nav-label {
+  transition: opacity 0.2s ease;
+}
+
+.admin-mobile-theme-toggle {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.875rem;
+}
+
+/* =============================================
+   RESPONSIVE — telas menores
+   ============================================= */
+
+@media (max-width: 480px) {
+  .admin-mobile-fab {
+    bottom: 1rem;
+    right: 1rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+  }
+
+  .admin-mobile-nav {
+    bottom: 5.5rem;
+    right: 1rem;
+  }
+
+  .admin-mobile-nav-item {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.95rem;
+    min-width: 160px;
+  }
+}
+
+/* Safe area para dispositivos com notch */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .admin-mobile-fab {
+    bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+
+  @media (max-width: 480px) {
+    .admin-mobile-fab {
+      bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+  }
+}

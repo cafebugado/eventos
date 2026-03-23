@@ -84,6 +84,7 @@ import useUserRole, { ROLE_LABELS } from '../hooks/useUserRole'
 import usePagination from '../hooks/usePagination'
 import { useSidebarCollapse } from '../hooks/useSidebarCollapse'
 import { AdminSidebar } from './AdminSidebar'
+import { AdminMobileNav } from './AdminMobileNav'
 import { filterEventsByQuery } from '../utils/eventSearch'
 import { stripRichText } from '../utils/richText'
 import { Modal, ConfirmModal } from '../components/Modal'
@@ -971,6 +972,9 @@ function Dashboard() {
         isCollapsed={isCollapsed}
         onToggle={toggleSidebar}
       />
+
+      {/* Mobile Navigation */}
+      <AdminMobileNav activeTab={activeTab} onTabChange={setActiveTab} permissions={permissions} />
 
       {/* Main Content */}
       <main className={`admin-main${isCollapsed ? ' admin-main--collapsed' : ''}`}>
