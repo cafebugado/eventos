@@ -425,7 +425,44 @@
 }
 
 /* Responsive */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .ga-search-input {
+    max-width: 100%;
+  }
+
+  .ga-albums-list {
+    grid-template-columns: 1fr;
+  }
+
+  .ga-album-card {
+    padding: 1rem;
+  }
+
+  .ga-album-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .ga-album-name {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .ga-album-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .ga-album-meta {
+    gap: 0.5rem;
+  }
+
+  /* botão de delete da foto sempre visível no touch */
+  .ga-photo-delete {
+    opacity: 1;
+  }
+
   .ga-photo-form-row {
     flex-direction: column;
   }
@@ -433,9 +470,5 @@
   .ga-add-photo-btn {
     width: 100%;
     justify-content: center;
-  }
-
-  .ga-album-header {
-    flex-wrap: wrap;
   }
 }
