@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Calendar, Search, Filter, Eye, EyeOff, Heart } from 'lucide-react'
-import { getEvents } from './services/eventService'
-import { getTags, getAllEventTags } from './services/tagService'
+import { useEventsWithTags } from './hooks/useEvents'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import FloatingMenu from './components/FloatingMenu'
@@ -14,45 +13,21 @@ import { isEventPast, isEventToday, sortEventsByDate } from './utils/eventDate'
 import './App.css'
 
 function App() {
-  const [agenda, setAgenda] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const {
+    events,
+    tagsMap: eventTagsMap,
+    tags: allTags,
+    loading,
+    error,
+    revalidate,
+  } = useEventsWithTags()
+  const agenda = useMemo(() => sortEventsByDate(events), [events])
+
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTagId, setSelectedTagId] = useState('')
-  const [allTags, setAllTags] = useState([])
   const [showPastEvents, setShowPastEvents] = useState(false)
   const [showOnlyFavourites, setShowOnlyFavourites] = useState(false)
-  const [eventTagsMap, setEventTagsMap] = useState({})
   const isMobile = useMediaQuery('(max-width: 768px)')
-
-  // Funcao para carregar eventos do Supabase
-  const loadEvents = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const events = await getEvents()
-      setAgenda(sortEventsByDate(events))
-
-      // Carrega tags de todos os eventos e lista de tags
-      try {
-        const [tagsMap, tags] = await Promise.all([getAllEventTags(), getTags()])
-        setEventTagsMap(tagsMap)
-        setAllTags(tags)
-      } catch {
-        setEventTagsMap({})
-        setAllTags([])
-      }
-    } catch (error) {
-      console.error('Erro ao carregar eventos:', error)
-      setError('Não foi possível carregar os eventos. Verifique sua conexão e tente novamente.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    loadEvents()
-  }, [])
 
   // Logica para os favs
   const [favourites, setFavourites] = useState(() => {
@@ -266,8 +241,8 @@ function App() {
                 <Calendar size={48} />
               </div>
               <h3>Erro ao carregar eventos</h3>
-              <p>{error}</p>
-              <button onClick={loadEvents} className="retry-button">
+              <p>Não foi possível carregar os eventos. Verifique sua conexão e tente novamente.</p>
+              <button onClick={revalidate} className="retry-button">
                 Tentar novamente
               </button>
             </div>
