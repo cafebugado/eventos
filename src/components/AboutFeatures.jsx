@@ -1,16 +1,10 @@
-import { useState, useEffect } from 'react'
 import { Target, Zap, Globe, Handshake, BookOpen, Heart } from 'lucide-react'
 import StatCounter from './StatCounter'
-import { getEventStats } from '../services/eventService'
+import { useEventStats } from '../hooks/useEvents'
 
 function AboutFeatures() {
-  const [totalEventos, setTotalEventos] = useState(null)
-
-  useEffect(() => {
-    getEventStats()
-      .then(({ total }) => setTotalEventos(total))
-      .catch(() => {})
-  }, [])
+  const { stats } = useEventStats()
+  const totalEventos = stats?.total ?? null
 
   return (
     <div className="sobre-content">
