@@ -9,7 +9,7 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { ThemeProvider } from './context/ThemeProvider.jsx'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop.jsx'
 import Home from './pages/Home.jsx'
-import App from './App.jsx'
+import EventsPage from './pages/EventsPage.jsx'
 import EventDetails from './pages/EventDetails.jsx'
 import About from './pages/About.jsx'
 import Contact from './pages/Contact.jsx'
@@ -38,7 +38,7 @@ createRoot(document.getElementById('root')).render(
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/eventos" element={<App />} />
+            <Route path="/eventos" element={<EventsPage />} />
             <Route path="/eventos/:id" element={<EventDetails />} />
             <Route path="/sobre" element={<About />} />
             <Route path="/contato" element={<Contact />} />
