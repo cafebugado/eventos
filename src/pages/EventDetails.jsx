@@ -26,13 +26,13 @@ function EventDetails() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [id])
-  useEffect(()=>{
-      const stored = localStorage.getItem('favourites')
-      console.log(stored)
-      if (!stored) {
-        localStorage.setItem("favourites",'[]')
-      } 
-  },[])
+  useEffect(() => {
+    const stored = localStorage.getItem('favourites')
+    console.log(stored)
+    if (!stored) {
+      localStorage.setItem('favourites', '[]')
+    }
+  }, [])
 
   // Funcao para carregar evento do Supabase
   const loadEvent = async () => {
@@ -301,7 +301,7 @@ function EventDetails() {
                 modalidade={event.modalidade}
               />
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+              <div className="event-actions">
                 <a
                   href={isPast ? undefined : event.link}
                   target="_blank"

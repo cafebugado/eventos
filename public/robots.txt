@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /admin/dashboard
+
+Sitemap: https://eventos.cafebugado.com.br/sitemap.xml

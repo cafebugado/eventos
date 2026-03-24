@@ -49,4 +49,11 @@ export default defineConfig([
       'react-hooks/exhaustive-deps': 'warn',
     },
   },
+  // Entry point — não é módulo de componente, react-refresh não se aplica
+  {
+    files: ['src/main.jsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])
