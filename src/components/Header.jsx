@@ -5,6 +5,15 @@ import { useTheme } from '../hooks/useTheme'
 import { NAVIGATION_ITEMS } from '../constants/navigation'
 import './Header.css'
 
+// Mapa de prefetch por rota — dispara o import quando o user passa o mouse
+const PREFETCH_MAP = {
+  '/': () => import('../pages/Home.jsx'),
+  '/eventos': () => import('../pages/EventsPage.jsx'),
+  '/sobre': () => import('../pages/About.jsx'),
+  '/galeria': () => import('../pages/Gallery.jsx'),
+  '/contato': () => import('../pages/Contact.jsx'),
+}
+
 function Header() {
   const { isDarkMode, toggleTheme } = useTheme()
   const [isScrolled, setIsScrolled] = useState(false)
@@ -50,6 +59,7 @@ function Header() {
                   <button
                     className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
                     onClick={() => navigate(item.path)}
+                    onMouseEnter={() => PREFETCH_MAP[item.path]?.()}
                   >
                     <IconComponent size={18} className="nav-icon" />
                     <span>{item.label}</span>
