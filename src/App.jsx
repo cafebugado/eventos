@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Calendar, Search, Filter, Eye, EyeOff, Heart } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { Calendar, Search, Filter, Heart } from 'lucide-react'
+import SearchModal from './components/SearchModal'
 import { useEventsWithTags } from './hooks/useEvents'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -7,8 +8,12 @@ import FloatingMenu from './components/FloatingMenu'
 import Pagination from './components/Pagination'
 import SEOHead from './components/SEOHead'
 import EventCard from './components/EventCard'
+import ViewToggle from './components/ViewToggle'
+import EventRowCompact from './components/EventRowCompact'
+import FilterModal from './components/FilterModal'
 import useMediaQuery from './hooks/useMediaQuery'
 import usePagination from './hooks/usePagination'
+import useViewMode from './hooks/useViewMode'
 import { isEventPast, isEventToday, sortEventsByDate } from './utils/eventDate'
 import './App.css'
 
@@ -24,9 +29,12 @@ function App() {
   const agenda = useMemo(() => sortEventsByDate(events), [events])
 
   const [searchTerm, setSearchTerm] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
   const [selectedTagId, setSelectedTagId] = useState('')
   const [showPastEvents, setShowPastEvents] = useState(false)
   const [showOnlyFavourites, setShowOnlyFavourites] = useState(false)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const isMobile = useMediaQuery('(max-width: 768px)')
 
   // Logica para os favs
@@ -97,7 +105,26 @@ function App() {
       // Filtro de favoritos
       const matchesFavourite = !showOnlyFavourites || favouriteIds.has(event.id)
 
-      return matchesSearch && matchesTag && matchesPastFilter && matchesFavourite
+      // Filtro por data (data_evento é DD/MM/YYYY, inputs retornam YYYY-MM-DD)
+      let matchesDate = true
+      if (dateFrom || dateTo) {
+        const [d, m, y] = (event.data_evento || '').split('/')
+        const eventDate = y && m && d ? new Date(`${y}-${m}-${d}`) : null
+        if (eventDate) {
+          if (dateFrom && dateTo) {
+            // Duas datas: filtra o período entre elas
+            matchesDate = eventDate >= new Date(dateFrom) && eventDate <= new Date(dateTo)
+          } else if (dateFrom) {
+            // Só data inicial: traz exatamente aquela data
+            matchesDate = eventDate.getTime() === new Date(dateFrom).getTime()
+          } else if (dateTo) {
+            // Só data final: traz exatamente aquela data
+            matchesDate = eventDate.getTime() === new Date(dateTo).getTime()
+          }
+        }
+      }
+
+      return matchesSearch && matchesTag && matchesPastFilter && matchesFavourite && matchesDate
     })
   }, [
     agenda,
@@ -107,7 +134,16 @@ function App() {
     showPastEvents,
     showOnlyFavourites,
     favouriteIds,
+    dateFrom,
+    dateTo,
   ])
+
+  const { viewMode, changeViewMode } = useViewMode('grid')
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
+  const [searchModalOpen, setSearchModalOpen] = useState(false)
+  const searchInputRef = useRef(null)
+  const filterActiveCount =
+    (selectedTagId ? 1 : 0) + (showPastEvents ? 1 : 0) + (dateFrom ? 1 : 0) + (dateTo ? 1 : 0)
 
   const pageSize = isMobile ? 6 : 9
   const { currentPage, totalPages, pagedItems, goToPage } = usePagination(filteredEvents, pageSize)
@@ -164,51 +200,93 @@ function App() {
 
           {/* Filtros */}
           <div className="eventos-filters">
-            <div className="filter-search">
-              <Search size={20} className="search-icon" />
+            {/* Lupa: mobile abre modal, desktop expande inline */}
+            <div className={`filter-search${searchOpen ? ' filter-search--open' : ''}`}>
+              <button
+                className={`search-toggle${searchTerm ? ' search-toggle--active' : ''}`}
+                onClick={() => {
+                  if (isMobile) {
+                    setSearchModalOpen(true)
+                  } else {
+                    setSearchOpen((v) => {
+                      if (!v) {
+                        setTimeout(() => searchInputRef.current?.focus(), 50)
+                      } else {
+                        setSearchTerm('')
+                      }
+                      return !v
+                    })
+                  }
+                }}
+                aria-label="Abrir busca"
+              >
+                <Search size={18} />
+              </button>
               <input
+                ref={searchInputRef}
                 type="text"
-                placeholder="Buscar por nome ou descricao..."
+                placeholder="Buscar evento..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onBlur={() => {
+                  if (!searchTerm) {
+                    setSearchOpen(false)
+                  }
+                }}
                 className="search-input"
+                tabIndex={searchOpen ? 0 : -1}
               />
             </div>
 
-            <div className="filter-periodo">
-              <Filter size={18} />
-              <select
-                value={selectedTagId}
-                onChange={(e) => setSelectedTagId(e.target.value)}
-                className="periodo-select"
-              >
-                <option value="">Todas as tags</option>
-                {allTags.map((tag) => (
-                  <option key={tag.id} value={String(tag.id)}>
-                    {tag.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <SearchModal
+              isOpen={searchModalOpen}
+              onClose={() => setSearchModalOpen(false)}
+              value={searchTerm}
+              onChange={setSearchTerm}
+            />
 
             <button
-              className={`filter-toggle ${showPastEvents ? 'active' : ''}`}
-              onClick={() => setShowPastEvents(!showPastEvents)}
-              title={showPastEvents ? 'Ocultar eventos passados' : 'Mostrar eventos passados'}
+              className={`filter-toggle${filterActiveCount > 0 ? ' active' : ''}`}
+              onClick={() => setFilterModalOpen(true)}
+              title="Filtros"
             >
-              {showPastEvents ? <Eye size={18} /> : <EyeOff size={18} />}
-              <span>{showPastEvents ? 'Ocultando passados' : 'Mostrar passados'}</span>
+              {filterActiveCount > 0 ? (
+                <span className="filter-badge">{filterActiveCount}</span>
+              ) : (
+                <Filter size={18} />
+              )}
+              <span>Filtros</span>
             </button>
 
             <button
               className={`filter-toggle ${showOnlyFavourites ? 'active' : ''}`}
               onClick={() => setShowOnlyFavourites(!showOnlyFavourites)}
-              title={showOnlyFavourites ? 'Mostrar todos eventos' : 'Mostrar apenas favoritos'}
+              title="Favoritos"
             >
               <Heart size={18} fill={showOnlyFavourites ? 'currentColor' : 'none'} />
-              <span>{showOnlyFavourites ? 'Apenas favoritos' : 'Favoritos'}</span>
+              <span>Favoritos</span>
             </button>
+
+            <ViewToggle
+              viewMode={isMobile && viewMode === 'grid' ? 'list' : viewMode}
+              onChange={changeViewMode}
+              isMobile={isMobile}
+            />
           </div>
+
+          <FilterModal
+            isOpen={filterModalOpen}
+            onClose={() => setFilterModalOpen(false)}
+            tags={allTags}
+            selectedTagId={selectedTagId}
+            onSelectTag={setSelectedTagId}
+            showPastEvents={showPastEvents}
+            onTogglePast={() => setShowPastEvents((v) => !v)}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onDateFrom={setDateFrom}
+            onDateTo={setDateTo}
+          />
 
           {loading ? (
             <div
@@ -248,28 +326,40 @@ function App() {
             </div>
           ) : filteredEvents.length > 0 ? (
             <>
-              <div className="eventos-grid">
-                {pagedItems.map((item, index) => {
-                  const isPast = isEventPast(item.data_evento)
-                  const isToday = isEventToday(item.data_evento)
-
-                  return (
-                    <EventCard
+              {viewMode === 'compact' ? (
+                <div className="eventos-compact">
+                  {pagedItems.map((item, index) => (
+                    <EventRowCompact
                       key={item.id || `event-${pageOffset + index}`}
                       event={item}
-                      tags={eventTagsMap[item.id] || []}
-                      variant="full"
-                      isPast={isPast}
-                      isToday={isToday}
-                      showLocation
-                      showActionButton
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                      favouriteIds={favouriteIds}
-                      toggleFavourite={toggleFavourite}
+                      style={{ animationDelay: `${index * 0.05}s` }}
                     />
-                  )
-                })}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={viewMode === 'list' ? 'eventos-list' : 'eventos-grid'}>
+                  {pagedItems.map((item, index) => {
+                    const isPast = isEventPast(item.data_evento)
+                    const isToday = isEventToday(item.data_evento)
+
+                    return (
+                      <EventCard
+                        key={item.id || `event-${pageOffset + index}`}
+                        event={item}
+                        tags={eventTagsMap[item.id] || []}
+                        variant="full"
+                        isPast={isPast}
+                        isToday={isToday}
+                        showLocation
+                        showActionButton
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                        favouriteIds={favouriteIds}
+                        toggleFavourite={toggleFavourite}
+                      />
+                    )
+                  })}
+                </div>
+              )}
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

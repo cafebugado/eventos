@@ -98,6 +98,11 @@
   gap: 1.25rem;
 }
 
+/* Quando o body contém seções fm- (FilterModal), remove o gap padrão */
+.modal-body .fm-section + .fm-section {
+  margin-top: -0.75rem;
+}
+
 /* Footer */
 .modal-footer {
   display: flex;
