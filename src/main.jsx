@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
@@ -8,15 +8,18 @@ import { initWebVitals } from './lib/vitals.js'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { ThemeProvider } from './context/ThemeProvider.jsx'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop.jsx'
-import Home from './pages/Home.jsx'
-import App from './App.jsx'
-import EventDetails from './pages/EventDetails.jsx'
-import About from './pages/About.jsx'
-import Contact from './pages/Contact.jsx'
-import Gallery from './pages/Gallery.jsx'
-import Login from './admin/Login.jsx'
-import Dashboard from './admin/Dashboard.jsx'
-import NotFound from './pages/NotFound.jsx'
+import PageLoader from './components/PageLoader.jsx'
+
+// Páginas carregadas via lazy (code splitting por rota)
+const Home = lazy(() => import('./pages/Home.jsx'))
+const EventsPage = lazy(() => import('./pages/EventsPage.jsx'))
+const EventDetails = lazy(() => import('./pages/EventDetails.jsx'))
+const About = lazy(() => import('./pages/About.jsx'))
+const Contact = lazy(() => import('./pages/Contact.jsx'))
+const Gallery = lazy(() => import('./pages/Gallery.jsx'))
+const Login = lazy(() => import('./admin/Login.jsx'))
+const Dashboard = lazy(() => import('./admin/Dashboard.jsx'))
+const NotFound = lazy(() => import('./pages/NotFound.jsx'))
 
 // Inicializa Sentry (só ativa em produção com DSN configurado)
 initSentry()
@@ -36,17 +39,19 @@ createRoot(document.getElementById('root')).render(
     <ErrorBoundary>
       <ThemeProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/eventos" element={<App />} />
-            <Route path="/eventos/:id" element={<EventDetails />} />
-            <Route path="/sobre" element={<About />} />
-            <Route path="/contato" element={<Contact />} />
-            <Route path="/galeria" element={<Gallery />} />
-            <Route path="/admin" element={<Login />} />
-            <Route path="/admin/dashboard" element={<Dashboard />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/eventos" element={<EventsPage />} />
+              <Route path="/eventos/:id" element={<EventDetails />} />
+              <Route path="/sobre" element={<About />} />
+              <Route path="/contato" element={<Contact />} />
+              <Route path="/galeria" element={<Gallery />} />
+              <Route path="/admin" element={<Login />} />
+              <Route path="/admin/dashboard" element={<Dashboard />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
           <ScrollToTop />
           <Analytics />
           <SpeedInsights />

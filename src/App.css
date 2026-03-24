@@ -557,7 +557,7 @@ body {
 }
 
 section {
-  padding: 6rem 2rem;
+  padding: 0;
 }
 
 .container {
@@ -613,40 +613,64 @@ section {
   margin: 0 auto 2rem;
   padding: 0 1rem;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .filter-search {
-  position: relative;
-  flex: 1;
-  min-width: 250px;
-  max-width: 400px;
-}
-
-.filter-search .search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-secondary);
-  pointer-events: none;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.75rem 1rem 0.75rem 3rem;
+  display: flex;
+  align-items: center;
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background: var(--background);
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
+  overflow: hidden;
+  transition:
+    width 0.3s ease,
+    border-color 0.2s ease;
+  width: 2.75rem;
 }
 
-.search-input:focus {
-  outline: none;
+.filter-search--open {
+  width: 260px;
   border-color: var(--primary-blue);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.filter-search--open .search-toggle,
+.search-toggle--active {
+  color: var(--primary-blue);
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 0.75rem 0.75rem 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.filter-search--open .search-input {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .search-input::placeholder {
@@ -697,6 +721,21 @@ section {
   color: var(--primary-blue);
 }
 
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: 2rem;
+  background: var(--primary-blue);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .filter-toggle.active {
   background: rgba(37, 99, 235, 0.1);
   border-color: var(--primary-blue);
@@ -731,6 +770,42 @@ section {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeInUp 0.6s ease;
+}
+
+.eventos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeInUp 0.6s ease;
+}
+
+.eventos-list .ec-card--full {
+  min-height: unset;
+}
+
+.eventos-list .ec-card--full .ec-image-wrapper {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.eventos-list .ec-card--full .ec-image {
+  height: 100%;
+  min-height: 160px;
+}
+
+.eventos-list .ec-card--full {
+  flex-direction: row;
+}
+
+.eventos-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   max-width: 1200px;
   margin: 0 auto;
   animation: fadeInUp 0.6s ease;
@@ -1455,6 +1530,11 @@ section {
     grid-template-columns: repeat(2, 1fr);
     padding: 0 1rem;
   }
+
+  .eventos-list,
+  .eventos-compact {
+    padding: 0 1rem;
+  }
 }
 
 /* Mobile - até 768px */
@@ -1480,12 +1560,14 @@ section {
   }
 
   .eventos-filters {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
   }
 
-  .filter-search {
-    max-width: none;
+  .filter-search--open {
+    width: min(260px, 80vw);
   }
 
   .filter-periodo {
@@ -1543,16 +1625,43 @@ section {
   }
 
   section {
-    padding: 4rem 1rem;
+    padding: 0;
+  }
+
+  .eventos-section {
+    padding-top: 5rem;
+  }
+
+  .section-header {
+    margin-bottom: 1.25rem;
+    padding: 0 1rem;
   }
 
   .section-header h2 {
-    font-size: 2rem;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-header p {
+    font-size: 0.9375rem;
   }
 
   .eventos-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+    padding: 0 1rem;
+  }
+
+  .eventos-list .ec-card--full {
+    flex-direction: column;
+  }
+
+  .eventos-list .ec-card--full .ec-image-wrapper {
+    width: 100%;
+  }
+
+  .eventos-list,
+  .eventos-compact {
     padding: 0 1rem;
   }
 

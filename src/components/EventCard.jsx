@@ -90,7 +90,7 @@ function EventCard({
               e.target.src = BgEventos
             }}
           />
-          <div className={badgeClass}>{badgeText}</div>
+          {!isWithin24h && !isHappening && <div className={badgeClass}>{badgeText}</div>}
           {tags.length > 0 && (
             <div className="card-image-tags">
               {tags.map((tag) => (
@@ -104,22 +104,22 @@ function EventCard({
               ))}
             </div>
           )}
+
+          {isHappening && (
+            <div className="ec-countdown ec-countdown--happening">
+              <Radio size={13} />
+              <span>Acontecendo agora!</span>
+            </div>
+          )}
+
+          {!isHappening && isWithin24h && countdown && (
+            <div className="ec-countdown">
+              <Timer size={13} />
+              <span>Começa em {countdown}</span>
+            </div>
+          )}
         </div>
       </div>
-
-      {isWithin24h && countdown && (
-        <div className="ec-countdown">
-          <Timer size={13} />
-          <span>Começa em {countdown}</span>
-        </div>
-      )}
-
-      {isHappening && (
-        <div className="ec-countdown ec-countdown--happening">
-          <Radio size={13} />
-          <span>Acontecendo agora!</span>
-        </div>
-      )}
 
       <div className="ec-content">
         <div className={isFull ? 'ec-top' : undefined}>
