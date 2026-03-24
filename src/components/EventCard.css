@@ -74,6 +74,15 @@
   height: 200px;
 }
 
+.ec-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 40%, rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+  z-index: 1;
+}
+
 .ec-image img {
   display: block;
   width: 100%;
@@ -85,6 +94,12 @@
 
 .ec-card:hover .ec-image img {
   transform: scale(1.05);
+}
+
+/* Badge e tags ficam acima do gradiente */
+.ec-badge,
+.card-image-tags {
+  z-index: 2;
 }
 
 /* Badge de período/status */
