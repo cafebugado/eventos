@@ -5,8 +5,19 @@ import Testimonials from '../components/Testimonials'
 import Layout from '../layout/Layout'
 import SEOHead from '../components/SEOHead'
 import './Home.css'
+import { useEffect } from 'react'
 
 function Home() {
+
+  useEffect(()=>{
+      const stored = localStorage.getItem('favourites')
+      if (!stored) {
+        localStorage.setItem("favourites",'[]')
+      } 
+  },[])
+
+
+  
   return (
     <Layout>
       <SEOHead
