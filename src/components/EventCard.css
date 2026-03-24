@@ -345,3 +345,56 @@
     font-size: 0.75rem;
   }
 }
+
+/* =========================================
+   Countdown / Acontecendo agora
+   ========================================= */
+
+.ec-countdown {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4rem 1rem;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.ec-countdown--happening {
+  background: #15803d;
+  animation: ec-happening-pulse 2s ease-in-out infinite;
+}
+
+/* Badge "Acontecendo agora" */
+.ec-badge-happening {
+  background: #15803d;
+  animation: ec-happening-pulse 2s ease-in-out infinite;
+}
+
+/* Pulso no badge "Hoje" */
+.ec-badge-today--pulse {
+  animation: ec-today-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ec-today-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(40, 167, 69, 0);
+  }
+}
+
+@keyframes ec-happening-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
