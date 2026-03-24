@@ -49,6 +49,7 @@ import {
   getEventStats,
   uploadEventImage,
 } from '../services/eventService'
+import { invalidateEventsCache } from '../hooks/useEvents'
 import {
   getContributors,
   createContributor,
@@ -554,6 +555,7 @@ function Dashboard() {
         showNotification(MESSAGES.events.createSucess)
       }
 
+      invalidateEventsCache()
       closeModal()
       await loadEvents()
     } catch (error) {
@@ -569,6 +571,7 @@ function Dashboard() {
     if (window.confirm('Tem certeza que deseja excluir este evento?')) {
       try {
         await deleteEventService(id)
+        invalidateEventsCache()
         showNotification(MESSAGES.events.deleteSucess)
         await loadEvents()
       } catch (error) {
