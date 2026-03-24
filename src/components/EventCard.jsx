@@ -8,11 +8,14 @@ import {
   Wifi,
   Video,
   ArrowUpRight,
+  Timer,
+  Radio,
 } from 'lucide-react'
 import RichText from './RichText'
 import BgEventos from '../assets/eventos.png'
 import './EventCard.css'
 import { FavouriteEventButton } from './favourite-event/favouriteEventButton'
+import { useEventCountdown } from '../hooks/useEventCountdown'
 
 function ModalidadeIcon({ modalidade, size }) {
   if (modalidade === 'Online') {
@@ -45,12 +48,25 @@ function EventCard({
   const isFull = variant === 'full'
   const iconSize = isFull ? 16 : 14
 
+  const { isHappening, isWithin24h, countdown } = useEventCountdown(
+    event.data_evento,
+    event.horario
+  )
+
   const badgeClass = isPast
     ? 'ec-badge ec-badge-encerrado'
-    : isToday
-      ? 'ec-badge ec-badge-today'
-      : 'ec-badge'
-  const badgeText = isPast ? 'Encerrado' : isToday ? 'Hoje' : event.periodo
+    : isHappening
+      ? 'ec-badge ec-badge-happening'
+      : isToday
+        ? 'ec-badge ec-badge-today ec-badge-today--pulse'
+        : 'ec-badge'
+  const badgeText = isPast
+    ? 'Encerrado'
+    : isHappening
+      ? 'Acontecendo agora'
+      : isToday
+        ? 'Hoje'
+        : event.periodo
 
   const defaultActionLabel = isPast ? 'Ver detalhes do evento' : 'Saber mais sobre o evento'
 
@@ -90,6 +106,20 @@ function EventCard({
           )}
         </div>
       </div>
+
+      {isWithin24h && countdown && (
+        <div className="ec-countdown">
+          <Timer size={13} />
+          <span>Começa em {countdown}</span>
+        </div>
+      )}
+
+      {isHappening && (
+        <div className="ec-countdown ec-countdown--happening">
+          <Radio size={13} />
+          <span>Acontecendo agora!</span>
+        </div>
+      )}
 
       <div className="ec-content">
         <div className={isFull ? 'ec-top' : undefined}>

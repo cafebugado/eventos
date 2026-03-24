@@ -1,30 +1,12 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
-import { getUpcomingEvents } from '../services/eventService'
+import { useUpcomingEvents } from '../hooks/useEvents'
 import EventCard from './EventCard'
 import './UpcomingEvents.css'
 
 function UpcomingEvents() {
-  const [events, setEvents] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const navigate = useNavigate() // usado no botão CTA
-
-  useEffect(() => {
-    async function loadEvents() {
-      try {
-        const data = await getUpcomingEvents(3)
-        setEvents(data)
-      } catch (err) {
-        console.error('Erro ao carregar próximos eventos:', err)
-        setError(true)
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadEvents()
-  }, [])
+  const { events, loading, error } = useUpcomingEvents(3)
+  const navigate = useNavigate()
 
   if (error || (!loading && events.length === 0)) {
     return null
