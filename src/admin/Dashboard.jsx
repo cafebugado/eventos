@@ -46,6 +46,7 @@ import {
   createEvent,
   updateEvent,
   deleteEvent as deleteEventService,
+  publishEvent as publishEventService,
   getEventStats,
   uploadEventImage,
 } from '../services/eventService'
@@ -153,6 +154,7 @@ function Dashboard() {
   const [imagePreview, setImagePreview] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('todos')
   const [contributors, setContributors] = useState([])
   const [loadingContributors, setLoadingContributors] = useState(true)
   const [showContributorModal, setShowContributorModal] = useState(false)
@@ -330,10 +332,13 @@ function Dashboard() {
     return [...eventos].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
   }, [eventos])
 
-  const filteredEvents = useMemo(
-    () => filterEventsByQuery(sortedEvents, searchTerm),
-    [sortedEvents, searchTerm]
-  )
+  const filteredEvents = useMemo(() => {
+    const byQuery = filterEventsByQuery(sortedEvents, searchTerm)
+    if (statusFilter === 'todos') {
+      return byQuery
+    }
+    return byQuery.filter((e) => e.status === statusFilter)
+  }, [sortedEvents, searchTerm, statusFilter])
   const pageSize = isMobile ? PAGE_SIZES.mobile : PAGE_SIZES.desktop
   const { currentPage, totalPages, pagedItems, goToPage } = usePagination(filteredEvents, pageSize)
   const showSearch = !loading && eventos.length > 0
@@ -420,6 +425,7 @@ function Dashboard() {
       endereco: '',
       cidade: '',
       estado: '',
+      status: 'rascunho',
     })
     setShowModal(true)
   }
@@ -442,6 +448,7 @@ function Dashboard() {
     setValue('endereco', evento.endereco || '')
     setValue('cidade', evento.cidade || '')
     setValue('estado', evento.estado || '')
+    setValue('status', evento.status || 'publicado')
     // Carregar tags do evento
     try {
       const eventTags = await getEventTags(evento.id)
@@ -495,7 +502,7 @@ function Dashboard() {
     setValue('dia_semana', dayName, { shouldValidate: true })
   }
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data, statusOverride = null) => {
     const nomeNorm = data.nome.trim().toLowerCase()
     const duplicateEvent = eventos.find(
       (e) => e.nome.trim().toLowerCase() === nomeNorm && (!editingEvent || e.id !== editingEvent.id)
@@ -540,19 +547,28 @@ function Dashboard() {
         endereco: data.modalidade === 'Online' ? null : data.endereco || null,
         cidade: data.modalidade === 'Online' ? null : data.cidade || null,
         estado: data.modalidade === 'Online' ? null : data.estado || null,
+        status: statusOverride || data.status || 'rascunho',
       }
 
       let savedEvent
       if (editingEvent) {
         savedEvent = await updateEvent(editingEvent.id, eventData)
         await setEventTags(editingEvent.id, selectedTags)
-        showNotification(MESSAGES.events.updateSucess)
+        showNotification(
+          statusOverride === 'publicado' || eventData.status === 'publicado'
+            ? MESSAGES.events.publishSuccess
+            : MESSAGES.events.updateSucess
+        )
       } else {
         savedEvent = await createEvent(eventData)
         if (selectedTags.length > 0) {
           await setEventTags(savedEvent.id, selectedTags)
         }
-        showNotification(MESSAGES.events.createSucess)
+        showNotification(
+          statusOverride === 'publicado' || eventData.status === 'publicado'
+            ? MESSAGES.events.publishSuccess
+            : MESSAGES.events.createSucess
+        )
       }
 
       invalidateEventsCache()
@@ -578,6 +594,18 @@ function Dashboard() {
         console.error('Erro ao excluir evento:', error)
         showNotification(MESSAGES.events.deleteError, 'error')
       }
+    }
+  }
+
+  const handlePublishEvent = async (id) => {
+    try {
+      await publishEventService(id)
+      invalidateEventsCache()
+      showNotification(MESSAGES.events.publishSuccess)
+      await loadEvents()
+    } catch (error) {
+      console.error('Erro ao publicar evento:', error)
+      showNotification(MESSAGES.events.publishError, 'error')
     }
   }
 
@@ -1294,24 +1322,40 @@ function Dashboard() {
 
                         {showSearch && (
                           <div className="events-toolbar">
-                            <div className="events-search">
-                              <Search size={18} className="events-search-icon" />
-                              <input
-                                type="text"
-                                placeholder="Buscar por nome, descricao ou data..."
-                                value={searchTerm}
-                                onChange={(event) => setSearchTerm(event.target.value)}
-                                aria-label="Buscar eventos"
-                              />
-                              {searchTerm && (
-                                <button
-                                  type="button"
-                                  className="events-search-clear"
-                                  onClick={() => setSearchTerm('')}
-                                >
-                                  Limpar
-                                </button>
-                              )}
+                            <div className="events-filters-row">
+                              <div className="events-search">
+                                <Search size={18} className="events-search-icon" />
+                                <input
+                                  type="text"
+                                  placeholder="Buscar por nome, descricao ou data..."
+                                  value={searchTerm}
+                                  onChange={(event) => setSearchTerm(event.target.value)}
+                                  aria-label="Buscar eventos"
+                                />
+                                {searchTerm && (
+                                  <button
+                                    type="button"
+                                    className="events-search-clear"
+                                    onClick={() => setSearchTerm('')}
+                                  >
+                                    Limpar
+                                  </button>
+                                )}
+                              </div>
+                              <div className="status-filter-tabs">
+                                {['todos', 'publicado', 'rascunho', 'arquivado'].map((s) => (
+                                  <button
+                                    key={s}
+                                    type="button"
+                                    className={`status-filter-tab ${statusFilter === s ? 'active' : ''} status-tab-${s}`}
+                                    onClick={() => setStatusFilter(s)}
+                                  >
+                                    {s === 'todos'
+                                      ? 'Todos'
+                                      : s.charAt(0).toUpperCase() + s.slice(1)}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         )}
@@ -1374,9 +1418,21 @@ function Dashboard() {
                                               {stripRichText(evento.descricao)}
                                             </span>
                                           )}
-                                          {isPast && (
-                                            <span className="badge badge-encerrado">Encerrado</span>
-                                          )}
+                                          <div className="event-badges">
+                                            {isPast && (
+                                              <span className="badge badge-encerrado">
+                                                Encerrado
+                                              </span>
+                                            )}
+                                            {evento.status === 'rascunho' && (
+                                              <span className="badge badge-rascunho">Rascunho</span>
+                                            )}
+                                            {evento.status === 'arquivado' && (
+                                              <span className="badge badge-arquivado">
+                                                Arquivado
+                                              </span>
+                                            )}
+                                          </div>
                                         </td>
                                         <td data-label="Data do Evento">{evento.data_evento}</td>
                                         <td data-label="Cadastrado em">
@@ -1390,13 +1446,27 @@ function Dashboard() {
                                           <div className="action-buttons">
                                             {!isPast && (
                                               <>
-                                                <button
-                                                  className="btn-icon btn-view"
-                                                  onClick={() => window.open(evento.link, '_blank')}
-                                                  title="Ver evento"
-                                                >
-                                                  <Eye size={16} />
-                                                </button>
+                                                {evento.status === 'publicado' && (
+                                                  <button
+                                                    className="btn-icon btn-view"
+                                                    onClick={() =>
+                                                      window.open(evento.link, '_blank')
+                                                    }
+                                                    title="Ver evento"
+                                                  >
+                                                    <Eye size={16} />
+                                                  </button>
+                                                )}
+                                                {permissions.canPublishEvents &&
+                                                  evento.status === 'rascunho' && (
+                                                    <button
+                                                      className="btn-icon btn-publish"
+                                                      onClick={() => handlePublishEvent(evento.id)}
+                                                      title="Publicar evento"
+                                                    >
+                                                      <ArrowUpRight size={16} />
+                                                    </button>
+                                                  )}
                                                 {permissions.canEditEvents && (
                                                   <button
                                                     className="btn-icon btn-edit"
@@ -2080,6 +2150,20 @@ function Dashboard() {
           <div className="form-row">
             <div className="form-field">
               <label>
+                <FileText size={16} />
+                Status do Evento
+              </label>
+              <select {...register('status')}>
+                <option value="rascunho">Rascunho — não aparece na listagem pública</option>
+                <option value="publicado">Publicado — visível para todos</option>
+                <option value="arquivado">Arquivado — removido da listagem pública</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-field">
+              <label>
                 <Monitor size={16} />
                 Modalidade
               </label>
@@ -2208,7 +2292,7 @@ function Dashboard() {
             <button type="button" className="btn-secondary" onClick={closeModal}>
               Cancelar
             </button>
-            <button type="submit" className="btn-primary" disabled={isSubmitting}>
+            <button type="submit" className="btn-secondary btn-save-draft" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <span className="button-spinner"></span>
@@ -2217,10 +2301,30 @@ function Dashboard() {
               ) : (
                 <>
                   <Save size={18} />
-                  {editingEvent ? 'Salvar Alterações' : 'Criar Evento'}
+                  Salvar
                 </>
               )}
             </button>
+            {permissions.canPublishEvents && (
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={isSubmitting}
+                onClick={handleSubmit((data) => onSubmit(data, 'publicado'))}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="button-spinner"></span>
+                    Publicando...
+                  </>
+                ) : (
+                  <>
+                    <ArrowUpRight size={18} />
+                    Publicar
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </form>
       </Modal>
