@@ -3,6 +3,8 @@ export const MESSAGES = {
     createSucess: 'Evento criado com sucesso!',
     updateSucess: 'Evento atualizado com sucesso!',
     deleteSucess: 'Evento deletado com sucesso!',
+    publishSuccess: 'Evento publicado com sucesso!',
+    publishError: 'Erro ao publicar o evento.',
     loadError: 'Erro ao carregar os eventos.',
     saveError: 'Erro ao salvar o evento.',
     deleteError: 'Erro ao excluir o evento.',

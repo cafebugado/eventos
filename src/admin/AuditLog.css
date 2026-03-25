@@ -1,0 +1,455 @@
+.audit-log {
+  padding: 0;
+}
+
+/* Filtros */
+.audit-filters {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.audit-filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.audit-filters-row select,
+.audit-filters-row input[type='date'] {
+  flex: 1 1 160px;
+  min-width: 140px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.audit-filters-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-sm {
+  padding: 6px 14px !important;
+  font-size: 0.82rem !important;
+  gap: 6px !important;
+}
+
+/* Total */
+.audit-total {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+/* Erro */
+.audit-error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+/* Tabela */
+.audit-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.audit-table thead th {
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.audit-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.audit-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.audit-table tbody tr:hover {
+  background: var(--surface);
+}
+
+.audit-table td {
+  padding: 10px 14px;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.audit-row--faded {
+  opacity: 0.5;
+}
+
+.audit-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 32px !important;
+}
+
+.audit-col-date {
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.audit-col-user {
+  font-weight: 500;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audit-col-entity {
+  color: var(--text-secondary);
+}
+
+.audit-col-id {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* Badges */
+.audit-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.audit-badge--insert {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.audit-badge--update {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.audit-badge--delete {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Paginação */
+.audit-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Spinner para o botão de refresh */
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Modal de changes */
+.audit-changes {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.audit-changes-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+.audit-changes-meta strong {
+  color: var(--text-primary);
+}
+
+.audit-changes-empty {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.audit-changes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.audit-changes-table th {
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.audit-changes-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  word-break: break-word;
+  max-width: 260px;
+}
+
+.audit-changes-table tr:last-child td {
+  border-bottom: none;
+}
+
+.audit-field-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+.audit-field-old {
+  color: #b91c1c;
+  background: #fff1f1;
+}
+
+.audit-field-new {
+  color: #15803d;
+  background: #f0fdf4;
+}
+
+/* ---------------------------------------------------------------
+   Mobile responsivo
+--------------------------------------------------------------- */
+@media (max-width: 640px) {
+  /* Filtros menores em grid 2 colunas */
+  .audit-filters {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .audit-filters-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .audit-filters-row select,
+  .audit-filters-row input[type='date'] {
+    width: 100%;
+    min-width: unset;
+    padding: 6px 8px;
+    font-size: 0.78rem;
+  }
+
+  /* Tabela vira cards */
+  .audit-table-wrapper {
+    border: none;
+    border-radius: 0;
+    overflow-x: unset;
+  }
+
+  .audit-table thead {
+    display: none;
+  }
+
+  .audit-table,
+  .audit-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .audit-table tbody tr {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    gap: 4px;
+    position: relative;
+  }
+
+  .audit-table tbody tr:last-child {
+    border: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+
+  .audit-table td {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: none;
+    font-size: 0.82rem;
+  }
+
+  .audit-table td[data-label]::before {
+    content: attr(data-label) ':';
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    min-width: 54px;
+    flex-shrink: 0;
+  }
+
+  /* Usuário em destaque no topo, sem rótulo */
+  .audit-col-user {
+    font-weight: 600;
+    font-size: 0.9rem;
+    max-width: unset;
+    white-space: normal;
+    order: -1;
+    padding-right: 32px;
+  }
+
+  .audit-col-user::before {
+    display: none;
+  }
+
+  /* Botão ver no canto superior direito */
+  .audit-col-action {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+
+  .audit-col-action::before {
+    display: none;
+  }
+
+  /* Esconde ID no mobile */
+  .audit-col-id {
+    display: none;
+  }
+
+  /* Paginação */
+  .audit-pagination {
+    font-size: 0.8rem;
+    gap: 8px;
+  }
+
+  /* Modal de changes */
+  .audit-changes-meta {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .audit-changes-table thead {
+    display: none;
+  }
+
+  .audit-changes-table,
+  .audit-changes-table tbody {
+    display: block;
+  }
+
+  .audit-changes-table tr {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    padding: 10px;
+    gap: 4px;
+  }
+
+  .audit-changes-table tr:last-child {
+    border: 1px solid var(--border);
+  }
+
+  .audit-changes-table td {
+    display: block;
+    border: none;
+    padding: 2px 0;
+    max-width: unset;
+    font-size: 0.82rem;
+  }
+
+  .audit-field-name::before {
+    content: 'Campo: ';
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+  .audit-field-old::before {
+    content: 'Antes: ';
+    font-weight: 600;
+  }
+  .audit-field-new::before {
+    content: 'Depois: ';
+    font-weight: 600;
+  }
+
+  .audit-field-old,
+  .audit-field-new {
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-top: 2px;
+  }
+}
+
+/* Dark mode overrides */
+[data-theme='dark'] .audit-badge--insert {
+  background: #14532d;
+  color: #86efac;
+}
+
+[data-theme='dark'] .audit-badge--update {
+  background: #451a03;
+  color: #fcd34d;
+}
+
+[data-theme='dark'] .audit-badge--delete {
+  background: #450a0a;
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .audit-field-old {
+  background: #2d0000;
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .audit-field-new {
+  background: #002d0a;
+  color: #86efac;
+}
