@@ -8,6 +8,7 @@ import {
   UserCog,
   GitBranch,
   Images,
+  ShieldCheck,
   X,
   Menu,
   Sun,
@@ -24,6 +25,7 @@ const MENU_ITEMS = [
   { id: 'usuarios', label: 'Usuários', icon: UserCog, permission: 'canManageUsers' },
   { id: 'comunidades', label: 'Comunidades', icon: Users, permission: null },
   { id: 'galeria', label: 'Galeria', icon: Images, permission: null },
+  { id: 'auditoria', label: 'Auditoria', icon: ShieldCheck, permission: 'canManageUsers' },
   { id: 'configuracoes', label: 'Configurações', icon: Settings, permission: null },
 ]
 

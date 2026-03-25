@@ -97,6 +97,7 @@ import EventCard from '../components/EventCard'
 import GithubStats from './GithubStats'
 import GalleryAdmin from './GalleryAdmin'
 import CommunityAdmin from './CommunityAdmin'
+import AuditLog from './AuditLog'
 import BgEventos from '../assets/eventos.png'
 import { MESSAGES } from '../constants/messages'
 import { LocationSelector } from '../components/LocationSelector'
@@ -1057,7 +1058,8 @@ function Dashboard() {
                 activeTab !== 'configuracoes' &&
                 activeTab !== 'repositorio' &&
                 activeTab !== 'galeria' &&
-                activeTab !== 'comunidades' && (
+                activeTab !== 'comunidades' &&
+                activeTab !== 'auditoria' && (
                   <>
                     {/* Stats */}
                     <div className="stats-grid">
@@ -1832,6 +1834,13 @@ function Dashboard() {
                   userRole={userRole}
                   userId={userId}
                 />
+              )}
+
+              {/* Auditoria Section */}
+              {activeTab === 'auditoria' && permissions.canManageUsers && (
+                <div className="events-section">
+                  <AuditLog />
+                </div>
               )}
 
               {/* Configurações Section */}

@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Images,
+  ShieldCheck,
 } from 'lucide-react'
 
 const MENU_ITEMS = [
@@ -31,6 +32,7 @@ const MENU_ITEMS = [
   { id: 'usuarios', label: 'Usuários', icon: UserCog, permission: 'canManageUsers' },
   { id: 'comunidades', label: 'Comunidades', icon: Users, permission: null },
   { id: 'galeria', label: 'Galeria', icon: Images, permission: null },
+  { id: 'auditoria', label: 'Auditoria', icon: ShieldCheck, permission: 'canManageUsers' },
   { id: 'configuracoes', label: 'Configurações', icon: Settings, permission: null },
 ]
 
