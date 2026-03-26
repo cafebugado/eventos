@@ -1,4 +1,5 @@
 import { StrictMode, lazy, Suspense } from 'react'
+import './styles/variables.css'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'

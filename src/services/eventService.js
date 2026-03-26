@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase'
 import { withRetry } from '../lib/apiClient'
 import { parseEventDate, getToday } from '../utils/eventDate'
 
-// Buscar todos os eventos (com retry automático)
+// Buscar todos os eventos (admin — inclui rascunhos e arquivados)
 export async function getEvents() {
   return withRetry(
     async () => {
@@ -17,6 +17,36 @@ export async function getEvents() {
       return data
     },
     { context: 'getEvents' }
+  )
+}
+
+// Buscar apenas eventos publicados (uso público — páginas de listagem)
+export async function getPublishedEvents() {
+  return withRetry(
+    async () => {
+      const { data, error } = await supabase
+        .from('eventos')
+        .select('*')
+        .eq('status', 'publicado')
+        .order('data_evento', { ascending: true })
+
+      if (error) {
+        // Fallback: se a coluna status ainda não existe (migration pendente), retorna todos
+        if (error.code === '42703') {
+          const { data: fallback, error: fallbackError } = await supabase
+            .from('eventos')
+            .select('*')
+            .order('data_evento', { ascending: true })
+          if (fallbackError) {
+            throw fallbackError
+          }
+          return fallback
+        }
+        throw error
+      }
+      return data
+    },
+    { context: 'getPublishedEvents' }
   )
 }
 
@@ -53,6 +83,7 @@ export async function createEvent(event) {
         endereco: event.endereco || null,
         cidade: event.cidade || null,
         estado: event.estado || null,
+        status: event.status || 'rascunho',
       },
     ])
     .select()
@@ -83,6 +114,7 @@ export async function updateEvent(id, event) {
       endereco: event.endereco || null,
       cidade: event.cidade || null,
       estado: event.estado || null,
+      status: event.status || 'rascunho',
     })
     .eq('id', id)
     .select()
@@ -90,6 +122,23 @@ export async function updateEvent(id, event) {
 
   if (error) {
     console.error('Erro ao atualizar evento:', error)
+    throw error
+  }
+
+  return data
+}
+
+// Publicar evento diretamente (sem abrir o form)
+export async function publishEvent(id) {
+  const { data, error } = await supabase
+    .from('eventos')
+    .update({ status: 'publicado' })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Erro ao publicar evento:', error)
     throw error
   }
 
@@ -116,6 +165,7 @@ export async function getEventsByPeriod(periodo) {
         .from('eventos')
         .select('*')
         .eq('periodo', periodo)
+        .eq('status', 'publicado')
         .order('data_evento', { ascending: true })
 
       if (error) {
@@ -127,16 +177,28 @@ export async function getEventsByPeriod(periodo) {
   )
 }
 
-// Buscar os próximos eventos (futuros, ordenados por data, limitado)
+// Buscar os próximos eventos (futuros, publicados, ordenados por data, limitado)
 export async function getUpcomingEvents(limit = 3) {
   const data = await withRetry(
     async () => {
       const { data, error } = await supabase
         .from('eventos')
         .select('*')
+        .eq('status', 'publicado')
         .order('data_evento', { ascending: true })
 
       if (error) {
+        // Fallback: se a coluna status ainda não existe (migration pendente), retorna todos
+        if (error.code === '42703') {
+          const { data: fallback, error: fallbackError } = await supabase
+            .from('eventos')
+            .select('*')
+            .order('data_evento', { ascending: true })
+          if (fallbackError) {
+            throw fallbackError
+          }
+          return fallback
+        }
         throw error
       }
       return data
@@ -163,7 +225,7 @@ export async function getUpcomingEvents(limit = 3) {
 export async function getEventStats() {
   const allEvents = await withRetry(
     async () => {
-      const { data, error } = await supabase.from('eventos').select('periodo')
+      const { data, error } = await supabase.from('eventos').select('periodo, status')
 
       if (error) {
         throw error
@@ -174,12 +236,14 @@ export async function getEventStats() {
   )
 
   const total = allEvents.length
+  const publicados = allEvents.filter((e) => e.status === 'publicado').length
+  const rascunhos = allEvents.filter((e) => e.status === 'rascunho').length
   const noturno = allEvents.filter((e) => e.periodo === 'Noturno').length
   const diurno = allEvents.filter(
     (e) => e.periodo === 'Diurno' || e.periodo === 'Matinal' || e.periodo === 'Vespertino'
   ).length
 
-  return { total, noturno, diurno }
+  return { total, publicados, rascunhos, noturno, diurno }
 }
 
 // Upload de imagem para o Supabase Storage
@@ -223,15 +287,27 @@ export async function getRecommendedEvents(
   const currentWeek = getISOWeek(currentEventDate)
   const currentYear = currentEventDate.getFullYear()
 
-  // Buscar todos os eventos e o mapa de tags em paralelo
+  // Buscar apenas eventos publicados e o mapa de tags em paralelo
   const [allEvents, allTagsMap] = await Promise.all([
     withRetry(
       async () => {
         const { data, error } = await supabase
           .from('eventos')
           .select('*')
+          .eq('status', 'publicado')
           .order('data_evento', { ascending: true })
         if (error) {
+          // Fallback: se a coluna status ainda não existe (migration pendente), retorna todos
+          if (error.code === '42703') {
+            const { data: fallback, error: fallbackError } = await supabase
+              .from('eventos')
+              .select('*')
+              .order('data_evento', { ascending: true })
+            if (fallbackError) {
+              throw fallbackError
+            }
+            return fallback
+          }
           throw error
         }
         return data

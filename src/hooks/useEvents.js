@@ -1,12 +1,12 @@
 import { useCallback } from 'react'
 import { useSwrQuery } from './useSwrQuery'
-import { getEvents, getUpcomingEvents, getEventStats } from '../services/eventService'
+import { getPublishedEvents, getUpcomingEvents, getEventStats } from '../services/eventService'
 import { getTags, getAllEventTags } from '../services/tagService'
 import { cacheInvalidate } from '../lib/cache'
 
 export const CACHE_KEYS = {
   events: 'events',
-  eventsWithTags: 'events:tags',
+  eventsWithTags: 'events:tags:published',
   upcoming: 'events:upcoming',
   stats: 'events:stats',
   tags: 'tags',
@@ -26,11 +26,16 @@ export function invalidateEventsCache() {
 }
 
 /**
- * Retorna eventos + tagsMap + tags para filtro — com cache de 5 min.
+ * Retorna eventos PUBLICADOS + tagsMap + tags para filtro — com cache de 5 min.
+ * Usado nas páginas públicas — nunca expõe rascunhos ou arquivados.
  */
 export function useEventsWithTags() {
   const fetcher = useCallback(async () => {
-    const [events, tagsMap, tags] = await Promise.all([getEvents(), getAllEventTags(), getTags()])
+    const [events, tagsMap, tags] = await Promise.all([
+      getPublishedEvents(),
+      getAllEventTags(),
+      getTags(),
+    ])
     return { events, tagsMap, tags }
   }, [])
 
