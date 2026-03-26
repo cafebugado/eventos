@@ -1,6 +1,8 @@
 import { Heart } from 'lucide-react'
 import { memo } from 'react'
 
+import './FavouriteEventButton.css'
+
 export const FavouriteEventButton = memo(({ event, isFavourite, onToggle, isCard }) => {
   if (!isCard) {
     return (

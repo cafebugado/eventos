@@ -14,7 +14,7 @@ import {
 import RichText from './RichText'
 import BgEventos from '../assets/eventos.png'
 import './EventCard.css'
-import { FavouriteEventButton } from './favourite-event/favouriteEventButton'
+import { FavouriteEventButton } from './FavouriteEventButton'
 import { useEventCountdown } from '../hooks/useEventCountdown'
 
 function ModalidadeIcon({ modalidade, size }) {
