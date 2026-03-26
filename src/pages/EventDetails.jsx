@@ -12,7 +12,7 @@ import ShareButtons from '../components/ShareButtons'
 import EventRecommendations from '../components/EventRecommendations'
 import BgEventos from '../assets/eventos.png'
 import './EventDetails.css'
-import { FavouriteEventButton } from '../components/favourite-event/favouriteEventButton'
+import { FavouriteEventButton } from '../components/FavouriteEventButton'
 import { isEventPast } from '../utils/eventDate'
 
 function EventDetails() {
