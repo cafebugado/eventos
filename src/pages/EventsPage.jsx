@@ -103,6 +103,7 @@ export default function EventsPage() {
             filterActiveCount={filterActiveCount}
             showOnlyFavourites={showOnlyFavourites}
             onToggleFavourites={() => setShowOnlyFavourites((v) => !v)}
+            favouriteIds={favouriteIds}
             viewMode={viewMode}
             onChangeViewMode={changeViewMode}
             tags={allTags}
@@ -114,6 +115,7 @@ export default function EventsPage() {
             error={error}
             onRetry={revalidate}
             filteredEvents={pagedItems}
+            allEvents={viewMode === 'calendar' ? filteredEvents : undefined}
             totalEvents={agenda.length}
             viewMode={viewMode}
             pageSize={pageSize}
@@ -122,7 +124,7 @@ export default function EventsPage() {
             toggleFavourite={toggleFavourite}
           />
 
-          {!loading && !error && filteredEvents.length > 0 && (
+          {!loading && !error && filteredEvents.length > 0 && viewMode !== 'calendar' && (
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
           )}
         </section>
