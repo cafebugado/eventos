@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Search, Filter, Heart } from 'lucide-react'
 import SearchModal from './SearchModal'
 import FilterModal from './FilterModal'
@@ -18,6 +19,7 @@ export default function EventsFilters({
   filterActiveCount,
   showOnlyFavourites,
   onToggleFavourites,
+  favouriteIds,
   viewMode,
   onChangeViewMode,
   tags,
@@ -28,15 +30,19 @@ export default function EventsFilters({
   const [searchModalOpen, setSearchModalOpen] = useState(false)
   const searchInputRef = useRef(null)
 
+  useEffect(() => {
+    if (searchOpen) {
+      searchInputRef.current?.focus()
+    }
+  }, [searchOpen])
+
   function handleSearchToggle() {
     if (isMobile) {
       setSearchModalOpen(true)
       return
     }
     setSearchOpen((prev) => {
-      if (!prev) {
-        setTimeout(() => searchInputRef.current?.focus(), 50)
-      } else {
+      if (prev) {
         onSearchChange('')
       }
       return !prev
@@ -89,14 +95,32 @@ export default function EventsFilters({
         <span>Filtros</span>
       </button>
 
-      <button
-        className={`filter-toggle ${showOnlyFavourites ? 'active' : ''}`}
-        onClick={onToggleFavourites}
-        title="Favoritos"
-      >
-        <Heart size={18} fill={showOnlyFavourites ? 'currentColor' : 'none'} />
-        <span>Favoritos</span>
-      </button>
+      {/* Desktop: botão favoritos no filtro — só aparece se houver favoritos */}
+      {!isMobile && favouriteIds?.size > 0 && (
+        <button
+          className={`filter-toggle ${showOnlyFavourites ? 'active' : ''}`}
+          onClick={onToggleFavourites}
+          title="Favoritos"
+        >
+          <Heart size={18} fill={showOnlyFavourites ? 'currentColor' : 'none'} />
+          <span>Favoritos</span>
+        </button>
+      )}
+
+      {/* Mobile: FAB flutuante na esquerda — só aparece se houver favoritos */}
+      {isMobile &&
+        favouriteIds?.size > 0 &&
+        createPortal(
+          <button
+            className={`fab-favourites${showOnlyFavourites ? ' fab-favourites--active' : ''}`}
+            onClick={onToggleFavourites}
+            aria-label="Favoritos"
+            title="Favoritos"
+          >
+            <Heart size={22} fill={showOnlyFavourites ? 'currentColor' : 'none'} />
+          </button>,
+          document.body
+        )}
 
       <ViewToggle
         viewMode={isMobile && viewMode === 'grid' ? 'list' : viewMode}

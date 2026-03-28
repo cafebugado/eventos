@@ -2,6 +2,7 @@ import { Calendar } from 'lucide-react'
 import EventCard from './EventCard'
 import EventRowCompact from './EventRowCompact'
 import Pagination from './Pagination'
+import CalendarView from './CalendarView'
 import { isEventPast, isEventToday } from '../utils/eventDate'
 
 function SkeletonCards({ count }) {
@@ -64,6 +65,7 @@ export default function EventsGrid({
   error,
   onRetry,
   filteredEvents,
+  allEvents,
   totalEvents,
   viewMode,
   pageSize,
@@ -77,6 +79,21 @@ export default function EventsGrid({
   if (error) {
     return <ErrorState onRetry={onRetry} />
   }
+
+  if (viewMode === 'calendar') {
+    if ((allEvents ?? filteredEvents).length === 0) {
+      return <EmptyState hasEvents={totalEvents > 0} />
+    }
+    return (
+      <CalendarView
+        events={allEvents ?? filteredEvents}
+        eventTagsMap={eventTagsMap}
+        favouriteIds={favouriteIds}
+        toggleFavourite={toggleFavourite}
+      />
+    )
+  }
+
   if (filteredEvents.length === 0) {
     return <EmptyState hasEvents={totalEvents > 0} />
   }

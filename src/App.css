@@ -560,6 +560,52 @@ section {
   padding-top: 10rem;
 }
 
+/* FAB Favoritos — mobile only */
+.fab-favourites {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .fab-favourites {
+    display: flex;
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 1.5rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: var(--primary-blue);
+    border: none;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow:
+      0 4px 12px rgba(37, 99, 235, 0.4),
+      0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1103;
+  }
+
+  .fab-favourites:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+
+  .fab-favourites--active {
+    background: #1e293b;
+    color: #fff;
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  [data-theme='dark'] .fab-favourites--active {
+    background: #f1f5f9;
+    color: #1e293b;
+  }
+}
+
 /* Eventos Filters */
 .eventos-filters {
   display: flex;

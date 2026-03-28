@@ -1,10 +1,11 @@
-import { LayoutGrid, List, AlignJustify } from 'lucide-react'
+import { LayoutGrid, List, AlignJustify, CalendarDays } from 'lucide-react'
 import './ViewToggle.css'
 
 const MODES = [
   { id: 'grid', icon: LayoutGrid, label: 'Grade', mobileOnly: false },
   { id: 'list', icon: List, label: 'Lista', mobileOnly: false },
   { id: 'compact', icon: AlignJustify, label: 'Compacto', mobileOnly: false },
+  { id: 'calendar', icon: CalendarDays, label: 'Calendário', mobileOnly: false },
 ]
 
 export default function ViewToggle({ viewMode, onChange, isMobile }) {
