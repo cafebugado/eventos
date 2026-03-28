@@ -57,17 +57,49 @@ export function isEventToday(dataEvento) {
  * Ordena eventos: futuros primeiro (por proximidade), passados depois (mais recente primeiro).
  * Não muta o array original.
  */
+function parseTimeMinutes(horario) {
+  if (!horario) {
+    return 0
+  }
+  const match = horario.match(/(\d{1,2}):(\d{2})/)
+  if (!match) {
+    return 0
+  }
+  const hours = Number(match[1])
+  const minutes = Number(match[2])
+  if (hours > 23 || minutes > 59) {
+    return 0
+  }
+  return hours * 60 + minutes
+}
+
 export function sortEventsByDate(events) {
   const today = getToday()
   return [...events].sort((a, b) => {
-    const dateA = parseEventDate(a.data_evento) ?? new Date(0)
-    const dateB = parseEventDate(b.data_evento) ?? new Date(0)
+    const dateA = parseEventDate(a.data_evento)
+    const dateB = parseEventDate(b.data_evento)
+
+    if (dateA === null && dateB === null) {
+      return 0
+    }
+    if (dateA === null) {
+      return 1
+    }
+    if (dateB === null) {
+      return -1
+    }
+
     const isAFuture = dateA >= today
     const isBFuture = dateB >= today
     if (isAFuture !== isBFuture) {
       return isAFuture ? -1 : 1
     }
-    return isAFuture ? dateA - dateB : dateB - dateA
+    if (dateA - dateB !== 0) {
+      return isAFuture ? dateA - dateB : dateB - dateA
+    }
+    const timeA = parseTimeMinutes(a.horario)
+    const timeB = parseTimeMinutes(b.horario)
+    return isAFuture ? timeA - timeB : timeB - timeA
   })
 }
 
