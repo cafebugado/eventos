@@ -11,6 +11,7 @@ import { ThemeProvider } from './context/ThemeProvider.jsx'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop.jsx'
 import PageLoader from './components/PageLoader.jsx'
 import PwaUpdateBanner from './components/PwaUpdateBanner/PwaUpdateBanner.jsx'
+import PwaInstallBanner from './components/PwaInstallBanner/PwaInstallBanner.jsx'
 import { captureInstallPrompt, registerServiceWorker } from './lib/pwa.js'
 
 captureInstallPrompt()
@@ -60,6 +61,7 @@ createRoot(document.getElementById('root')).render(
           </Suspense>
           <ScrollToTop />
           <PwaUpdateBanner />
+          <PwaInstallBanner />
           <Analytics />
           <SpeedInsights />
         </BrowserRouter>

@@ -11,6 +11,7 @@ import {
 export function usePwa() {
   const [swStatus, setSwStatus] = useState('idle')
   const [isInstallable, setIsInstallable] = useState(canInstall)
+  const [installed, setInstalled] = useState(isInstalledPwa)
   const registrationRef = useRef(null)
 
   useEffect(() => {
@@ -21,7 +22,16 @@ export function usePwa() {
         setIsInstallable(true)
       }
     }
+
+    const onAppInstalled = () => {
+      if (isMounted) {
+        setInstalled(true)
+        setIsInstallable(false)
+      }
+    }
+
     window.addEventListener('beforeinstallprompt', onInstallPrompt)
+    window.addEventListener('appinstalled', onAppInstalled)
 
     registerServiceWorker().then((registration) => {
       if (!isMounted || !registration) {
@@ -55,6 +65,7 @@ export function usePwa() {
     return () => {
       isMounted = false
       window.removeEventListener('beforeinstallprompt', onInstallPrompt)
+      window.removeEventListener('appinstalled', onAppInstalled)
     }
   }, [])
 
@@ -67,7 +78,7 @@ export function usePwa() {
 
   return {
     isInstallable,
-    isInstalled: isInstalledPwa(),
+    isInstalled: installed,
     swStatus,
     updateAvailable: swStatus === 'waiting',
     install,
