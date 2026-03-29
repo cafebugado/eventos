@@ -10,6 +10,11 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { ThemeProvider } from './context/ThemeProvider.jsx'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop.jsx'
 import PageLoader from './components/PageLoader.jsx'
+import PwaUpdateBanner from './components/PwaUpdateBanner/PwaUpdateBanner.jsx'
+import { captureInstallPrompt, registerServiceWorker } from './lib/pwa.js'
+
+captureInstallPrompt()
+registerServiceWorker()
 
 // Páginas carregadas via lazy (code splitting por rota)
 const Home = lazy(() => import('./pages/Home.jsx'))
@@ -54,6 +59,7 @@ createRoot(document.getElementById('root')).render(
             </Routes>
           </Suspense>
           <ScrollToTop />
+          <PwaUpdateBanner />
           <Analytics />
           <SpeedInsights />
         </BrowserRouter>
