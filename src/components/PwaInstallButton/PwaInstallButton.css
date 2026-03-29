@@ -1,0 +1,26 @@
+.pwa-install-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-blue);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    opacity 0.2s,
+    box-shadow 0.2s;
+  box-shadow: var(--shadow);
+}
+
+.pwa-install-btn:hover {
+  opacity: 0.85;
+  box-shadow: var(--shadow-hover);
+}
+
+.pwa-install-icon {
+  flex-shrink: 0;
+}
