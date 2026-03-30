@@ -30,7 +30,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.72.0",
-    "react-router-dom": "^7.13.1",
+    "react-router-dom": "^7.13.2",
     "web-vitals": "^5.1.0"
   },
   "devDependencies": {
