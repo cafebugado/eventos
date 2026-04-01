@@ -376,6 +376,7 @@
   width: 100%;
   text-align: left;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .menu-item:hover {

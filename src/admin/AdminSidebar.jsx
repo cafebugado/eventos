@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { NavLink } from 'react-router-dom'
 import {
   Calendar,
   LogOut,
@@ -48,8 +49,6 @@ function SidebarTooltip({ label, anchorY }) {
 }
 
 export function AdminSidebar({
-  activeTab,
-  onTabChange,
   permissions,
   userProfile,
   userEmail,
@@ -113,16 +112,16 @@ export function AdminSidebar({
               return null
             }
             return (
-              <button
+              <NavLink
                 key={id}
-                className={`menu-item${activeTab === id ? ' active' : ''}`}
-                onClick={() => onTabChange(id)}
+                to={`/admin/dashboard/${id}`}
+                className={({ isActive }) => `menu-item${isActive ? ' active' : ''}`}
                 aria-label={label}
                 {...tooltipHandlers(label)}
               >
                 <Icon size={isCollapsed ? 28 : 20} />
                 {!isCollapsed && <span>{label}</span>}
-              </button>
+              </NavLink>
             )
           })}
 
