@@ -15,7 +15,7 @@ import {
   CalendarDays,
   Tag,
   Trash2,
-  Eye,
+  Copy,
   Edit2,
   Save,
   AlertCircle,
@@ -348,6 +348,23 @@ function Dashboard() {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 3000)
   }, [])
+
+  const handleCopyEventLink = useCallback(
+    (evento) => {
+      const eventUrl = `${window.location.origin}/eventos/${evento.id}`
+      const message =
+        `Confira o evento "${evento.nome}" da Comunidade Cafe Bugado!\n\n` +
+        `📅 ${evento.data_evento}${evento.horario ? ` às ${evento.horario}` : ''}\n\n` +
+        `🔗 ${eventUrl}\n\n` +
+        `Siga nossa comunidade:\n` +
+        `Instagram: @comunidadecafebugado`
+      navigator.clipboard
+        .writeText(message)
+        .then(() => showNotification('Link e mensagem copiados!', 'success'))
+        .catch(() => showNotification('Não foi possível copiar', 'error'))
+    },
+    [showNotification]
+  )
 
   const loadEvents = useCallback(async () => {
     try {
@@ -1272,10 +1289,10 @@ function Dashboard() {
                                             <>
                                               <button
                                                 className="btn-icon btn-view"
-                                                onClick={() => window.open(evento.link, '_blank')}
-                                                title="Ver evento"
+                                                onClick={() => handleCopyEventLink(evento)}
+                                                title="Copiar link do evento"
                                               >
-                                                <Eye size={16} />
+                                                <Copy size={16} />
                                               </button>
                                               <button
                                                 className="btn-icon btn-edit"
@@ -1451,12 +1468,10 @@ function Dashboard() {
                                                 {evento.status === 'publicado' && (
                                                   <button
                                                     className="btn-icon btn-view"
-                                                    onClick={() =>
-                                                      window.open(evento.link, '_blank')
-                                                    }
-                                                    title="Ver evento"
+                                                    onClick={() => handleCopyEventLink(evento)}
+                                                    title="Copiar link do evento"
                                                   >
-                                                    <Eye size={16} />
+                                                    <Copy size={16} />
                                                   </button>
                                                 )}
                                                 {permissions.canPublishEvents &&
