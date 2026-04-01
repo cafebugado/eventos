@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { NavLink } from 'react-router-dom'
 import {
   Calendar,
   Tag,
@@ -29,36 +30,29 @@ const MENU_ITEMS = [
   { id: 'configuracoes', label: 'Configurações', icon: Settings, permission: null },
 ]
 
-// eslint-disable-next-line no-unused-vars
-function AdminMobileNavItem({ id, label, icon: Icon, isActive, index, onClick }) {
+function AdminMobileNavItem({ id, label, icon, index, onClick }) {
+  const ItemIcon = icon
   return (
-    <button
-      className={`admin-mobile-nav-item${isActive ? ' active' : ''}`}
-      onClick={() => onClick(id)}
+    <NavLink
+      to={`/admin/dashboard/${id}`}
+      className={({ isActive }) => `admin-mobile-nav-item${isActive ? ' active' : ''}`}
       style={{ '--item-index': index }}
       aria-label={label}
+      onClick={onClick}
     >
-      <Icon size={20} />
+      <ItemIcon size={20} />
       <span className="admin-mobile-nav-label">{label}</span>
-    </button>
+    </NavLink>
   )
 }
 
-export function AdminMobileNav({ activeTab, onTabChange, permissions }) {
+export function AdminMobileNav({ permissions }) {
   const [isOpen, setIsOpen] = useState(false)
   const { isDarkMode, toggleTheme } = useTheme()
 
   const toggleMenu = useCallback(() => setIsOpen((prev) => !prev), [])
 
   const closeMenu = useCallback(() => setIsOpen(false), [])
-
-  const handleTabChange = useCallback(
-    (id) => {
-      onTabChange(id)
-      closeMenu()
-    },
-    [onTabChange, closeMenu]
-  )
 
   const handleVerSite = useCallback(() => {
     window.open('/', '_blank')
@@ -84,9 +78,8 @@ export function AdminMobileNav({ activeTab, onTabChange, permissions }) {
             id={id}
             label={label}
             icon={icon}
-            isActive={activeTab === id}
             index={index}
-            onClick={handleTabChange}
+            onClick={closeMenu}
           />
         ))}
 

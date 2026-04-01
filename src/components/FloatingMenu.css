@@ -39,8 +39,10 @@
     z-index: 1000;
   }
 
-  .mobile-logo {
-    text-align: center;
+  .mobile-logo-img {
+    height: 32px;
+    width: auto;
+    display: block;
   }
 
   [data-theme='dark'] .mobile-header {
@@ -60,23 +62,6 @@
 
   .mobile-logo-link {
     text-decoration: none;
-    color: inherit;
-  }
-
-  .mobile-logo h1 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    letter-spacing: -0.02em;
-  }
-
-  .mobile-logo span {
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
   }
 }
 
@@ -283,12 +268,8 @@
     padding: 0 1rem;
   }
 
-  .mobile-logo h1 {
-    font-size: 1.1rem;
-  }
-
-  .mobile-logo span {
-    font-size: 0.65rem;
+  .mobile-logo-img {
+    height: 28px;
   }
 
   .floating-action-btn {

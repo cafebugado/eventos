@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2'
 const STATIC_CACHE = `cb-static-${CACHE_VERSION}`
 const EVENTS_CACHE = `cb-events-${CACHE_VERSION}`
 
@@ -35,6 +35,12 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // Assets com hash no nome (/assets/*.js, /assets/*.css) são imutáveis por deploy —
+  // nunca cachear pelo SW para evitar servir chunks de builds anteriores
+  if (url.pathname.startsWith('/assets/')) {
+    return
+  }
+
   if (url.href.includes('supabase')) {
     event.respondWith(
       fetch(request)
@@ -52,12 +58,15 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      caches.match(request).then((cached) => {
-        if (cached) {
-          return cached
-        }
-        return fetch(request).catch(() => caches.match('/'))
-      })
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match('/')))
     )
     return
   }

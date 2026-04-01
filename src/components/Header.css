@@ -43,25 +43,10 @@
   color: inherit;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-}
-
-.logo-text h1 {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
-.logo-text span {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.logo-img {
+  height: 36px;
+  width: auto;
+  display: block;
 }
 
 /* Navegacao Principal */
@@ -126,6 +111,12 @@
   height: 3px;
   background: var(--primary-blue);
   border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.nav-item.active .nav-indicator {
+  opacity: 1;
 }
 
 /* Acoes do Header */
@@ -175,11 +166,7 @@
     height: 64px;
   }
 
-  .logo-text h1 {
-    font-size: 1.15rem;
-  }
-
-  .logo-text span {
-    font-size: 0.65rem;
+  .logo-img {
+    height: 30px;
   }
 }

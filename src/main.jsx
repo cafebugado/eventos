@@ -56,6 +56,7 @@ createRoot(document.getElementById('root')).render(
               <Route path="/galeria" element={<Gallery />} />
               <Route path="/admin" element={<Login />} />
               <Route path="/admin/dashboard" element={<Dashboard />} />
+              <Route path="/admin/dashboard/:tab" element={<Dashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
