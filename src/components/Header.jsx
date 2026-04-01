@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { Sun, Moon } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { NAVIGATION_ITEMS } from '../constants/navigation'
+import LogoImg from '../assets/logoEventosCafeBugado.png'
 import './Header.css'
 
 // Mapa de prefetch por rota — dispara o import quando o user passa o mouse
@@ -42,12 +43,7 @@ function Header() {
           rel="noopener noreferrer"
           className="logo-link"
         >
-          <div className="logo">
-            <div className="logo-text">
-              <h1>Eventos</h1>
-              <span>Cafe Bugado</span>
-            </div>
-          </div>
+          <img src={LogoImg} alt="Eventos Cafe Bugado" className="logo-img" />
         </a>
 
         <nav className="main-nav">
@@ -63,7 +59,7 @@ function Header() {
                   >
                     <IconComponent size={18} className="nav-icon" />
                     <span>{item.label}</span>
-                    {isActive(item.path) && <span className="nav-indicator"></span>}
+                    <span className="nav-indicator"></span>
                   </button>
                 </li>
               )

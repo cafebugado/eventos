@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { Sun, Moon, X, Menu } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { NAVIGATION_ITEMS } from '../constants/navigation'
+import LogoImg from '../assets/logoEventosCafeBugado.png'
 import './FloatingMenu.css'
 
 function FloatingMenu() {
@@ -54,10 +55,7 @@ function FloatingMenu() {
           rel="noopener noreferrer"
           className="mobile-logo-link"
         >
-          <div className="mobile-logo">
-            <h1>Eventos</h1>
-            <span>Cafe Bugado</span>
-          </div>
+          <img src={LogoImg} alt="Eventos Cafe Bugado" className="mobile-logo-img" />
         </a>
       </header>
 

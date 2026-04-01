@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   LayoutDashboard,
   Plus,
@@ -15,7 +15,7 @@ import {
   CalendarDays,
   Tag,
   Trash2,
-  Eye,
+  Copy,
   Edit2,
   Save,
   AlertCircle,
@@ -139,7 +139,6 @@ function Dashboard() {
   const [showModal, setShowModal] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const [notification, setNotification] = useState(null)
-  const [activeTab, setActiveTab] = useState('eventos')
   const { isCollapsed, toggle: toggleSidebar } = useSidebarCollapse()
   const [stats, setStats] = useState({ total: 0, noturno: 0, diurno: 0 })
   const [userEmail, setUserEmail] = useState('')
@@ -176,6 +175,8 @@ function Dashboard() {
   const [savingRoleFor, setSavingRoleFor] = useState(null)
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
+  const { tab: tabParam } = useParams()
+  const activeTab = tabParam || 'eventos'
   const isMobile = useMediaQuery('(max-width: 768px)')
   const { role: userRole, loading: roleLoading, permissions } = useUserRole()
 
@@ -330,7 +331,20 @@ function Dashboard() {
   } = useForm()
 
   const sortedEvents = useMemo(() => {
-    return [...eventos].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    const today = getToday()
+    const upcoming = []
+    const past = []
+    for (const e of eventos) {
+      const d = parseEventDate(e.data_evento)
+      if (d && d < today) {
+        past.push(e)
+      } else {
+        upcoming.push(e)
+      }
+    }
+    upcoming.sort((a, b) => parseEventDate(a.data_evento) - parseEventDate(b.data_evento))
+    past.sort((a, b) => parseEventDate(b.data_evento) - parseEventDate(a.data_evento))
+    return [...upcoming, ...past]
   }, [eventos])
 
   const filteredEvents = useMemo(() => {
@@ -348,6 +362,23 @@ function Dashboard() {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 3000)
   }, [])
+
+  const handleCopyEventLink = useCallback(
+    (evento) => {
+      const eventUrl = `${window.location.origin}/eventos/${evento.id}`
+      const message =
+        `Confira o evento "${evento.nome}" da Comunidade Cafe Bugado!\n\n` +
+        `📅 ${evento.data_evento}${evento.horario ? ` às ${evento.horario}` : ''}\n\n` +
+        `🔗 ${eventUrl}\n\n` +
+        `Siga nossa comunidade:\n` +
+        `Instagram: @comunidadecafebugado`
+      navigator.clipboard
+        .writeText(message)
+        .then(() => showNotification('Link e mensagem copiados!', 'success'))
+        .catch(() => showNotification('Não foi possível copiar', 'error'))
+    },
+    [showNotification]
+  )
 
   const loadEvents = useCallback(async () => {
     try {
@@ -502,6 +533,11 @@ function Dashboard() {
     const dayName = getDayName(value)
     setValue('dia_semana', dayName, { shouldValidate: true })
   }
+
+  const todayStr = (() => {
+    const t = getToday()
+    return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
+  })()
 
   const onSubmit = async (data, statusOverride = null) => {
     const nomeNorm = data.nome.trim().toLowerCase()
@@ -993,8 +1029,6 @@ function Dashboard() {
     <div className="admin-dashboard">
       {/* Sidebar */}
       <AdminSidebar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
         permissions={permissions}
         userProfile={userProfile}
         userEmail={userEmail}
@@ -1006,7 +1040,7 @@ function Dashboard() {
       />
 
       {/* Mobile Navigation */}
-      <AdminMobileNav activeTab={activeTab} onTabChange={setActiveTab} permissions={permissions} />
+      <AdminMobileNav permissions={permissions} />
 
       {/* Main Content */}
       <main className={`admin-main${isCollapsed ? ' admin-main--collapsed' : ''}`}>
@@ -1272,10 +1306,10 @@ function Dashboard() {
                                             <>
                                               <button
                                                 className="btn-icon btn-view"
-                                                onClick={() => window.open(evento.link, '_blank')}
-                                                title="Ver evento"
+                                                onClick={() => handleCopyEventLink(evento)}
+                                                title="Copiar link do evento"
                                               >
-                                                <Eye size={16} />
+                                                <Copy size={16} />
                                               </button>
                                               <button
                                                 className="btn-icon btn-edit"
@@ -1451,12 +1485,10 @@ function Dashboard() {
                                                 {evento.status === 'publicado' && (
                                                   <button
                                                     className="btn-icon btn-view"
-                                                    onClick={() =>
-                                                      window.open(evento.link, '_blank')
-                                                    }
-                                                    title="Ver evento"
+                                                    onClick={() => handleCopyEventLink(evento)}
+                                                    title="Copiar link do evento"
                                                   >
-                                                    <Eye size={16} />
+                                                    <Copy size={16} />
                                                   </button>
                                                 )}
                                                 {permissions.canPublishEvents &&
@@ -2082,8 +2114,14 @@ function Dashboard() {
               <input
                 type="date"
                 placeholder="Selecione uma data"
+                min={editingEvent ? undefined : todayStr}
                 {...register('data_evento', {
                   required: 'Data é obrigatória',
+                  validate: (value) =>
+                    editingEvent ||
+                    !value ||
+                    value >= todayStr ||
+                    'Não é permitido selecionar datas passadas',
                   onChange: (event) => syncDayOfWeek(event.target.value),
                 })}
               />
@@ -2096,11 +2134,7 @@ function Dashboard() {
                 <Clock size={16} />
                 Horário
               </label>
-              <input
-                type="text"
-                placeholder="Ex: 19:00"
-                {...register('horario', { required: 'Horário é obrigatório' })}
-              />
+              <input type="time" {...register('horario', { required: 'Horário é obrigatório' })} />
               {errors.horario && <span className="field-error">{errors.horario.message}</span>}
             </div>
           </div>
