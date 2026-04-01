@@ -1,17 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { Home, ArrowLeft } from 'lucide-react'
-import Header from '../components/Header'
-import Footer from '../components/Footer'
-import FloatingMenu from '../components/FloatingMenu'
+import Layout from '../layout/Layout'
 import './NotFound.css'
 
 function NotFound() {
   const navigate = useNavigate()
 
   return (
-    <div className="notfound-page">
-      <Header />
-
+    <Layout className="notfound-page">
       <div className="notfound-content">
         <div className="notfound-code">404</div>
         <h1>Pagina nao encontrada</h1>
@@ -27,10 +23,7 @@ function NotFound() {
           </button>
         </div>
       </div>
-
-      <Footer />
-      <FloatingMenu />
-    </div>
+    </Layout>
   )
 }
 
