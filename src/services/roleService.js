@@ -44,7 +44,6 @@ export async function getUsersWithRoles() {
 }
 
 // Listar usuarios visiveis para admin: retorna apenas moderadores e usuarios sem role
-// Usa a RPC admin_get_users que valida permissoes no banco
 export async function getUsersWithRolesForAdmin() {
   const { data, error } = await supabase.rpc('admin_get_users')
 
@@ -56,7 +55,7 @@ export async function getUsersWithRolesForAdmin() {
   return data || []
 }
 
-// Atribuir role a um usuario (super_admin only via assign_user_role)
+// Atribuir role a um usuario (super_admin only)
 export async function assignUserRole(userId, role) {
   const { error } = await supabase.rpc('assign_user_role', {
     target_user_id: userId,
@@ -94,6 +93,21 @@ export async function removeUserRole(userId) {
 
   if (error) {
     console.error('Erro ao remover role:', error)
+    throw error
+  }
+
+  return true
+}
+
+// Atribuir role a um usuario (admin: so pode atribuir moderador)
+export async function adminAssignUserRole(userId, role) {
+  const { error } = await supabase.rpc('admin_assign_user_role', {
+    target_user_id: userId,
+    new_role: role,
+  })
+
+  if (error) {
+    console.error('Erro ao atribuir role (admin):', error)
     throw error
   }
 
