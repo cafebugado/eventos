@@ -96,8 +96,7 @@ function generateHtml({
   type?: string
   publishedTime?: string
 }): string {
-  const fullTitle =
-    title !== SITE_NAME ? `${escapeHtml(title)} | ${SITE_NAME}` : SITE_NAME
+  const fullTitle = title !== SITE_NAME ? `${escapeHtml(title)} | ${SITE_NAME}` : SITE_NAME
   const safeTitle = escapeHtml(title)
   const safeDescription = escapeHtml(description)
 
