@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Github, Linkedin, ExternalLink } from 'lucide-react'
 import { getContributors } from '../services/contributorService'
+import ContributorSkeleton from './skeletons/ContributorsSkeleton'
 function ContributorsGrid() {
   const [contributors, setContributors] = useState([])
   const [loadingContributors, setLoadingContributors] = useState(true)
-
   useEffect(() => {
     async function loadContributors() {
       try {
@@ -33,11 +33,7 @@ function ContributorsGrid() {
         <div className="contributors-loading">
           <div className="contributors-grid">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="contributor-card-skeleton">
-                <div className="skeleton-avatar"></div>
-                <div className="skeleton-name"></div>
-                <div className="skeleton-links"></div>
-              </div>
+              <ContributorSkeleton key={`contributor-skeleton-${i}`} />
             ))}
           </div>
         </div>
