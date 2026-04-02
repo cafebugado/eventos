@@ -5,6 +5,7 @@ import { getRecommendedEvents } from '../services/eventService'
 import EventCard from './EventCard'
 import './EventRecommendations.css'
 import { parseEventDate } from '../utils/eventDate'
+import SkeletonRecommendations from './skeletons/SkeletonRecommendations'
 
 function EventRecommendations({ currentEvent, currentEventTags }) {
   const [recommendations, setRecommendations] = useState([])
@@ -93,14 +94,7 @@ function EventRecommendations({ currentEvent, currentEventTags }) {
         <div className="event-recs-grid">
           {loading
             ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={`rec-skeleton-${i}`} className="event-recs-skeleton">
-                  <div className="event-recs-skeleton-image" />
-                  <div className="event-recs-skeleton-content">
-                    <div className="event-recs-skeleton-title" />
-                    <div className="event-recs-skeleton-text" />
-                    <div className="event-recs-skeleton-text short" />
-                  </div>
-                </div>
+                <SkeletonRecommendations key={`skeleton-${i}`} />
               ))
             : recommendations.map((rec) => (
                 <EventCard key={rec.id} event={rec} tags={rec.tags || []} />
