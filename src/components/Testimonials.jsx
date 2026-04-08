@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Quote } from 'lucide-react'
+import { Star } from 'lucide-react'
 import './Testimonials.css'
 
 const testimonials = [
@@ -45,59 +44,40 @@ const testimonials = [
   },
 ]
 
-function Testimonials() {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isTransitioning, setIsTransitioning] = useState(false)
-
-  const goToSlide = useCallback(
-    (index) => {
-      if (isTransitioning) {
-        return
-      }
-      setIsTransitioning(true)
-      setCurrentIndex(index)
-      setTimeout(() => setIsTransitioning(false), 500)
-    },
-    [isTransitioning]
+function StarRating() {
+  return (
+    <div className="testi-stars">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star key={i} size={16} fill="currentColor" />
+      ))}
+    </div>
   )
+}
 
-  const nextSlide = useCallback(() => {
-    goToSlide((currentIndex + 1) % testimonials.length)
-  }, [currentIndex, goToSlide])
-
-  useEffect(() => {
-    const interval = setInterval(nextSlide, 5000)
-    return () => clearInterval(interval)
-  }, [nextSlide])
-
-  const current = testimonials[currentIndex]
+function Testimonials() {
+  const visible = testimonials.slice(0, 3)
 
   return (
     <section className="testimonials-section">
       <div className="testimonials-container">
         <div className="testimonials-header">
-          <h2>O que dizem nossos membros</h2>
-          <p>Veja como a plataforma tem ajudado pessoas a se conectarem com a comunidade tech.</p>
+          <h2>O que diz a comunidade</h2>
         </div>
 
-        <div className="testimonials-carousel">
-          <div className="testimonial-card-wrapper">
-            <div className="testimonial-card" key={current.id}>
-              <div className="testimonial-quote-icon">
-                <Quote size={32} />
-              </div>
-
-              <blockquote className="testimonial-quote">{current.quote}</blockquote>
-
-              <div className="testimonial-author">
-                <div className="testimonial-avatar">{current.avatar}</div>
-                <div className="testimonial-info">
-                  <strong>{current.name}</strong>
-                  <span>{current.role}</span>
+        <div className="testi-grid">
+          {visible.map((t) => (
+            <div key={t.id} className="testi-card">
+              <StarRating />
+              <blockquote className="testi-quote">"{t.quote}"</blockquote>
+              <div className="testi-author">
+                <div className="testi-avatar">{t.avatar}</div>
+                <div className="testi-info">
+                  <strong>{t.name}</strong>
+                  <span>{t.role}</span>
                 </div>
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
