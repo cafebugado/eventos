@@ -185,7 +185,7 @@ export async function getUpcomingEvents(limit = 3) {
         .from('eventos')
         .select('*')
         .eq('status', 'publicado')
-        .order('data_evento', { ascending: true })
+        .order('created_at', { ascending: false })
 
       if (error) {
         // Fallback: se a coluna status ainda não existe (migration pendente), retorna todos
@@ -193,7 +193,7 @@ export async function getUpcomingEvents(limit = 3) {
           const { data: fallback, error: fallbackError } = await supabase
             .from('eventos')
             .select('*')
-            .order('data_evento', { ascending: true })
+            .order('created_at', { ascending: false })
           if (fallbackError) {
             throw fallbackError
           }
