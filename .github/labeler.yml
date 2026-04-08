@@ -1,0 +1,65 @@
+# Mapeamento de labels automáticas por área do código
+# Usado pelo actions/labeler@v5 no workflow pr-labeler.yml
+# Referência: https://github.com/actions/labeler
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/components/**'
+          - 'src/pages/**'
+          - 'src/layout/**'
+          - 'src/styles/**'
+          - '**/*.css'
+          - '**/*.jsx'
+
+backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/services/**'
+          - 'src/lib/**'
+          - 'src/hooks/**'
+          - 'src/context/**'
+          - 'src/contexts/**'
+          - 'src/utils/**'
+
+admin:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/admin/**'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.test.jsx'
+          - '**/*.test.js'
+          - '**/*.spec.jsx'
+          - '**/*.spec.js'
+          - 'e2e/**'
+          - 'playwright.config.*'
+          - 'vitest.config.*'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'pnpm-lock.yaml'
+
+infra:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'nginx.conf'
+          - 'Dockerfile'
+          - 'docker-compose*.yml'
+          - '.env.example'
+          - 'vite.config.*'
