@@ -1,6 +1,6 @@
 /* ── CalendarEventItem — layout horizontal fixo ─────────────────── */
 :root {
-  --green-happening: #15803d;
+  --green-happening: var(--status-success-dark);
 }
 
 .cei-item {
@@ -47,7 +47,7 @@
   object-fit: cover;
   object-position: center;
   display: block;
-  transition: transform 0.3s ease;
+  transition: transform var(--duration-normal) ease;
 }
 
 .cei-item:hover .cei-image img {
@@ -145,7 +145,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--text-secondary);
 }
 
@@ -183,7 +183,7 @@
   }
 
   .cei-title {
-    font-size: 0.875rem;
+    font-size: var(--text-sm);
   }
 
   .cei-content {

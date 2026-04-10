@@ -56,11 +56,11 @@
   align-items: center;
   gap: 0.5rem;
   background: #fef2f2;
-  color: #dc2626;
+  color: var(--status-error);
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   margin-bottom: 1.5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 [data-theme='dark'] .login-error {
@@ -81,7 +81,7 @@
 }
 
 .form-field label {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text-primary);
 }
@@ -107,13 +107,13 @@
   background: var(--surface);
   color: var(--text-primary);
   font-size: 0.95rem;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .input-wrapper input:focus {
   outline: none;
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: var(--shadow-focus);
 }
 
 .password-toggle {
@@ -134,8 +134,8 @@
 }
 
 .field-error {
-  color: #dc2626;
-  font-size: 0.75rem;
+  color: var(--status-error);
+  font-size: var(--text-xs);
 }
 
 .login-button {
@@ -144,10 +144,10 @@
   border: none;
   padding: 0.875rem 1.5rem;
   border-radius: 0.5rem;
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,7 +183,7 @@
 
 .login-footer p {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   margin-bottom: 0.5rem;
 }
 
@@ -340,7 +340,7 @@
   background: var(--surface);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
   flex-shrink: 0;
 }
 
@@ -372,7 +372,7 @@
   font-weight: 500;
   border-radius: 0.5rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
   width: 100%;
   text-align: left;
   white-space: nowrap;
@@ -415,7 +415,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: var(--text-base);
   flex-shrink: 0;
 }
 
@@ -428,11 +428,11 @@
 .user-name {
   font-weight: 600;
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .user-email {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -446,12 +446,12 @@
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 0.5rem;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .logout-btn:hover {
   background: #fef2f2;
-  color: #dc2626;
+  color: var(--status-error);
 }
 
 [data-theme='dark'] .logout-btn:hover {
@@ -484,7 +484,7 @@
 }
 
 .settings-section .section-header h2 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -506,7 +506,7 @@
 }
 
 .settings-avatar-name {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--text-primary);
   text-align: center;
@@ -556,14 +556,14 @@
 }
 
 .settings-info-label {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text-secondary);
   min-width: 80px;
 }
 
 .settings-info-value {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-primary);
   font-weight: 500;
 }
@@ -638,14 +638,14 @@
 }
 
 .topbar-left h1 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
 }
 
 .topbar-community-icon {
-  color: #e11d48;
+  color: var(--status-error);
   flex-shrink: 0;
 }
 
@@ -656,7 +656,7 @@
 }
 
 .topbar-greeting h1 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -684,7 +684,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .theme-btn:hover {
@@ -714,7 +714,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .stat-card:hover {
@@ -738,17 +738,17 @@
 
 .stat-icon.green {
   background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+  color: var(--status-success);
 }
 
 .stat-icon.orange {
   background: rgba(249, 115, 22, 0.1);
-  color: #f97316;
+  color: var(--status-warning);
 }
 
 .stat-icon.purple {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  color: var(--status-purple);
 }
 
 .stat-info {
@@ -763,7 +763,7 @@
 }
 
 .stat-label {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
 }
 
@@ -784,7 +784,7 @@
 }
 
 .events-section .section-header h2 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -832,12 +832,12 @@
   border: none;
   background: rgba(37, 99, 235, 0.08);
   color: var(--primary-blue);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   padding: 0.25rem 0.6rem;
   border-radius: 0.4rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .events-search-clear:hover {
@@ -853,10 +853,10 @@
   border: none;
   padding: 0.75rem 1.25rem;
   border-radius: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .btn-primary:hover {
@@ -873,10 +873,10 @@
   border: 1px solid var(--border);
   padding: 0.75rem 1.25rem;
   border-radius: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .btn-secondary:hover {
@@ -887,19 +887,19 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #ef4444;
+  background: var(--status-error);
   color: white;
   border: none;
   padding: 0.75rem 1.25rem;
   border-radius: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .btn-danger:hover {
-  background: #dc2626;
+  background: var(--status-error);
   transform: translateY(-1px);
 }
 
@@ -950,7 +950,7 @@
 }
 
 .events-table th {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -980,7 +980,7 @@
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 500;
 }
 
@@ -991,7 +991,7 @@
 
 .badge-matinal {
   background: rgba(249, 115, 22, 0.1);
-  color: #f97316;
+  color: var(--status-warning);
 }
 
 .badge-diurno {
@@ -1018,7 +1018,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .btn-view {
@@ -1032,7 +1032,7 @@
 
 .btn-edit {
   background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+  color: var(--status-success);
 }
 
 .btn-edit:hover {
@@ -1041,7 +1041,7 @@
 
 .btn-delete {
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  color: var(--status-error);
 }
 
 .btn-delete:hover {
@@ -1110,15 +1110,15 @@
   border-radius: 0.5rem;
   background: var(--surface);
   color: var(--text-primary);
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
+  font-size: var(--text-sm);
+  transition: all var(--duration-base) ease;
 }
 
 .settings-form input:focus,
 .settings-form select:focus {
   outline: none;
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: var(--shadow-focus);
 }
 
 /* Notification */
@@ -1131,19 +1131,19 @@
   gap: 0.75rem;
   padding: 1rem 1.5rem;
   border-radius: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
-  animation: slideUp 0.3s ease;
+  animation: slideUp var(--duration-normal) ease;
   z-index: 1100;
 }
 
 .notification.success {
-  background: #22c55e;
+  background: var(--status-success);
   color: white;
 }
 
 .notification.error {
-  background: #ef4444;
+  background: var(--status-error);
   color: white;
 }
 
@@ -1407,7 +1407,7 @@
 }
 
 .field-helper {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--text-secondary);
 }
 
@@ -1429,7 +1429,7 @@
 }
 
 .preview-content {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
 }
 
@@ -1447,7 +1447,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
   background: var(--surface);
 }
 
@@ -1493,18 +1493,18 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #ef4444;
+  background: var(--status-error);
   color: white;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .remove-image:hover {
-  background: #dc2626;
+  background: var(--status-error);
   transform: scale(1.1);
 }
 
@@ -1565,7 +1565,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .contributor-admin-card:hover {
@@ -1610,7 +1610,7 @@
 
 .contributor-admin-links a {
   color: var(--text-secondary);
-  transition: color 0.2s ease;
+  transition: color var(--duration-base) ease;
 }
 
 .contributor-admin-links a:hover {
@@ -1658,7 +1658,7 @@
 
 .github-preview-name {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: var(--text-primary);
 }
 
@@ -1687,7 +1687,7 @@
   background: var(--background);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .tag-admin-card:hover {
@@ -1805,7 +1805,7 @@
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .tag-selector-item:hover {
@@ -1862,7 +1862,7 @@
 
 .access-denied-state h3 {
   color: var(--text);
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   margin: 0;
 }
 
@@ -1878,7 +1878,7 @@
   align-items: center;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
@@ -1886,7 +1886,7 @@
 
 .role-super_admin {
   background: rgba(139, 92, 246, 0.15);
-  color: #8b5cf6;
+  color: var(--status-purple);
 }
 
 .role-admin {
@@ -1896,7 +1896,7 @@
 
 .role-moderador {
   background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  color: var(--status-success);
 }
 
 .role-none {
@@ -1927,7 +1927,7 @@
   border-radius: 0.5rem;
   background: var(--background);
   color: var(--text);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   min-width: 160px;
 }
 
@@ -1979,8 +1979,8 @@
   padding: 1rem 2rem;
   border-radius: 0.75rem;
   font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  font-size: var(--text-base);
+  transition: all var(--duration-normal) ease;
   border: none;
   cursor: pointer;
 }
@@ -1996,20 +1996,20 @@
   justify-content: center;
   align-items: center;
   gap: 15px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  font-size: var(--text-base);
+  transition: all var(--duration-normal) ease;
   cursor: pointer;
   border: 1px solid var(--text-primary);
 }
 .favourite-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .heart-icon {
   stroke: #2563eb;
   fill: none;
-  transition: fill 0.2s ease;
+  transition: fill var(--duration-base) ease;
 }
 
 .heart-icon.is-active {
@@ -2027,7 +2027,7 @@
 .participate-button:hover {
   background: var(--dark-blue);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .participate-button.disabled {
@@ -2044,9 +2044,9 @@
 .stat-card-clickable {
   cursor: pointer;
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+    transform var(--duration-base) ease,
+    box-shadow var(--duration-base) ease,
+    border-color var(--duration-base) ease;
 }
 
 .stat-card-clickable:hover {

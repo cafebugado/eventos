@@ -24,8 +24,8 @@
 
   opacity: 0.9;
   transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+    opacity var(--duration-base) ease,
+    transform var(--duration-base) ease;
 }
 
 .scroll-to-top:hover {
@@ -39,7 +39,7 @@
 }
 
 /* Afasta do FloatingMenu em mobile */
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .scroll-to-top {
     bottom: 5.5rem;
     right: 1.25rem;

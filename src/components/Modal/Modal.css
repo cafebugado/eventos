@@ -30,7 +30,7 @@
   justify-content: center;
   z-index: 1000;
   padding: 2rem;
-  animation: modal-fade-in 0.2s ease;
+  animation: modal-fade-in var(--duration-base) ease;
 }
 
 /* Container */
@@ -41,7 +41,7 @@
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  animation: modal-slide-up 0.3s ease;
+  animation: modal-slide-up var(--duration-normal) ease;
 }
 
 /* Size variants */
@@ -69,7 +69,7 @@
 }
 
 .modal-header h2 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -82,7 +82,7 @@
   cursor: pointer;
   padding: 0.25rem;
   display: flex;
-  transition: color 0.2s ease;
+  transition: color var(--duration-base) ease;
   border-radius: 0.25rem;
 }
 
@@ -123,7 +123,7 @@
 }
 
 .modal-confirm-icon {
-  color: #dc2626;
+  color: var(--status-error);
   opacity: 0.8;
 }
 
@@ -157,7 +157,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
@@ -172,8 +172,8 @@
   border-radius: 0.5rem;
   background: var(--surface);
   color: var(--text-primary);
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
+  font-size: var(--text-sm);
+  transition: all var(--duration-base) ease;
 }
 
 .modal-body textarea {
@@ -188,7 +188,7 @@
 .modal-body textarea:focus {
   outline: none;
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: var(--shadow-focus);
 }
 
 /* ── Responsive ──────────────────────────────────────────────────── */

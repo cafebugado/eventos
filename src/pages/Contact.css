@@ -21,7 +21,7 @@
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .header-container {
@@ -42,7 +42,7 @@
 }
 
 .logo span {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   font-weight: 400;
 }
@@ -62,7 +62,7 @@
   padding: 0.5rem 1rem;
   cursor: pointer;
   border-radius: 0.5rem;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: flex;
   align-items: center;
 }
@@ -81,7 +81,7 @@
   height: 40px;
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -103,17 +103,17 @@
   color: white;
   border: none;
   border-radius: 50%;
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-md);
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: none;
 }
 
 .mobile-fab:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Mobile Sheet */
@@ -125,7 +125,7 @@
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1500;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn var(--duration-normal) ease;
 }
 
 .mobile-sheet {
@@ -137,7 +137,7 @@
   border-radius: 1rem 1rem 0 0;
   z-index: 1501;
   max-height: 70vh;
-  animation: slideUp 0.3s ease;
+  animation: slideUp var(--duration-normal) ease;
 }
 
 .mobile-sheet-header {
@@ -156,12 +156,12 @@
 .mobile-close {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   color: var(--text-secondary);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 0.5rem;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .mobile-close:hover {
@@ -184,10 +184,10 @@
   color: var(--text-secondary);
   cursor: pointer;
   border-radius: 0.75rem;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   text-align: left;
   width: 100%;
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 500;
 }
 
@@ -198,7 +198,7 @@
 }
 
 .mobile-icon {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   margin-right: 1rem;
   width: 30px;
   text-align: center;
@@ -240,7 +240,7 @@
   color: var(--primary-blue);
   padding: 0.5rem 1rem;
   border-radius: 2rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   margin-bottom: 1rem;
   border: 1px solid rgba(37, 99, 235, 0.2);
@@ -265,7 +265,7 @@
 }
 
 .section-description {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   max-width: 600px;
   margin: 0 auto 3rem;
@@ -294,7 +294,7 @@
   background: var(--background);
   border-radius: 0.75rem;
   border: 1px solid var(--border);
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .contato-item:hover {
@@ -303,7 +303,7 @@
 }
 
 .contato-icon {
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   width: 50px;
   height: 50px;
   background: rgba(37, 99, 235, 0.1);
@@ -329,7 +329,7 @@
 
 .contato-details span {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .contato-form {
@@ -363,8 +363,8 @@
   border-radius: 0.5rem;
   background: var(--surface);
   color: var(--text-primary);
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
+  font-size: var(--text-sm);
+  transition: all var(--duration-normal) ease;
   width: 100%;
 }
 
@@ -372,12 +372,12 @@
 .contact-form textarea:focus {
   outline: none;
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: var(--shadow-focus);
 }
 
 .error-message {
-  color: #ef4444;
-  font-size: 0.75rem;
+  color: var(--status-error);
+  font-size: var(--text-xs);
   margin-top: 0.25rem;
   display: block;
 }
@@ -390,7 +390,7 @@
   border-radius: 0.5rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -403,7 +403,7 @@
 }
 
 .button-arrow {
-  transition: transform 0.3s ease;
+  transition: transform var(--duration-normal) ease;
 }
 
 .form-button:hover .button-arrow {
@@ -420,7 +420,7 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .contato-section {
     padding: 5rem 1.5rem 2rem;
   }
@@ -480,11 +480,11 @@
   }
 
   .contato-section h2 {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
   }
 
   .section-description {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 
   .contato-item {

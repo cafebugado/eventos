@@ -91,7 +91,7 @@ function Contact() {
                           required: 'Nome é obrigatório',
                           minLength: { value: 2, message: 'Nome deve ter pelo menos 2 caracteres' },
                         })}
-                        style={{ borderColor: errors.nome ? '#ef4444' : undefined }}
+                        style={{ borderColor: errors.nome ? 'var(--status-error)' : undefined }}
                       />
                       {errors.nome && <span className="error-message">{errors.nome.message}</span>}
                     </div>
@@ -106,7 +106,7 @@ function Contact() {
                             message: 'Email inválido',
                           },
                         })}
-                        style={{ borderColor: errors.email ? '#ef4444' : undefined }}
+                        style={{ borderColor: errors.email ? 'var(--status-error)' : undefined }}
                       />
                       {errors.email && (
                         <span className="error-message">{errors.email.message}</span>
@@ -120,7 +120,7 @@ function Contact() {
                       {...register('assunto', {
                         required: 'Assunto é obrigatório',
                       })}
-                      style={{ borderColor: errors.assunto ? '#ef4444' : undefined }}
+                      style={{ borderColor: errors.assunto ? 'var(--status-error)' : undefined }}
                     />
                     {errors.assunto && (
                       <span className="error-message">{errors.assunto.message}</span>
@@ -137,7 +137,7 @@ function Contact() {
                           message: 'Mensagem deve ter pelo menos 10 caracteres',
                         },
                       })}
-                      style={{ borderColor: errors.mensagem ? '#ef4444' : undefined }}
+                      style={{ borderColor: errors.mensagem ? 'var(--status-error)' : undefined }}
                     />
                     {errors.mensagem && (
                       <span className="error-message">{errors.mensagem.message}</span>

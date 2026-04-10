@@ -54,7 +54,7 @@
 /* Erro */
 .audit-error {
   background: #fee2e2;
-  color: #b91c1c;
+  color: var(--status-error-dark);
   border-radius: 6px;
   padding: 10px 14px;
   font-size: 0.85rem;
@@ -142,7 +142,7 @@
   display: inline-block;
   padding: 2px 10px;
   border-radius: 12px;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -150,7 +150,7 @@
 
 .audit-badge--insert {
   background: #dcfce7;
-  color: #15803d;
+  color: var(--status-success-dark);
 }
 
 .audit-badge--update {
@@ -160,7 +160,7 @@
 
 .audit-badge--delete {
   background: #fee2e2;
-  color: #b91c1c;
+  color: var(--status-error-dark);
 }
 
 /* Paginação */
@@ -247,12 +247,12 @@
 }
 
 .audit-field-old {
-  color: #b91c1c;
+  color: var(--status-error-dark);
   background: #fff1f1;
 }
 
 .audit-field-new {
-  color: #15803d;
+  color: var(--status-success-dark);
   background: #f0fdf4;
 }
 

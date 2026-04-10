@@ -24,7 +24,7 @@
   -webkit-backdrop-filter: blur(4px);
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   z-index: 1099;
 }
 
@@ -51,18 +51,14 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  box-shadow:
-    0 4px 12px rgba(37, 99, 235, 0.4),
-    0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-md);
+  transition: all var(--duration-normal) cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1103;
 }
 
 .admin-mobile-fab:hover {
   transform: scale(1.05);
-  box-shadow:
-    0 6px 20px rgba(37, 99, 235, 0.5),
-    0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
 }
 
 .admin-mobile-fab:active {
@@ -123,10 +119,10 @@
   border-radius: 14px;
   cursor: pointer;
   color: var(--text-secondary);
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 500;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 180px;
   position: relative;
@@ -138,7 +134,7 @@
 }
 
 [data-theme='dark'] .admin-mobile-nav-item {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .admin-mobile-nav.active .admin-mobile-nav-item {
@@ -173,7 +169,7 @@
 }
 
 .admin-mobile-nav-label {
-  transition: opacity 0.2s ease;
+  transition: opacity var(--duration-base) ease;
 }
 
 .admin-mobile-theme-toggle {

@@ -14,7 +14,7 @@
 }
 
 .gallery-section .section-description {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   max-width: 600px;
   margin: 0 auto 3rem;
@@ -45,12 +45,12 @@
 }
 
 .gallery-empty p {
-  font-size: 1rem;
+  font-size: var(--text-base);
   margin: 0;
 }
 
 /* Responsive */
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .gallery-section {
     padding-top: 5rem;
   }
@@ -76,6 +76,6 @@
   }
 
   .gallery-section .section-description {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 }

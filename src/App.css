@@ -23,7 +23,7 @@
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .header-container {
@@ -44,7 +44,7 @@
 }
 
 .logo span {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   font-weight: 400;
 }
@@ -64,7 +64,7 @@
   padding: 0.5rem 1rem;
   cursor: pointer;
   border-radius: 0.5rem;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   position: relative;
 }
 
@@ -82,7 +82,7 @@
   height: 40px;
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,7 +102,7 @@
   background: var(--surface);
   border-right: 1px solid var(--border);
   z-index: 999;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: none;
 }
 
@@ -120,10 +120,10 @@
   background: none;
   border: none;
   color: var(--text-primary);
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   cursor: pointer;
   border-bottom: 1px solid var(--border);
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .sidebar-toggle:hover {
@@ -144,7 +144,7 @@
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   text-align: left;
   width: 100%;
 }
@@ -156,7 +156,7 @@
 }
 
 .sidebar-icon {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   width: 30px;
   text-align: center;
 }
@@ -166,7 +166,7 @@
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .sidebar-closed .sidebar-label {
@@ -190,17 +190,17 @@
   color: white;
   border: none;
   border-radius: 50%;
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-md);
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: none;
 }
 
 .mobile-fab:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Mobile Sheet */
@@ -212,7 +212,7 @@
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1500;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn var(--duration-normal) ease;
 }
 
 .mobile-sheet {
@@ -224,7 +224,7 @@
   border-radius: 1rem 1rem 0 0;
   z-index: 1501;
   max-height: 70vh;
-  animation: slideUp 0.3s ease;
+  animation: slideUp var(--duration-normal) ease;
 }
 
 .mobile-sheet-header {
@@ -243,12 +243,12 @@
 .mobile-close {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   color: var(--text-secondary);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 0.5rem;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .mobile-close:hover {
@@ -271,10 +271,10 @@
   color: var(--text-secondary);
   cursor: pointer;
   border-radius: 0.75rem;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   text-align: left;
   width: 100%;
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 500;
 }
 
@@ -285,7 +285,7 @@
 }
 
 .mobile-icon {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   margin-right: 1rem;
   width: 30px;
   text-align: center;
@@ -327,7 +327,7 @@
   color: var(--primary-blue);
   padding: 0.5rem 1rem;
   border-radius: 2rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   margin-bottom: 2rem;
   border: 1px solid rgba(37, 99, 235, 0.2);
@@ -347,7 +347,7 @@
 }
 
 .hero-content p {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   color: var(--text-secondary);
   margin-bottom: 3rem;
   max-width: 600px;
@@ -375,7 +375,7 @@
 }
 
 .stat-label {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -400,7 +400,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-primary);
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .hero-feature:hover {
@@ -412,7 +412,7 @@
   font-family: 'Courier New', monospace;
   font-weight: 700;
   color: var(--primary-blue);
-  font-size: 1rem;
+  font-size: var(--text-base);
 }
 
 /* Hero Info Box */
@@ -464,11 +464,11 @@
   color: white;
   border: none;
   padding: 1rem 2rem;
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 600;
   border-radius: 0.75rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -477,11 +477,11 @@
 .cta-button:hover {
   background: var(--dark-blue);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .button-arrow {
-  transition: transform 0.3s ease;
+  transition: transform var(--duration-normal) ease;
 }
 
 .cta-button:hover .button-arrow {
@@ -532,7 +532,7 @@ section {
   color: var(--primary-blue);
   padding: 0.5rem 1rem;
   border-radius: 2rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   margin-bottom: 1rem;
   border: 1px solid rgba(37, 99, 235, 0.2);
@@ -547,7 +547,7 @@ section {
 }
 
 .section-header p {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   max-width: 600px;
   margin: 0 auto;
@@ -565,7 +565,7 @@ section {
   display: none;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .fab-favourites {
     display: flex;
     position: fixed;
@@ -581,10 +581,8 @@ section {
     align-items: center;
     justify-content: center;
     color: #fff;
-    box-shadow:
-      0 4px 12px rgba(37, 99, 235, 0.4),
-      0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-md);
+    transition: all var(--duration-normal) cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1103;
   }
 
@@ -595,9 +593,7 @@ section {
   .fab-favourites--active {
     background: #1e293b;
     color: #fff;
-    box-shadow:
-      0 4px 12px rgba(0, 0, 0, 0.3),
-      0 2px 4px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-md);
   }
 
   [data-theme='dark'] .fab-favourites--active {
@@ -626,15 +622,15 @@ section {
   background: var(--background);
   overflow: hidden;
   transition:
-    width 0.3s ease,
-    border-color 0.2s ease;
+    width var(--duration-normal) ease,
+    border-color var(--duration-base) ease;
   width: 2.75rem;
 }
 
 .filter-search--open {
   width: 260px;
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: var(--shadow-focus);
 }
 
 .search-toggle {
@@ -648,7 +644,7 @@ section {
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color var(--duration-base) ease;
 }
 
 .filter-search--open .search-toggle,
@@ -667,7 +663,7 @@ section {
   outline: none;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--duration-base) ease;
 }
 
 .filter-search--open .search-input {
@@ -694,14 +690,14 @@ section {
   color: var(--text-primary);
   font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   min-width: 140px;
 }
 
 .periodo-select:focus {
   outline: none;
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: var(--shadow-focus);
 }
 
 .filter-toggle {
@@ -715,7 +711,7 @@ section {
   color: var(--text-secondary);
   font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .filter-toggle:hover {
@@ -829,7 +825,7 @@ section {
   border-radius: 1rem;
   overflow: hidden;
   border: 1px solid var(--border);
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   animation: fadeInCard 0.6s ease forwards;
   opacity: 0;
   display: flex;
@@ -864,7 +860,7 @@ section {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform var(--duration-normal) ease;
 }
 
 .evento-card:hover .card-image img {
@@ -879,13 +875,13 @@ section {
   color: white;
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .card-badge-today {
-  background-color: #28a745; /* Green color for "Today" badge */
+  background-color: var(--status-success); /* Green color for "Today" badge */
   color: #ffffff;
 }
 
@@ -922,7 +918,7 @@ section {
   text-transform: uppercase;
   letter-spacing: 0.02em;
   backdrop-filter: blur(4px);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 .card-content {
@@ -933,14 +929,14 @@ section {
 }
 
 .card-content h3 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .event-description {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   margin-bottom: 1rem;
   line-height: 1.5;
@@ -970,7 +966,7 @@ section {
   align-items: center;
   margin-bottom: 0.5rem;
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .info-item .icon {
@@ -994,7 +990,7 @@ section {
   border-radius: 0.5rem;
   font-weight: 500;
   font-size: 0.8rem;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   border: none;
   cursor: pointer;
   white-space: nowrap;
@@ -1006,7 +1002,7 @@ section {
 }
 
 .link-arrow {
-  transition: transform 0.3s ease;
+  transition: transform var(--duration-normal) ease;
 }
 
 .event-link:hover .link-arrow {
@@ -1031,7 +1027,7 @@ section {
 }
 
 .empty-icon {
-  font-size: 3rem;
+  font-size: var(--text-5xl);
   margin-bottom: 1rem;
 }
 
@@ -1133,7 +1129,7 @@ section {
 }
 
 .error-icon {
-  font-size: 3rem;
+  font-size: var(--text-5xl);
   margin-bottom: 1rem;
   color: var(--text-secondary);
 }
@@ -1141,7 +1137,7 @@ section {
 .error-container h3 {
   color: var(--text-primary);
   margin-bottom: 0.5rem;
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
 }
 
 .error-container p {
@@ -1156,15 +1152,15 @@ section {
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
   font-weight: 500;
-  font-size: 1rem;
+  font-size: var(--text-base);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .retry-button:hover {
   background: var(--dark-blue);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .retry-button:active {
@@ -1189,7 +1185,7 @@ section {
 }
 
 .sobre-content p {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   max-width: 700px;
   margin: 0 auto 3rem;
@@ -1215,7 +1211,7 @@ section {
 
 .about-stat p {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .features {
@@ -1230,7 +1226,7 @@ section {
   background: var(--surface);
   border-radius: 1rem;
   border: 1px solid var(--border);
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .feature:hover {
@@ -1245,7 +1241,7 @@ section {
 }
 
 .feature h4 {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.75rem;
@@ -1253,7 +1249,7 @@ section {
 
 .feature p {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
@@ -1283,7 +1279,7 @@ section {
   background: var(--background);
   border-radius: 0.75rem;
   border: 1px solid var(--border);
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .contato-item:hover {
@@ -1292,7 +1288,7 @@ section {
 }
 
 .contato-icon {
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   width: 40px;
   height: 40px;
   background: rgba(37, 99, 235, 0.1);
@@ -1317,7 +1313,7 @@ section {
 
 .contato-details span {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .contato-form {
@@ -1351,15 +1347,15 @@ section {
   border-radius: 0.5rem;
   background: var(--surface);
   color: var(--text-primary);
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
+  font-size: var(--text-sm);
+  transition: all var(--duration-normal) ease;
 }
 
 .contact-form input:focus,
 .contact-form textarea:focus {
   outline: none;
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: var(--shadow-focus);
 }
 
 .form-button {
@@ -1370,7 +1366,7 @@ section {
   border-radius: 0.5rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1407,7 +1403,7 @@ section {
 }
 
 .footer-section h4 {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   font-weight: 600;
   margin-bottom: 1rem;
   color: var(--primary-blue);
@@ -1415,7 +1411,7 @@ section {
 
 .footer-section p {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   line-height: 1.5;
   margin-bottom: 1rem;
 }
@@ -1435,8 +1431,8 @@ section {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.875rem;
-  transition: color 0.3s ease;
+  font-size: var(--text-sm);
+  transition: color var(--duration-normal) ease;
 }
 
 .footer-section ul li a:hover,
@@ -1458,8 +1454,8 @@ section {
   height: 40px;
   background: var(--surface);
   border-radius: 50%;
-  font-size: 1.25rem;
-  transition: all 0.3s ease;
+  font-size: var(--text-xl);
+  transition: all var(--duration-normal) ease;
 }
 
 .social-links a:hover {
@@ -1475,7 +1471,7 @@ section {
 
 .footer-bottom p {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   margin: 0.25rem 0;
 }
 
@@ -1512,7 +1508,7 @@ section {
 
   .main-content {
     margin-left: 60px;
-    transition: margin-left 0.3s ease;
+    transition: margin-left var(--duration-normal) ease;
   }
 
   .sidebar-open + .main-content {
@@ -1521,7 +1517,7 @@ section {
 
   .hero-section {
     margin-left: 60px;
-    transition: margin-left 0.3s ease;
+    transition: margin-left var(--duration-normal) ease;
   }
 
   .sidebar-open ~ .hero-section {
@@ -1640,7 +1636,7 @@ section {
   }
 
   .section-header h2 {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
     margin-bottom: 0.5rem;
   }
 
@@ -1699,7 +1695,7 @@ section {
   }
 
   .card-content h3 {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 
   .event-description {
@@ -1730,7 +1726,7 @@ section {
     display: flex;
     justify-content: center;
     text-align: center;
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
     padding: 0.5rem 0.75rem;
     white-space: normal;
     line-height: 1.2;
