@@ -367,10 +367,10 @@ function Dashboard() {
     (evento) => {
       const eventUrl = `${window.location.origin}/eventos/${evento.id}`
       const message =
-        `Confira o evento "${evento.nome}" da Comunidade Cafe Bugado!\n\n` +
+        `Confira o evento "${evento.nome}"!\n\n` +
         `📅 ${evento.data_evento}${evento.horario ? ` às ${evento.horario}` : ''}\n\n` +
         `🔗 ${eventUrl}\n\n` +
-        `Siga nossa comunidade:\n` +
+        `Divulgado pela Comunidade Cafe Bugado:\n` +
         `Instagram: @comunidadecafebugado`
       navigator.clipboard
         .writeText(message)
