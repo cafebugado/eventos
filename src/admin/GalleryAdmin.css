@@ -57,7 +57,7 @@
 }
 
 .ga-album-name {
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 0.5rem;
@@ -263,15 +263,15 @@
   border-radius: 0.5rem;
   background: var(--background);
   color: var(--text-primary);
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
+  font-size: var(--text-sm);
+  transition: all var(--duration-base) ease;
 }
 
 .ga-photo-form input[type='text']:focus,
 .ga-photo-form input[type='url']:focus {
   outline: none;
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: var(--shadow-focus);
 }
 
 .ga-photo-form-body {
@@ -349,7 +349,7 @@
 .ga-no-photos {
   text-align: center;
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   padding: 1rem 0;
 }
 
@@ -403,7 +403,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 1rem;

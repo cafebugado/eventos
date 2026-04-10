@@ -34,7 +34,7 @@
 }
 
 .notfound-content p {
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: var(--text-secondary);
   margin-bottom: 2rem;
   line-height: 1.6;
@@ -56,7 +56,7 @@
   font-weight: 500;
   border-radius: 0.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   border: none;
 }
 
@@ -68,7 +68,7 @@
 .notfound-btn.primary:hover {
   background: var(--dark-blue);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .notfound-btn.secondary {
@@ -88,7 +88,7 @@
   }
 
   .notfound-content h1 {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
   }
 
   .notfound-actions {

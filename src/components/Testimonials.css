@@ -39,8 +39,8 @@
   flex-direction: column;
   gap: 1.25rem;
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+    transform var(--duration-normal) ease,
+    box-shadow var(--duration-normal) ease;
 }
 
 .testi-card:hover {
@@ -101,7 +101,7 @@
 
 .testi-info span {
   color: var(--text-secondary);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }

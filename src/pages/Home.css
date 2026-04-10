@@ -29,7 +29,7 @@
 }
 
 .home-hero-content h1 {
-  font-size: 3rem;
+  font-size: var(--text-5xl);
   font-weight: 700;
   line-height: 1.2;
   color: var(--text-primary);
@@ -41,7 +41,7 @@
 }
 
 .home-description {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   line-height: 1.7;
   margin-bottom: 2rem;
@@ -68,7 +68,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-primary);
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .home-feature:hover {
@@ -81,7 +81,7 @@
   font-family: 'Courier New', monospace;
   font-weight: 700;
   color: var(--primary-blue);
-  font-size: 1rem;
+  font-size: var(--text-base);
 }
 
 /* Info Box */
@@ -131,11 +131,11 @@
 /* Responsive */
 @media (max-width: 768px) {
   .home-hero-content h1 {
-    font-size: 2.25rem;
+    font-size: var(--text-4xl);
   }
 
   .home-description {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 }
 

@@ -14,7 +14,7 @@
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .details-header .header-container {
@@ -35,7 +35,7 @@
 }
 
 .details-header .logo span {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   font-weight: 400;
 }
@@ -54,7 +54,7 @@
   padding: 0.5rem 1rem;
   cursor: pointer;
   border-radius: 0.5rem;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: flex;
   align-items: center;
 }
@@ -85,11 +85,11 @@
 .error-container p {
   color: var(--text-secondary);
   margin-bottom: 1.5rem;
-  font-size: 1rem;
+  font-size: var(--text-base);
 }
 
 .error-icon {
-  font-size: 3rem;
+  font-size: var(--text-5xl);
   margin-bottom: 1rem;
   color: var(--text-secondary);
 }
@@ -112,15 +112,15 @@
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
   font-weight: 500;
-  font-size: 1rem;
+  font-size: var(--text-base);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .retry-button:hover {
   background: var(--dark-blue);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .retry-button:active {
@@ -268,7 +268,7 @@
   color: white;
   padding: 0.625rem 1rem;
   border-radius: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -291,12 +291,12 @@
   background: color-mix(in srgb, var(--tag-color) 85%, black);
   color: #fff;
   border-radius: 0.375rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   backdrop-filter: blur(4px);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Event Details Content */
@@ -317,7 +317,7 @@
 }
 
 .event-description-full .rich-text {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   line-height: 1.7;
   text-align: justify;
@@ -359,7 +359,7 @@
 }
 
 .info-label {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--text-secondary);
   text-transform: uppercase;
   font-weight: 500;
@@ -367,7 +367,7 @@
 }
 
 .info-value {
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: var(--text-primary);
   font-weight: 600;
 }
@@ -383,14 +383,14 @@
   padding: 1rem 2rem;
   border-radius: 0.75rem;
   font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  font-size: var(--text-base);
+  transition: all var(--duration-normal) ease;
 }
 
 .participate-button:hover {
   background: var(--dark-blue);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .participate-button.disabled {
@@ -452,7 +452,7 @@
   font-size: 0.85rem;
   font-weight: 500;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   white-space: nowrap;
 }
 
@@ -572,7 +572,7 @@
     top: 0.75rem;
     right: 0.75rem;
     padding: 0.375rem 0.625rem;
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
   }
 
   .event-details-content {
@@ -584,7 +584,7 @@
   }
 
   .event-description-full .rich-text {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 
   .event-info-grid {

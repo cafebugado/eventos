@@ -1,6 +1,8 @@
 # Dependências
 node_modules/
 .pnpm-store/
+.claude
+skills-lock.json
 
 # Variáveis de ambiente
 .env

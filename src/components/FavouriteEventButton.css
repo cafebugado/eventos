@@ -8,13 +8,13 @@
   justify-content: center;
   align-items: center;
   gap: 15px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  font-size: var(--text-base);
+  transition: all var(--duration-normal) ease;
   cursor: pointer;
   border: 1px solid var(--text-primary);
 }
 
 .favourite-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-lg);
 }
