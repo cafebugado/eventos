@@ -22,7 +22,7 @@
 }
 
 .event-recs-header h2 {
-  font-size: 2.25rem;
+  font-size: var(--text-4xl);
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0.75rem;
@@ -51,7 +51,7 @@
   border-radius: 1rem;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: flex;
   flex-direction: column;
 }
@@ -79,7 +79,7 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  transition: transform 0.3s ease;
+  transition: transform var(--duration-normal) ease;
 }
 
 .event-recs-card:hover .event-recs-card-image img {
@@ -158,14 +158,14 @@
   font-weight: 600;
   border-radius: 0.625rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
 }
 
 .event-recs-cta button:hover {
   background: var(--primary-blue);
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Skeleton */
@@ -227,7 +227,7 @@
 }
 
 [data-theme='dark'] .event-recs-cta button:hover {
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Responsivo — Tablet */
@@ -273,7 +273,7 @@
   }
 
   .event-recs-card-content h3 {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 
   .event-recs-card-badge {
@@ -290,7 +290,7 @@
   }
 
   .event-recs-header h2 {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
   }
 
   .event-recs-card-image {
@@ -304,7 +304,7 @@
   }
 
   .event-recs-info-item {
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
   }
 
   .event-recs-cta button {

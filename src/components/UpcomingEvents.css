@@ -25,7 +25,7 @@
 }
 
 .upcoming-label {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.12em;
   color: var(--primary-blue);
@@ -52,7 +52,7 @@
   cursor: pointer;
   padding: 0;
   white-space: nowrap;
-  transition: gap 0.2s ease;
+  transition: gap var(--duration-base) ease;
 }
 
 .upcoming-explore-link:hover {
@@ -74,8 +74,8 @@
   overflow: hidden;
   cursor: pointer;
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+    transform var(--duration-normal) ease,
+    box-shadow var(--duration-normal) ease;
   display: flex;
   flex-direction: column;
 }
@@ -97,7 +97,7 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  transition: transform 0.3s ease;
+  transition: transform var(--duration-normal) ease;
 }
 
 .upcoming-card:hover .upcoming-card-image img {
@@ -178,7 +178,7 @@
   cursor: pointer;
   padding: 0;
   text-transform: uppercase;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--duration-base) ease;
 }
 
 .upcoming-card-btn:hover {

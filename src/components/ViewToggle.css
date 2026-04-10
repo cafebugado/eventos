@@ -19,7 +19,7 @@
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
 }
 
 .view-toggle-btn:hover {

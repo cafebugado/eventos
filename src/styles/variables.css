@@ -10,6 +10,62 @@
   --border: #e2e8f0;
   --shadow: rgba(0, 0, 0, 0.1);
   --shadow-hover: rgba(0, 0, 0, 0.15);
+
+  /* Durations de animação */
+  --duration-fast: 0.15s;
+  --duration-base: 0.2s;
+  --duration-normal: 0.3s;
+  --duration-slow: 0.5s;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.15);
+  --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.15);
+
+  /* Escala tipográfica */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* Status */
+  --status-success: var(--status-success);
+  --status-success-dark: var(--status-success-dark);
+  --status-success-bg: var(--status-success-bg);
+  --status-error: var(--status-error);
+  --status-error-dark: var(--status-error-dark);
+  --status-error-bg: var(--status-error-bg);
+  --status-warning: var(--status-warning);
+  --status-warning-bg: var(--status-warning-bg);
+  --status-info: #3b82f6;
+  --status-info-bg: var(--status-info-bg);
+  --status-purple: var(--status-purple);
+  --status-purple-bg: var(--status-purple-bg);
+
+  /* Footer */
+  --footer-bg: rgba(15, 23, 42, 0.95);
+  --footer-border: rgba(255, 255, 255, 0.1);
+  --footer-text: rgba(255, 255, 255, 0.5);
+  --footer-text-muted: rgba(255, 255, 255, 0.4);
+  --footer-text-title: #ffffff;
+  --footer-link-hover: #ffffff;
+  --footer-icon-hover-bg: rgba(255, 255, 255, 0.1);
+  --footer-tooltip-bg: #1e293b;
+  --footer-tooltip-text: #ffffff;
 }
 
 [data-theme='dark'] {
@@ -23,6 +79,37 @@
   --border: #334155;
   --shadow: rgba(0, 0, 0, 0.3);
   --shadow-hover: rgba(0, 0, 0, 0.4);
+
+  /* Sombras dark */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.4);
+  --shadow-focus: 0 0 0 3px rgba(59, 130, 246, 0.2);
+
+  /* Footer dark — same dark values already set above */
+  --footer-bg: rgba(15, 23, 42, 0.95);
+  --footer-border: rgba(255, 255, 255, 0.1);
+  --footer-text: rgba(255, 255, 255, 0.5);
+  --footer-text-muted: rgba(255, 255, 255, 0.4);
+  --footer-text-title: #ffffff;
+  --footer-link-hover: #ffffff;
+  --footer-icon-hover-bg: rgba(255, 255, 255, 0.1);
+  --footer-tooltip-bg: #1e293b;
+  --footer-tooltip-text: #ffffff;
+}
+
+/* Footer light mode overrides */
+:root:not([data-theme='dark']) {
+  --footer-bg: rgba(255, 255, 255, 0.95);
+  --footer-border: rgba(30, 41, 59, 0.1);
+  --footer-text: rgba(30, 41, 59, 0.6);
+  --footer-text-muted: rgba(30, 41, 59, 0.5);
+  --footer-text-title: #1e293b;
+  --footer-link-hover: #1e293b;
+  --footer-icon-hover-bg: rgba(30, 41, 59, 0.1);
+  --footer-tooltip-bg: #1e293b;
+  --footer-tooltip-text: #ffffff;
 }
 
 * {
@@ -36,11 +123,17 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family:
+    'DM Sans',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    system-ui,
+    sans-serif;
   background-color: var(--background);
   color: var(--text-primary);
   line-height: 1.6;
   transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
+    background-color var(--duration-normal) ease,
+    color var(--duration-normal) ease;
 }

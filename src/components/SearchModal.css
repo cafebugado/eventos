@@ -14,7 +14,7 @@
   border: none;
   background: transparent;
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: var(--text-base);
   outline: none;
 }
 

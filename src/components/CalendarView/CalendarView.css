@@ -53,7 +53,7 @@
 }
 
 .calendar-title {
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--text-primary);
   min-width: 10rem;
@@ -88,7 +88,7 @@
 .calendar-day-header {
   padding: 0.625rem 0.25rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -140,7 +140,7 @@
 }
 
 .cal-day--live {
-  background: color-mix(in srgb, #22c55e 8%, transparent);
+  background: color-mix(in srgb, var(--status-success) 8%, transparent);
 }
 
 .cal-day-number {
@@ -269,7 +269,7 @@
 }
 
 .cal-modal-title {
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 700;
   color: var(--text-primary);
   margin: 0 0 0.2rem;
@@ -316,7 +316,7 @@
   }
 
   .cal-day-number {
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
     min-width: 1.5rem;
     min-height: 1.5rem;
   }
