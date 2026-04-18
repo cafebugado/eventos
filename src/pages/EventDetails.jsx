@@ -14,6 +14,7 @@ import BgEventos from '../assets/eventos.png'
 import './EventDetails.css'
 import { FavouriteEventButton } from '../components/FavouriteEventButton'
 import { isEventPast } from '../utils/eventDate'
+import AddToCalendarButton from '../components/AddToCalendarButton'
 
 function EventDetails() {
   const { id } = useParams()
@@ -319,6 +320,11 @@ function EventDetails() {
                   isCard={false}
                 />
               </div>
+              {!isPast && (
+                <div className="event-calendar-share">
+                  <AddToCalendarButton event={event} />
+                </div>
+              )}
               {!isPast && (
                 <ShareButtons
                   eventName={event.nome}

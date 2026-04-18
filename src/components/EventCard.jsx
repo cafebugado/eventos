@@ -53,6 +53,9 @@ function EventCard({
     event.horario
   )
 
+  const isNew =
+    !!event.created_at && Date.now() - new Date(event.created_at).getTime() < 48 * 60 * 60 * 1000
+
   const badgeClass = isPast
     ? 'ec-badge ec-badge-encerrado'
     : isHappening
@@ -72,7 +75,7 @@ function EventCard({
 
   return (
     <div
-      className={`ec-card ec-card--${variant}${isPast ? ' ec-card--past' : ''}`}
+      className={`ec-card ec-card--${variant}${isPast ? ' ec-card--past' : ''}${isNew && !isPast ? ' ec-card--new' : ''}`}
       onClick={handleClick}
       role="button"
       tabIndex={0}
@@ -91,6 +94,7 @@ function EventCard({
             }}
           />
           {!isWithin24h && !isHappening && <div className={badgeClass}>{badgeText}</div>}
+          {isNew && !isPast && <div className="ec-badge-new">Novo</div>}
           {tags.length > 0 && (
             <div className="card-image-tags">
               {tags.map((tag) => (
