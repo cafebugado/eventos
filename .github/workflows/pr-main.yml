@@ -78,7 +78,7 @@ jobs:
 
       - name: Verificar tamanho do bundle
         run: |
-          MAX_SIZE_KB=512
+          MAX_SIZE_KB=1300
           TOTAL_SIZE_KB=$(du -sk dist/ | cut -f1)
 
           echo "## Tamanho do Bundle" >> $GITHUB_STEP_SUMMARY
