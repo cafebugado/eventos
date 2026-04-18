@@ -5,6 +5,13 @@ function toICalDate(dateBR, time) {
   return `${year}${month.padStart(2, '0')}${day.padStart(2, '0')}T${hour.padStart(2, '0')}${minute.padStart(2, '0')}00`
 }
 
+function sanitizePlainText(input) {
+  return String(input || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
 // Retorna data/hora + 2h (duração padrão do evento)
 function addHours(iCalDate, hours) {
   const year = parseInt(iCalDate.slice(0, 4))
@@ -25,8 +32,7 @@ export function generateICS(event) {
 
   const location = [event.endereco, event.cidade, event.estado].filter(Boolean).join(', ')
   const description = event.descricao
-    ? event.descricao
-        .replace(/<[^>]*>/g, '')
+    ? sanitizePlainText(event.descricao)
         .replace(/\n/g, '\\n')
         .slice(0, 500)
     : ''
@@ -76,7 +82,7 @@ export function getGoogleCalendarUrl(event) {
   const dtStart = toICalDate(event.data_evento, event.horario)
   const dtEnd = addHours(dtStart, 2)
   const location = [event.endereco, event.cidade, event.estado].filter(Boolean).join(', ')
-  const description = event.descricao ? event.descricao.replace(/<[^>]*>/g, '').slice(0, 500) : ''
+  const description = event.descricao ? sanitizePlainText(event.descricao).slice(0, 500) : ''
 
   const params = new URLSearchParams({
     action: 'TEMPLATE',
