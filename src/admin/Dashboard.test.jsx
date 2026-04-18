@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, waitFor, act, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Dashboard from './Dashboard'
-import { renderWithRouter, createMockEvent } from '../test/utils'
+import { renderWithRouter, renderWithRoutes, createMockEvent } from '../test/utils'
 import * as authService from '../services/authService'
 import * as eventService from '../services/eventService'
 import * as roleService from '../services/roleService'
@@ -233,7 +233,7 @@ describe('Dashboard', () => {
     // Verifica que os campos estão presentes
     expect(screen.getByPlaceholderText('Ex: Workshop de React')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Selecione uma data')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Ex: 19:00')).toBeInTheDocument()
+    expect(document.querySelector('input[type="time"]')).toBeInTheDocument()
     expect(screen.getAllByRole('combobox').length).toBeGreaterThanOrEqual(2)
   })
 
@@ -296,7 +296,7 @@ describe('Dashboard', () => {
     await waitFor(() => {
       expect(window.confirm).toHaveBeenCalledWith('Tem certeza que deseja excluir este evento?')
       expect(eventService.deleteEvent).toHaveBeenCalledWith('1')
-      expect(screen.getByText('Evento excluído com sucesso!')).toBeInTheDocument()
+      expect(screen.getByText('Evento deletado com sucesso!')).toBeInTheDocument()
     })
   })
 
@@ -411,9 +411,24 @@ describe('Dashboard', () => {
     })
   })
 
-  it('deve abrir link do evento ao clicar em visualizar', async () => {
+  it('deve copiar link do evento ao clicar em copiar', async () => {
     const user = userEvent.setup()
-    const windowOpen = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      writable: true,
+    })
+
+    const publishedEvents = [
+      createMockEvent({
+        id: '1',
+        nome: 'Evento 1',
+        periodo: 'Noturno',
+        data_evento: futureDate,
+        status: 'publicado',
+      }),
+    ]
+    eventService.getEvents.mockResolvedValue(publishedEvents)
 
     renderWithRouter(<Dashboard />)
 
@@ -421,11 +436,12 @@ describe('Dashboard', () => {
       expect(screen.getByText('Evento 1')).toBeInTheDocument()
     })
 
-    const viewButtons = screen.getAllByTitle('Ver evento')
-    await user.click(viewButtons[0])
+    const copyButtons = screen.getAllByTitle('Copiar link do evento')
+    await user.click(copyButtons[0])
 
-    expect(windowOpen).toHaveBeenCalledWith('https://evento.com', '_blank')
-    windowOpen.mockRestore()
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalled()
+    })
   })
 
   it('deve exibir somente botão excluir para eventos passados', async () => {
@@ -456,20 +472,20 @@ describe('Dashboard', () => {
     })
   })
 
-  it('deve ordenar eventos pelo mais recentemente cadastrado primeiro', async () => {
+  it('deve ordenar eventos futuros por data do evento (mais próximo primeiro)', async () => {
+    const nearDate = (() => {
+      const d = new Date()
+      d.setDate(d.getDate() + 10)
+      return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+    })()
+    const farDate = (() => {
+      const d = new Date()
+      d.setFullYear(d.getFullYear() + 2)
+      return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+    })()
     const mixedEvents = [
-      createMockEvent({
-        id: '1',
-        nome: 'Evento Antigo',
-        data_evento: futureDate,
-        created_at: '2024-01-01T00:00:00Z',
-      }),
-      createMockEvent({
-        id: '2',
-        nome: 'Evento Recente',
-        data_evento: futureDate,
-        created_at: '2024-06-01T00:00:00Z',
-      }),
+      createMockEvent({ id: '1', nome: 'Evento Distante', data_evento: farDate }),
+      createMockEvent({ id: '2', nome: 'Evento Proximo', data_evento: nearDate }),
     ]
     eventService.getEvents.mockResolvedValue(mixedEvents)
     eventService.getEventStats.mockResolvedValue({ total: 2, noturno: 1, diurno: 1 })
@@ -477,14 +493,14 @@ describe('Dashboard', () => {
     renderWithRouter(<Dashboard />)
 
     await waitFor(() => {
-      expect(screen.getByText('Evento Recente')).toBeInTheDocument()
-      expect(screen.getByText('Evento Antigo')).toBeInTheDocument()
+      expect(screen.getByText('Evento Proximo')).toBeInTheDocument()
+      expect(screen.getByText('Evento Distante')).toBeInTheDocument()
     })
 
     const rows = screen.getAllByRole('row')
     const dataRows = rows.slice(1)
-    expect(dataRows[0]).toHaveTextContent('Evento Recente')
-    expect(dataRows[1]).toHaveTextContent('Evento Antigo')
+    expect(dataRows[0]).toHaveTextContent('Evento Proximo')
+    expect(dataRows[1]).toHaveTextContent('Evento Distante')
   })
 
   it('deve exibir coluna "Cadastrado em" na tabela de eventos', async () => {
@@ -526,14 +542,14 @@ describe('Dashboard', () => {
     fireEvent.change(screen.getByPlaceholderText('Selecione uma data'), {
       target: { value: '2099-12-31' },
     })
-    await user.type(screen.getByPlaceholderText('Ex: 19:00'), '19:00')
+    await user.type(document.querySelector('input[type="time"]'), '19:00')
     const selects = screen.getAllByRole('combobox')
     fireEvent.change(selects[0], { target: { value: 'Segunda-feira' } })
     fireEvent.change(selects[1], { target: { value: 'Noturno' } })
     const linkInputs = screen.getAllByPlaceholderText('https://...')
     await user.type(linkInputs[0], 'https://evento.com')
 
-    await user.click(screen.getByRole('button', { name: /Criar Evento/i }))
+    await user.click(screen.getByRole('button', { name: /^Salvar$/i }))
 
     await waitFor(() => {
       expect(screen.getByText('Já existe um evento com esse nome.')).toBeInTheDocument()
@@ -659,9 +675,8 @@ describe('Dashboard', () => {
         expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
       })
 
-      const sidebarButtons = screen.getAllByRole('button')
-      const usuariosBtn = sidebarButtons.find((btn) => btn.textContent.includes('Usuários'))
-      expect(usuariosBtn).toBeDefined()
+      const usuariosLinks = screen.getAllByRole('link', { name: /Usuários/i })
+      expect(usuariosLinks.length).toBeGreaterThan(0)
     })
 
     it('super_admin deve ver tab Usuarios na sidebar', async () => {
@@ -673,9 +688,8 @@ describe('Dashboard', () => {
         expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
       })
 
-      const sidebarButtons = screen.getAllByRole('button')
-      const usuariosBtn = sidebarButtons.find((btn) => btn.textContent.includes('Usuários'))
-      expect(usuariosBtn).toBeDefined()
+      const usuariosLinks = screen.getAllByRole('link', { name: /Usuários/i })
+      expect(usuariosLinks.length).toBeGreaterThan(0)
     })
 
     it('deve exibir role do usuario na sidebar', async () => {
@@ -718,14 +732,10 @@ describe('Dashboard', () => {
       const { getMyProfile } = await import('../services/profileService')
       getMyProfile.mockResolvedValue(mockProfile)
 
-      const user = userEvent.setup()
-      renderWithRouter(<Dashboard />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      renderWithRoutes(<Dashboard />, {
+        path: '/admin/dashboard/:tab',
+        initialEntry: '/admin/dashboard/configuracoes',
       })
-
-      await user.click(screen.getByRole('button', { name: /Configurações/i }))
 
       await waitFor(() => {
         expect(screen.getByText('Configurações do Perfil')).toBeInTheDocument()
@@ -739,14 +749,10 @@ describe('Dashboard', () => {
       const { getMyProfile } = await import('../services/profileService')
       getMyProfile.mockResolvedValue(mockProfile)
 
-      const user = userEvent.setup()
-      renderWithRouter(<Dashboard />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      renderWithRoutes(<Dashboard />, {
+        path: '/admin/dashboard/:tab',
+        initialEntry: '/admin/dashboard/configuracoes',
       })
-
-      await user.click(screen.getByRole('button', { name: /Configurações/i }))
 
       await waitFor(() => {
         expect(screen.getByTitle('Editar perfil')).toBeInTheDocument()
@@ -758,14 +764,10 @@ describe('Dashboard', () => {
       const { getMyProfile } = await import('../services/profileService')
       getMyProfile.mockResolvedValue(mockProfile)
 
-      const user = userEvent.setup()
-      renderWithRouter(<Dashboard />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      renderWithRoutes(<Dashboard />, {
+        path: '/admin/dashboard/:tab',
+        initialEntry: '/admin/dashboard/configuracoes',
       })
-
-      await user.click(screen.getByRole('button', { name: /Configurações/i }))
 
       await waitFor(() => {
         expect(screen.getByTitle('Editar perfil')).toBeInTheDocument()
@@ -786,13 +788,10 @@ describe('Dashboard', () => {
       upsertMyProfile.mockResolvedValue(profileSalvo)
 
       const user = userEvent.setup()
-      renderWithRouter(<Dashboard />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      renderWithRoutes(<Dashboard />, {
+        path: '/admin/dashboard/:tab',
+        initialEntry: '/admin/dashboard/configuracoes',
       })
-
-      await user.click(screen.getByRole('button', { name: /Configurações/i }))
 
       await waitFor(() => {
         expect(screen.getByTitle('Editar perfil')).toBeInTheDocument()
@@ -833,13 +832,10 @@ describe('Dashboard', () => {
       upsertMyProfile.mockResolvedValue(profileSalvo)
 
       const user = userEvent.setup()
-      renderWithRouter(<Dashboard />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Eventos Cadastrados')).toBeInTheDocument()
+      renderWithRoutes(<Dashboard />, {
+        path: '/admin/dashboard/:tab',
+        initialEntry: '/admin/dashboard/configuracoes',
       })
-
-      await user.click(screen.getByRole('button', { name: /Configurações/i }))
 
       await waitFor(() => {
         expect(screen.getByTitle('Editar perfil')).toBeInTheDocument()

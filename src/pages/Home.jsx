@@ -8,16 +8,13 @@ import './Home.css'
 import { useEffect } from 'react'
 
 function Home() {
+  useEffect(() => {
+    const stored = localStorage.getItem('favourites')
+    if (!stored) {
+      localStorage.setItem('favourites', '[]')
+    }
+  }, [])
 
-  useEffect(()=>{
-      const stored = localStorage.getItem('favourites')
-      if (!stored) {
-        localStorage.setItem("favourites",'[]')
-      } 
-  },[])
-
-
-  
   return (
     <Layout>
       <SEOHead
