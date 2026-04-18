@@ -93,12 +93,10 @@ jobs:
               c.user.type === 'Bot' && c.body.includes('<!-- pr-quality-bot -->')
             );
 
-            const commentBody = `<!-- pr-quality-bot -->
-## ⚠️ Atenção: este PR precisa de ajustes antes do review
-
-${problems.map(p => `- ${p}`).join('\n')}
-
-> _Este comentário é atualizado automaticamente. Edite o PR para corrigir os pontos acima._`;
+            const commentBody = '<!-- pr-quality-bot -->\n' +
+              '## ⚠️ Atenção: este PR precisa de ajustes antes do review\n\n' +
+              problems.map(p => '- ' + p).join('\n') + '\n\n' +
+              '> _Este comentário é atualizado automaticamente. Edite o PR para corrigir os pontos acima._';
 
             if (botComment) {
               await github.rest.issues.updateComment({
@@ -158,8 +156,8 @@ ${problems.map(p => `- ${p}`).join('\n')}
 
             // Se tem mudança de lógica mas zero teste alterado/criado
             if (logicFiles.length > 0 && testFiles.length === 0) {
-              const fileList = logicFiles.slice(0, 8).map(f => `  - \`${f}\``).join('\n');
-              const extra = logicFiles.length > 8 ? `\n  - _...e mais ${logicFiles.length - 8} arquivo(s)_` : '';
+              const fileList = logicFiles.slice(0, 8).map(f => '  - `' + f + '`').join('\n');
+              const extra = logicFiles.length > 8 ? '\n  - _...e mais ' + (logicFiles.length - 8) + ' arquivo(s)_' : '';
 
               // Verifica se já existe comentário de teste do bot
               const { data: comments } = await github.rest.issues.listComments({
@@ -172,16 +170,12 @@ ${problems.map(p => `- ${p}`).join('\n')}
                 c.user.type === 'Bot' && c.body.includes('<!-- pr-test-bot -->')
               );
 
-              const commentBody = `<!-- pr-test-bot -->
-## 🧪 Lembrete: arquivos de lógica alterados sem testes correspondentes
-
-Os arquivos abaixo foram modificados, mas nenhum arquivo de teste (*.test.jsx/js) foi adicionado ou alterado neste PR:
-
-${fileList}${extra}
-
-Se as mudanças não precisam de testes (ex: ajuste de estilo, refactor com comportamento idêntico), escreva no PR o motivo. Caso contrário, considere adicionar ou atualizar os testes.
-
-> _Este aviso não bloqueia o merge — é um lembrete para o reviewer avaliar._`;
+              const commentBody = '<!-- pr-test-bot -->\n' +
+                '## 🧪 Lembrete: arquivos de lógica alterados sem testes correspondentes\n\n' +
+                'Os arquivos abaixo foram modificados, mas nenhum arquivo de teste (*.test.jsx/js) foi adicionado ou alterado neste PR:\n\n' +
+                fileList + extra + '\n\n' +
+                'Se as mudanças não precisam de testes (ex: ajuste de estilo, refactor com comportamento idêntico), escreva no PR o motivo. Caso contrário, considere adicionar ou atualizar os testes.\n\n' +
+                '> _Este aviso não bloqueia o merge — é um lembrete para o reviewer avaliar._';
 
               if (!botComment) {
                 await github.rest.issues.createComment({
