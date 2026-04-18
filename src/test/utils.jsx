@@ -1,19 +1,47 @@
 import { render } from '@testing-library/react'
-import { BrowserRouter, MemoryRouter } from 'react-router-dom'
+import { BrowserRouter, MemoryRouter, Routes, Route } from 'react-router-dom'
+import { ThemeProvider } from '../context/ThemeProvider'
 
-// Wrapper padrão com BrowserRouter
+// Wrapper padrão com BrowserRouter + ThemeProvider
 export function renderWithRouter(ui, { route = '/' } = {}) {
   window.history.pushState({}, 'Test page', route)
 
+  function Wrapper({ children }) {
+    return (
+      <ThemeProvider>
+        <BrowserRouter>{children}</BrowserRouter>
+      </ThemeProvider>
+    )
+  }
+
   return {
-    ...render(ui, { wrapper: BrowserRouter }),
+    ...render(ui, { wrapper: Wrapper }),
   }
 }
 
 // Wrapper com MemoryRouter para testes de navegação
 export function renderWithMemoryRouter(ui, { initialEntries = ['/'] } = {}) {
   return {
-    ...render(<MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>),
+    ...render(
+      <ThemeProvider>
+        <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
+      </ThemeProvider>
+    ),
+  }
+}
+
+// Wrapper com MemoryRouter + Routes para componentes que usam useParams
+export function renderWithRoutes(component, { path = '/', initialEntry = '/' } = {}) {
+  return {
+    ...render(
+      <ThemeProvider>
+        <MemoryRouter initialEntries={[initialEntry]}>
+          <Routes>
+            <Route path={path} element={component} />
+          </Routes>
+        </MemoryRouter>
+      </ThemeProvider>
+    ),
   }
 }
 

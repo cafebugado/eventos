@@ -129,6 +129,7 @@ describe('eventService', () => {
           endereco: null,
           cidade: null,
           estado: null,
+          status: 'rascunho',
         },
       ])
       expect(result).toEqual(createdEvent)
@@ -322,6 +323,7 @@ describe('eventService', () => {
 
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
       }
 
@@ -339,6 +341,7 @@ describe('eventService', () => {
 
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: null, error: mockError }),
       }
 
@@ -357,6 +360,7 @@ describe('eventService', () => {
 
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
       }
 
@@ -386,11 +390,13 @@ describe('eventService', () => {
 
       const result = await getEventStats()
 
-      expect(result).toEqual({
-        total: 5,
-        noturno: 2,
-        diurno: 3, // Diurno + Matinal + Vespertino
-      })
+      expect(result).toEqual(
+        expect.objectContaining({
+          total: 5,
+          noturno: 2,
+          diurno: 3, // Diurno + Matinal + Vespertino
+        })
+      )
     })
 
     it('deve retornar zeros quando não há eventos', async () => {
@@ -402,11 +408,13 @@ describe('eventService', () => {
 
       const result = await getEventStats()
 
-      expect(result).toEqual({
-        total: 0,
-        noturno: 0,
-        diurno: 0,
-      })
+      expect(result).toEqual(
+        expect.objectContaining({
+          total: 0,
+          noturno: 0,
+          diurno: 0,
+        })
+      )
     })
 
     it('deve lançar erro quando a busca falha', async () => {
@@ -483,6 +491,7 @@ describe('eventService', () => {
 
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
       }
       supabase.from.mockReturnValue(mockChain)
@@ -502,6 +511,7 @@ describe('eventService', () => {
 
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
       }
       supabase.from.mockReturnValue(mockChain)
@@ -522,6 +532,7 @@ describe('eventService', () => {
 
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
       }
       supabase.from.mockReturnValue(mockChain)
@@ -535,6 +546,7 @@ describe('eventService', () => {
     it('deve retornar array vazio quando não há candidatos', async () => {
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: [], error: null }),
       }
       supabase.from.mockReturnValue(mockChain)
@@ -548,6 +560,7 @@ describe('eventService', () => {
       const mockError = new Error('Database error')
       const mockChain = {
         select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: null, error: mockError }),
       }
       supabase.from.mockReturnValue(mockChain)

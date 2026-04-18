@@ -63,12 +63,13 @@ window.matchMedia =
   }))
 
 // Mock do IntersectionObserver
-const intersectionObserverMock = vi.fn(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}))
-window.IntersectionObserver = intersectionObserverMock
+class IntersectionObserverMock {
+  constructor() {}
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+}
+window.IntersectionObserver = IntersectionObserverMock
 
 // Mock do window.location
 delete window.location
