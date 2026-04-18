@@ -12,6 +12,10 @@ Este guia explica como configurar o Supabase para o projeto EventFlow.
    - **Database Password**: Crie uma senha forte (guarde-a!)
    - **Region**: Escolha a mais próxima (ex: South America - São Paulo)
 5. Clique em "Create new project" e aguarde a criação
+6. Ative o plugin "chron":
+   - No menu principal, vá em Integrations
+   - Procure por "chron - schedule recurring Job in Postgres"
+   - Clique em Enable chron
 
 ## 2. Criar a Tabela de Eventos
 

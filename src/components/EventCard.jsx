@@ -39,7 +39,7 @@ function EventCard({
   actionLabel,
   onClick,
   style,
-  favouriteIds,
+  favouriteIds = new Set(),
   toggleFavourite,
 }) {
   const navigate = useNavigate()

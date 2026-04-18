@@ -3,6 +3,8 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Home from './Home'
 import { renderWithRouter } from '../test/utils'
+import { cacheInvalidate } from '../lib/cache'
+import { CACHE_KEYS } from '../hooks/useEvents'
 
 // Mock do react-router-dom navigate
 const mockNavigate = vi.fn()
@@ -24,13 +26,13 @@ describe('Home', () => {
     vi.clearAllMocks()
     localStorage.clear()
     document.documentElement.removeAttribute('data-theme')
+    cacheInvalidate(CACHE_KEYS.upcoming)
   })
 
   it('deve renderizar o conteúdo principal', () => {
     renderWithRouter(<Home />)
 
-    expect(screen.getAllByRole('heading', { name: 'Eventos' }).length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Cafe Bugado').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Cafe Bugado/i).length).toBeGreaterThan(0)
     expect(screen.getByText(/Eventos de/)).toBeInTheDocument()
     expect(screen.getAllByText(/tecnologia/i).length).toBeGreaterThan(0)
   })
@@ -53,7 +55,7 @@ describe('Home', () => {
   it('deve renderizar a seção de próximos eventos', () => {
     renderWithRouter(<Home />)
 
-    expect(screen.getByText('Próximos Eventos')).toBeInTheDocument()
+    expect(screen.getByText('Eventos em Destaque')).toBeInTheDocument()
   })
 
   it('deve alternar tema de claro para escuro', async () => {

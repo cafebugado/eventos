@@ -32,9 +32,7 @@ export function generateICS(event) {
 
   const location = [event.endereco, event.cidade, event.estado].filter(Boolean).join(', ')
   const description = event.descricao
-    ? sanitizePlainText(event.descricao)
-        .replace(/\n/g, '\\n')
-        .slice(0, 500)
+    ? sanitizePlainText(event.descricao).replace(/\n/g, '\\n').slice(0, 500)
     : ''
 
   const ics = [
