@@ -3,6 +3,38 @@
    Prefixo ec- para evitar conflitos
    ========================================= */
 
+/* Badge "Novo" — eventos criados nas últimas 48h */
+.ec-badge-new {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  background: #16a34a;
+  color: #fff;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  z-index: 3;
+  animation: ec-new-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes ec-new-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
+  }
+}
+
+/* Borda sutil no card novo */
+.ec-card--new {
+  border-color: rgba(22, 163, 74, 0.35);
+}
+
 /* Base */
 
 .ec-card {

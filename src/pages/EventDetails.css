@@ -595,3 +595,7 @@
     grid-template-columns: 1fr;
   }
 }
+
+.event-calendar-share {
+  margin-bottom: 0.75rem;
+}

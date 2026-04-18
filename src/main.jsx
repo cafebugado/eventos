@@ -13,6 +13,7 @@ import PageLoader from './components/PageLoader.jsx'
 import PwaUpdateBanner from './components/PwaUpdateBanner/PwaUpdateBanner.jsx'
 import PwaInstallBanner from './components/PwaInstallBanner/PwaInstallBanner.jsx'
 import { captureInstallPrompt, registerServiceWorker } from './lib/pwa.js'
+import { NewEventToastContainer } from './components/NewEventToast.jsx'
 
 captureInstallPrompt()
 registerServiceWorker()
@@ -63,6 +64,7 @@ createRoot(document.getElementById('root')).render(
           <ScrollToTop />
           <PwaUpdateBanner />
           <PwaInstallBanner />
+          <NewEventToastContainer />
           <Analytics />
           <SpeedInsights />
         </BrowserRouter>
