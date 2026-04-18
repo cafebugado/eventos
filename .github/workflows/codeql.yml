@@ -1,0 +1,51 @@
+# CodeQL - Análise estática de segurança (SAST)
+# Detecta vulnerabilidades no código fonte antes de entrar na branch principal
+
+name: CodeQL
+
+on:
+  push:
+    branches:
+      - main
+      - developer
+  pull_request:
+    branches:
+      - main
+      - developer
+  schedule:
+    # Roda toda segunda-feira às 07:00 UTC para pegar novas regras do CodeQL
+    - cron: '0 7 * * 1'
+
+jobs:
+  analyze:
+    name: Análise CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - javascript-typescript
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Inicializar CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Usa as queries de segurança padrão + queries extras de qualidade
+          queries: security-extended,security-and-quality
+
+      - name: Build automático
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Executar análise CodeQL
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'

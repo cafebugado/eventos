@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  margin: 2.5rem auto 0;
+  margin: 2.5rem auto 3rem;
   flex-wrap: wrap;
 }
 
@@ -16,7 +16,7 @@
   border-radius: 0.5rem;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   min-width: 44px;
 }
 

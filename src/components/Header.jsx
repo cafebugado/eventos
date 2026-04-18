@@ -1,29 +1,27 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Sun, Moon, Home, Calendar, Users, Mail, Images } from 'lucide-react'
+import { Sun, Moon } from 'lucide-react'
+import { useTheme } from '../hooks/useTheme'
+import { NAVIGATION_ITEMS } from '../constants/navigation'
+import LogoImg from '../assets/logoEventosCafeBugado.png'
 import './Header.css'
 
-const NAVIGATION_ITEMS = [
-  { path: '/', label: 'Inicio', icon: Home },
-  { path: '/eventos', label: 'Eventos', icon: Calendar },
-  { path: '/sobre', label: 'Sobre', icon: Users },
-  { path: '/galeria', label: 'Galeria', icon: Images },
-  { path: '/contato', label: 'Contato', icon: Mail },
-]
+// Mapa de prefetch por rota — dispara o import quando o user passa o mouse
+const PREFETCH_MAP = {
+  '/': () => import('../pages/Home.jsx'),
+  '/eventos': () => import('../pages/EventsPage.jsx'),
+  '/sobre': () => import('../pages/About.jsx'),
+  '/galeria': () => import('../pages/Gallery.jsx'),
+  '/contato': () => import('../pages/Contact.jsx'),
+}
 
 function Header() {
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const { isDarkMode, toggleTheme } = useTheme()
   const [isScrolled, setIsScrolled] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true)
-      document.documentElement.setAttribute('data-theme', 'dark')
-    }
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20)
     }
@@ -31,19 +29,6 @@ function Header() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
-
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode
-    setIsDarkMode(newTheme)
-
-    if (newTheme) {
-      document.documentElement.setAttribute('data-theme', 'dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.removeAttribute('data-theme')
-      localStorage.setItem('theme', 'light')
-    }
-  }
 
   const isActive = (path) => {
     return location.pathname === path
@@ -58,12 +43,7 @@ function Header() {
           rel="noopener noreferrer"
           className="logo-link"
         >
-          <div className="logo">
-            <div className="logo-text">
-              <h1>Eventos</h1>
-              <span>Cafe Bugado</span>
-            </div>
-          </div>
+          <img src={LogoImg} alt="Eventos Cafe Bugado" className="logo-img" />
         </a>
 
         <nav className="main-nav">
@@ -75,10 +55,11 @@ function Header() {
                   <button
                     className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
                     onClick={() => navigate(item.path)}
+                    onMouseEnter={() => PREFETCH_MAP[item.path]?.()}
                   >
                     <IconComponent size={18} className="nav-icon" />
                     <span>{item.label}</span>
-                    {isActive(item.path) && <span className="nav-indicator"></span>}
+                    <span className="nav-indicator"></span>
                   </button>
                 </li>
               )

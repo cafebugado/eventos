@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { NavLink } from 'react-router-dom'
 import {
   Calendar,
   LogOut,
@@ -11,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Images,
+  ShieldCheck,
 } from 'lucide-react'
 
 const MENU_ITEMS = [
@@ -31,6 +33,7 @@ const MENU_ITEMS = [
   { id: 'usuarios', label: 'Usuários', icon: UserCog, permission: 'canManageUsers' },
   { id: 'comunidades', label: 'Comunidades', icon: Users, permission: null },
   { id: 'galeria', label: 'Galeria', icon: Images, permission: null },
+  { id: 'auditoria', label: 'Auditoria', icon: ShieldCheck, permission: 'canManageUsers' },
   { id: 'configuracoes', label: 'Configurações', icon: Settings, permission: null },
 ]
 
@@ -46,8 +49,6 @@ function SidebarTooltip({ label, anchorY }) {
 }
 
 export function AdminSidebar({
-  activeTab,
-  onTabChange,
   permissions,
   userProfile,
   userEmail,
@@ -111,16 +112,16 @@ export function AdminSidebar({
               return null
             }
             return (
-              <button
+              <NavLink
                 key={id}
-                className={`menu-item${activeTab === id ? ' active' : ''}`}
-                onClick={() => onTabChange(id)}
+                to={`/admin/dashboard/${id}`}
+                className={({ isActive }) => `menu-item${isActive ? ' active' : ''}`}
                 aria-label={label}
                 {...tooltipHandlers(label)}
               >
                 <Icon size={isCollapsed ? 28 : 20} />
                 {!isCollapsed && <span>{label}</span>}
-              </button>
+              </NavLink>
             )
           })}
 

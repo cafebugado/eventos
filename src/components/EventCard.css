@@ -3,6 +3,38 @@
    Prefixo ec- para evitar conflitos
    ========================================= */
 
+/* Badge "Novo" — eventos criados nas últimas 48h */
+.ec-badge-new {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  background: #16a34a;
+  color: #fff;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  z-index: 3;
+  animation: ec-new-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes ec-new-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
+  }
+}
+
+/* Borda sutil no card novo */
+.ec-card--new {
+  border-color: rgba(22, 163, 74, 0.35);
+}
+
 /* Base */
 
 .ec-card {
@@ -11,7 +43,7 @@
   border-radius: 1rem;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   display: flex;
   flex-direction: column;
 }
@@ -74,17 +106,32 @@
   height: 200px;
 }
 
+.ec-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 40%, rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+  z-index: 1;
+}
+
 .ec-image img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
-  transition: transform 0.3s ease;
+  transition: transform var(--duration-normal) ease;
 }
 
 .ec-card:hover .ec-image img {
   transform: scale(1.05);
+}
+
+/* Badge e tags ficam acima do gradiente */
+.ec-badge,
+.card-image-tags {
+  z-index: 2;
 }
 
 /* Badge de período/status */
@@ -105,7 +152,7 @@
   top: 1rem;
   right: 1rem;
   padding: 0.5rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
 }
 
 .ec-badge-encerrado {
@@ -114,7 +161,7 @@
 }
 
 .ec-badge-today {
-  background: #28a745;
+  background: var(--status-success);
   color: #fff;
 }
 
@@ -143,7 +190,7 @@
 }
 
 .ec-card--full .ec-content h3 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
@@ -196,7 +243,7 @@
 }
 
 .ec-card--full .ec-info-item {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .ec-info-item svg {
@@ -224,7 +271,7 @@
   color: var(--text-primary);
   padding: 5px 5px;
   gap: 10px;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) ease;
   border: 1px solid var(--heart-outline);
   border-radius: 5px;
 }
@@ -247,7 +294,7 @@
 .heart-icon {
   stroke: var(--heart-col);
   fill: none;
-  transition: fill 0.2s ease;
+  transition: fill var(--duration-base) ease;
 }
 
 .heart-icon.is-active {
@@ -279,7 +326,7 @@
   }
 
   .ec-card--compact .ec-content h3 {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 
   .ec-card--compact .ec-badge {
@@ -308,7 +355,7 @@
   }
 
   .ec-card--full .ec-content h3 {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 }
 
@@ -327,6 +374,65 @@
   }
 
   .ec-card--compact .ec-info-item {
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
+  }
+}
+
+/* =========================================
+   Countdown / Acontecendo agora
+   ========================================= */
+
+.ec-countdown {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.375rem;
+  background: rgba(29, 78, 216, 0.92);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  z-index: 2;
+  backdrop-filter: blur(2px);
+}
+
+.ec-countdown--happening {
+  background: rgba(21, 128, 61, 0.92);
+  animation: ec-happening-pulse 2s ease-in-out infinite;
+}
+
+/* Badge "Acontecendo agora" */
+.ec-badge-happening {
+  background: var(--status-success-dark);
+  animation: ec-happening-pulse 2s ease-in-out infinite;
+}
+
+/* Pulso no badge "Hoje" */
+.ec-badge-today--pulse {
+  animation: ec-today-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ec-today-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(40, 167, 69, 0);
+  }
+}
+
+@keyframes ec-happening-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.75;
   }
 }

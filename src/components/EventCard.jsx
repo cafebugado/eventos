@@ -8,11 +8,14 @@ import {
   Wifi,
   Video,
   ArrowUpRight,
+  Timer,
+  Radio,
 } from 'lucide-react'
 import RichText from './RichText'
 import BgEventos from '../assets/eventos.png'
 import './EventCard.css'
-import { FavouriteEventButton } from './favourite-event/favouriteEventButton'
+import { FavouriteEventButton } from './FavouriteEventButton'
+import { useEventCountdown } from '../hooks/useEventCountdown'
 
 function ModalidadeIcon({ modalidade, size }) {
   if (modalidade === 'Online') {
@@ -36,7 +39,7 @@ function EventCard({
   actionLabel,
   onClick,
   style,
-  favouriteIds,
+  favouriteIds = new Set(),
   toggleFavourite,
 }) {
   const navigate = useNavigate()
@@ -45,18 +48,34 @@ function EventCard({
   const isFull = variant === 'full'
   const iconSize = isFull ? 16 : 14
 
+  const { isHappening, isWithin24h, countdown } = useEventCountdown(
+    event.data_evento,
+    event.horario
+  )
+
+  const isNew =
+    !!event.created_at && Date.now() - new Date(event.created_at).getTime() < 48 * 60 * 60 * 1000
+
   const badgeClass = isPast
     ? 'ec-badge ec-badge-encerrado'
-    : isToday
-      ? 'ec-badge ec-badge-today'
-      : 'ec-badge'
-  const badgeText = isPast ? 'Encerrado' : isToday ? 'Hoje' : event.periodo
+    : isHappening
+      ? 'ec-badge ec-badge-happening'
+      : isToday
+        ? 'ec-badge ec-badge-today ec-badge-today--pulse'
+        : 'ec-badge'
+  const badgeText = isPast
+    ? 'Encerrado'
+    : isHappening
+      ? 'Acontecendo agora'
+      : isToday
+        ? 'Hoje'
+        : event.periodo
 
   const defaultActionLabel = isPast ? 'Ver detalhes do evento' : 'Saber mais sobre o evento'
 
   return (
     <div
-      className={`ec-card ec-card--${variant}${isPast ? ' ec-card--past' : ''}`}
+      className={`ec-card ec-card--${variant}${isPast ? ' ec-card--past' : ''}${isNew && !isPast ? ' ec-card--new' : ''}`}
       onClick={handleClick}
       role="button"
       tabIndex={0}
@@ -74,7 +93,8 @@ function EventCard({
               e.target.src = BgEventos
             }}
           />
-          <div className={badgeClass}>{badgeText}</div>
+          {!isWithin24h && !isHappening && <div className={badgeClass}>{badgeText}</div>}
+          {isNew && !isPast && <div className="ec-badge-new">Novo</div>}
           {tags.length > 0 && (
             <div className="card-image-tags">
               {tags.map((tag) => (
@@ -86,6 +106,20 @@ function EventCard({
                   {tag.nome}
                 </span>
               ))}
+            </div>
+          )}
+
+          {isHappening && (
+            <div className="ec-countdown ec-countdown--happening">
+              <Radio size={13} />
+              <span>Acontecendo agora!</span>
+            </div>
+          )}
+
+          {!isHappening && isWithin24h && countdown && (
+            <div className="ec-countdown">
+              <Timer size={13} />
+              <span>Começa em {countdown}</span>
             </div>
           )}
         </div>

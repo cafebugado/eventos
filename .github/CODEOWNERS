@@ -1,0 +1,46 @@
+# CODEOWNERS — revisão automática por área do código
+#
+# Formato: <padrão de arquivo>  <@usuario ou @org/time>
+# O GitHub pede review automaticamente para o dono da área quando um PR toca esses arquivos.
+# Última regra que bate vence — coloque regras mais específicas DEPOIS das gerais.
+#
+# Referência: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Dono padrão para tudo que não tiver regra específica
+*                           @cafebugado
+
+# CI / GitHub Actions — qualquer mudança em workflow exige revisão
+.github/                    @cafebugado
+
+# Infraestrutura e configuração crítica
+nginx.conf                  @cafebugado
+Dockerfile                  @cafebugado
+docker-compose*.yml         @cafebugado
+vite.config.*               @cafebugado
+.env.example                @cafebugado
+
+# Área admin — painel de administração
+src/admin/                  @cafebugado
+src/pages/EventDetails.jsx  @cafebugado
+
+# Serviços e lógica de negócio
+src/services/               @cafebugado
+src/lib/                    @cafebugado
+src/hooks/                  @cafebugado
+src/context/                @cafebugado
+src/contexts/               @cafebugado
+
+# Componentes compartilhados
+src/components/             @cafebugado
+
+# Páginas públicas
+src/pages/                  @cafebugado
+src/App.jsx                 @cafebugado
+
+# Testes — toda mudança em teste exige revisão
+**/*.test.jsx               @cafebugado
+**/*.test.js                @cafebugado
+**/*.spec.jsx               @cafebugado
+**/*.spec.js                @cafebugado
+playwright.config.*         @cafebugado
+vitest.config.*             @cafebugado

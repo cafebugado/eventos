@@ -1,105 +1,81 @@
 /* Testimonials Section */
 .testimonials-section {
   padding: 5rem 2rem;
-  background: var(--surface);
+  background: var(--background);
 }
 
 .testimonials-container {
-  max-width: 800px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
 /* Header */
 .testimonials-header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.testimonials-badge {
-  display: inline-block;
-  background: rgba(37, 99, 235, 0.1);
-  color: var(--primary-blue);
-  padding: 0.5rem 1rem;
-  border-radius: 2rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  margin-bottom: 2.5rem;
 }
 
 .testimonials-header h2 {
-  font-size: 2.25rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 0.75rem;
   line-height: 1.2;
+  margin: 0;
 }
 
-.testimonials-header p {
-  font-size: 1.05rem;
-  color: var(--text-secondary);
-  max-width: 500px;
-  margin: 0 auto;
+/* Grid */
+.testi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
 }
 
-/* Carousel */
-.testimonials-carousel {
-  margin-bottom: 2rem;
-}
-
-/* Card wrapper */
-.testimonial-card-wrapper {
-  overflow: hidden;
-}
-
-.testimonial-card {
-  background: var(--background);
+/* Card */
+.testi-card {
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 1rem;
-  padding: 2.5rem 2rem;
-  text-align: center;
-  animation: testimonialFadeIn 0.5s ease;
+  padding: 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition:
+    transform var(--duration-normal) ease,
+    box-shadow var(--duration-normal) ease;
 }
 
-@keyframes testimonialFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.testi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px var(--shadow-hover);
 }
 
-/* Quote icon */
-.testimonial-quote-icon {
+/* Stars */
+.testi-stars {
+  display: flex;
+  gap: 0.25rem;
   color: var(--primary-blue);
-  opacity: 0.3;
-  margin-bottom: 1.25rem;
 }
 
-/* Quote text */
-.testimonial-quote {
-  font-size: 1.1rem;
+/* Quote */
+.testi-quote {
+  font-size: 0.9rem;
   line-height: 1.7;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   font-style: italic;
-  margin: 0 0 2rem;
-  quotes: none;
+  margin: 0;
+  flex: 1;
 }
 
 /* Author */
-.testimonial-author {
+.testi-author {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.75rem;
+  margin-top: auto;
 }
 
-.testimonial-avatar {
-  width: 48px;
-  height: 48px;
+.testi-avatar {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--primary-blue);
   color: white;
@@ -107,51 +83,49 @@
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   flex-shrink: 0;
 }
 
-.testimonial-info {
+.testi-info {
   display: flex;
   flex-direction: column;
-  text-align: left;
+  gap: 0.1rem;
 }
 
-.testimonial-info strong {
+.testi-info strong {
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
-.testimonial-info span {
+.testi-info span {
   color: var(--text-secondary);
-  font-size: 0.825rem;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* Dark mode */
-[data-theme='dark'] .testimonials-section {
-  background: var(--surface);
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+  .testi-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
 }
 
-/* Responsive */
+/* Responsive - Mobile */
 @media (max-width: 768px) {
   .testimonials-section {
     padding: 3.5rem 1rem;
   }
 
   .testimonials-header h2 {
-    font-size: 1.75rem;
+    font-size: 1.6rem;
   }
 
-  .testimonials-header p {
-    font-size: 0.95rem;
-  }
-
-  .testimonial-card {
-    padding: 2rem 1.5rem;
-  }
-
-  .testimonial-quote {
-    font-size: 1rem;
+  .testi-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -161,20 +135,10 @@
   }
 
   .testimonials-header h2 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 
-  .testimonial-card {
-    padding: 1.5rem 1rem;
-  }
-
-  .testimonial-quote {
-    font-size: 0.925rem;
-  }
-
-  .testimonial-avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 0.8rem;
+  .testi-card {
+    padding: 1.5rem 1.25rem;
   }
 }

@@ -25,7 +25,7 @@
 }
 
 .gh-header-title h2 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 700;
   margin: 0;
 }
@@ -148,7 +148,7 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
 }
 
@@ -202,7 +202,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-primary);
   padding-bottom: 0.5rem;
@@ -253,7 +253,7 @@
 }
 
 .gh-meta {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
@@ -298,7 +298,7 @@
 
 .gh-pr-badge--closed {
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--status-error);
 }
 
 /* Avatares */
@@ -343,7 +343,7 @@
 }
 
 .gh-contributor-rank {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   color: var(--text-secondary);
   width: 22px;
@@ -357,7 +357,7 @@
 }
 
 .gh-contributor-name {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-primary);
   text-decoration: none;
@@ -406,10 +406,10 @@
   gap: 0.75rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  color: #dc2626;
+  color: var(--status-error);
   border-radius: 0.75rem;
   padding: 1rem 1.25rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .gh-error .gh-refresh-btn {
@@ -448,8 +448,47 @@
     grid-column: 1;
   }
 
+  .gh-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gh-repo-tabs {
+    width: 100%;
+  }
+
+  .gh-repo-tab {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .gh-stats-bar {
+    gap: 0.6rem;
+  }
+
+  .gh-repo-link {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .gh-stat--updated {
     margin-left: 0;
     width: 100%;
+  }
+
+  .gh-commit-msg {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .gh-contributor-commits {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.45rem;
+  }
+
+  .gh-card {
+    padding: 0.875rem 1rem;
   }
 }

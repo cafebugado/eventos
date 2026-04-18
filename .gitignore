@@ -1,6 +1,8 @@
 # Dependências
 node_modules/
 .pnpm-store/
+.claude
+skills-lock.json
 
 # Variáveis de ambiente
 .env
@@ -25,6 +27,30 @@ pnpm-debug.log*
 *.swp
 *.swo
 *~
+
+# Skills de agentes externos (geradas pelo npx skills add)
+.codebuddy/
+.commandcode/
+.continue/
+.crush/
+.factory/
+.goose/
+.junie/
+.kilocode/
+.kiro/
+.kode/
+.mcpjam/
+.mux/
+.neovate/
+.openhands/
+.pi/
+.pochi/
+.qoder/
+.qwen/
+.roo/
+.trae/
+.windsurf/
+.zencoder/
 
 # Sistema operacional
 .DS_Store

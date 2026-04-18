@@ -4,17 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import { getRecommendedEvents } from '../services/eventService'
 import EventCard from './EventCard'
 import './EventRecommendations.css'
-
-function parseEventDate(dateStr) {
-  if (!dateStr) {
-    return new Date(0)
-  }
-  const parts = dateStr.split('/')
-  if (parts.length === 3) {
-    return new Date(parts[2], parts[1] - 1, parts[0])
-  }
-  return new Date(dateStr)
-}
+import { parseEventDate } from '../utils/eventDate'
 
 function EventRecommendations({ currentEvent, currentEventTags }) {
   const [recommendations, setRecommendations] = useState([])

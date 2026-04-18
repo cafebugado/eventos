@@ -7,10 +7,10 @@
   color: var(--text-secondary);
   padding: 0.625rem 1rem;
   border-radius: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) ease;
   text-decoration: none;
 }
 

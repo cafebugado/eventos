@@ -12,21 +12,9 @@ import ShareButtons from '../components/ShareButtons'
 import EventRecommendations from '../components/EventRecommendations'
 import BgEventos from '../assets/eventos.png'
 import './EventDetails.css'
-import { FavouriteEventButton } from '../components/favourite-event/favouriteEventButton'
-
-// Funcao para converter data no formato DD/MM/YYYY para objeto Date
-function parseEventDate(dateStr) {
-  if (!dateStr) {
-    return new Date(0)
-  }
-  const parts = dateStr.split('/')
-  if (parts.length === 3) {
-    // Formato DD/MM/YYYY
-    return new Date(parts[2], parts[1] - 1, parts[0])
-  }
-  // Tenta parse direto se estiver em outro formato
-  return new Date(dateStr)
-}
+import { FavouriteEventButton } from '../components/FavouriteEventButton'
+import { isEventPast } from '../utils/eventDate'
+import AddToCalendarButton from '../components/AddToCalendarButton'
 
 function EventDetails() {
   const { id } = useParams()
@@ -39,6 +27,13 @@ function EventDetails() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [id])
+  useEffect(() => {
+    const stored = localStorage.getItem('favourites')
+    console.log(stored)
+    if (!stored) {
+      localStorage.setItem('favourites', '[]')
+    }
+  }, [])
 
   // Funcao para carregar evento do Supabase
   const loadEvent = async () => {
@@ -191,10 +186,7 @@ function EventDetails() {
     )
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const eventDate = parseEventDate(event.data_evento)
-  const isPast = eventDate < today
+  const isPast = isEventPast(event.data_evento)
 
   return (
     <Layout>
@@ -310,7 +302,7 @@ function EventDetails() {
                 modalidade={event.modalidade}
               />
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+              <div className="event-actions">
                 <a
                   href={isPast ? undefined : event.link}
                   target="_blank"
@@ -328,6 +320,11 @@ function EventDetails() {
                   isCard={false}
                 />
               </div>
+              {!isPast && (
+                <div className="event-calendar-share">
+                  <AddToCalendarButton event={event} />
+                </div>
+              )}
               {!isPast && (
                 <ShareButtons
                   eventName={event.nome}

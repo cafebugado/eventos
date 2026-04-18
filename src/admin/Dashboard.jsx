@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   LayoutDashboard,
   Plus,
@@ -15,7 +15,7 @@ import {
   CalendarDays,
   Tag,
   Trash2,
-  Eye,
+  Copy,
   Edit2,
   Save,
   AlertCircle,
@@ -46,9 +46,11 @@ import {
   createEvent,
   updateEvent,
   deleteEvent as deleteEventService,
+  publishEvent as publishEventService,
   getEventStats,
   uploadEventImage,
 } from '../services/eventService'
+import { invalidateEventsCache } from '../hooks/useEvents'
 import {
   getContributors,
   createContributor,
@@ -79,10 +81,12 @@ import { getMyProfile, upsertMyProfile } from '../services/profileService'
 import Pagination from '../components/Pagination'
 import RichText from '../components/RichText'
 import useMediaQuery from '../hooks/useMediaQuery'
+import { useTheme } from '../hooks/useTheme'
 import useUserRole, { ROLE_LABELS } from '../hooks/useUserRole'
 import usePagination from '../hooks/usePagination'
 import { useSidebarCollapse } from '../hooks/useSidebarCollapse'
 import { AdminSidebar } from './AdminSidebar'
+import { AdminMobileNav } from './AdminMobileNav'
 import { filterEventsByQuery } from '../utils/eventSearch'
 import { stripRichText } from '../utils/richText'
 import { Modal, ConfirmModal } from '../components/Modal'
@@ -93,9 +97,18 @@ import EventCard from '../components/EventCard'
 import GithubStats from './GithubStats'
 import GalleryAdmin from './GalleryAdmin'
 import CommunityAdmin from './CommunityAdmin'
+import AuditLog from './AuditLog'
 import BgEventos from '../assets/eventos.png'
 import { MESSAGES } from '../constants/messages'
 import { LocationSelector } from '../components/LocationSelector'
+import {
+  isEventPast,
+  parseEventDate,
+  getToday,
+  formatDateToInput,
+  formatDateToDisplay,
+} from '../utils/eventDate'
+
 const DAY_NAMES = [
   'Domingo',
   'Segunda-feira',
@@ -106,72 +119,26 @@ const DAY_NAMES = [
   'Sábado',
 ]
 
-const PAGE_SIZES = {
-  desktop: 20,
-  mobile: 10,
-}
-
-const DATE_INPUT_REGEX = /^\d{4}-\d{2}-\d{2}$/
-const DATE_BR_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/
-
-const parseDateValue = (value) => {
-  if (!value) {
-    return null
-  }
-
-  if (DATE_INPUT_REGEX.test(value)) {
-    const [year, month, day] = value.split('-').map(Number)
-    return new Date(year, month - 1, day)
-  }
-
-  const brMatch = value.match(DATE_BR_REGEX)
-  if (brMatch) {
-    const [, day, month, year] = brMatch
-    return new Date(Number(year), Number(month) - 1, Number(day))
-  }
-
-  const parsed = new Date(value)
-  return Number.isNaN(parsed.getTime()) ? null : parsed
-}
-
-const formatDateToInput = (value) => {
-  const date = parseDateValue(value)
-  if (!date) {
-    return ''
-  }
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-const formatDateToDisplay = (value) => {
-  const date = parseDateValue(value)
-  if (!date) {
-    return ''
-  }
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  return `${day}/${month}/${year}`
-}
-
 const getDayName = (value) => {
-  const date = parseDateValue(value)
+  const date = parseEventDate(value)
   if (!date) {
     return ''
   }
   return DAY_NAMES[date.getDay()]
 }
 
+const PAGE_SIZES = {
+  desktop: 20,
+  mobile: 10,
+}
+
 function Dashboard() {
   const [eventos, setEventos] = useState([])
   const [loading, setLoading] = useState(true)
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const { isDarkMode, toggleTheme } = useTheme()
   const [showModal, setShowModal] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const [notification, setNotification] = useState(null)
-  const [activeTab, setActiveTab] = useState('eventos')
   const { isCollapsed, toggle: toggleSidebar } = useSidebarCollapse()
   const [stats, setStats] = useState({ total: 0, noturno: 0, diurno: 0 })
   const [userEmail, setUserEmail] = useState('')
@@ -187,6 +154,7 @@ function Dashboard() {
   const [imagePreview, setImagePreview] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('todos')
   const [contributors, setContributors] = useState([])
   const [loadingContributors, setLoadingContributors] = useState(true)
   const [showContributorModal, setShowContributorModal] = useState(false)
@@ -207,6 +175,8 @@ function Dashboard() {
   const [savingRoleFor, setSavingRoleFor] = useState(null)
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
+  const { tab: tabParam } = useParams()
+  const activeTab = tabParam || 'eventos'
   const isMobile = useMediaQuery('(max-width: 768px)')
   const { role: userRole, loading: roleLoading, permissions } = useUserRole()
 
@@ -277,9 +247,7 @@ function Dashboard() {
       return null
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
+    const today = getToday()
     const startOfWeek = new Date(today)
     startOfWeek.setDate(today.getDate() - today.getDay())
     const endOfWeek = new Date(startOfWeek)
@@ -290,13 +258,13 @@ function Dashboard() {
 
     // todos os eventos da plataforma que acontecem esta semana
     const estaSemana = eventos.filter((e) => {
-      const d = parseDateValue(e.data_evento)
+      const d = parseEventDate(e.data_evento)
       return d && d >= startOfWeek && d <= endOfWeek
     }).length
 
     // todos os eventos da plataforma que ainda vão acontecer
     const futuros = eventos.filter((e) => {
-      const d = parseDateValue(e.data_evento)
+      const d = parseEventDate(e.data_evento)
       return d && d >= today
     }).length
 
@@ -309,23 +277,21 @@ function Dashboard() {
   )
 
   const eventosEstaSemana = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = getToday()
     const startOfWeek = new Date(today)
     startOfWeek.setDate(today.getDate() - today.getDay())
     const endOfWeek = new Date(startOfWeek)
     endOfWeek.setDate(startOfWeek.getDate() + 6)
     return eventos.filter((e) => {
-      const d = parseDateValue(e.data_evento)
+      const d = parseEventDate(e.data_evento)
       return d && d >= startOfWeek && d <= endOfWeek
     })
   }, [eventos])
 
   const eventosProximos = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = getToday()
     return eventos.filter((e) => {
-      const d = parseDateValue(e.data_evento)
+      const d = parseEventDate(e.data_evento)
       return d && d >= today
     })
   }, [eventos])
@@ -365,13 +331,29 @@ function Dashboard() {
   } = useForm()
 
   const sortedEvents = useMemo(() => {
-    return [...eventos].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    const today = getToday()
+    const upcoming = []
+    const past = []
+    for (const e of eventos) {
+      const d = parseEventDate(e.data_evento)
+      if (d && d < today) {
+        past.push(e)
+      } else {
+        upcoming.push(e)
+      }
+    }
+    upcoming.sort((a, b) => parseEventDate(a.data_evento) - parseEventDate(b.data_evento))
+    past.sort((a, b) => parseEventDate(b.data_evento) - parseEventDate(a.data_evento))
+    return [...upcoming, ...past]
   }, [eventos])
 
-  const filteredEvents = useMemo(
-    () => filterEventsByQuery(sortedEvents, searchTerm),
-    [sortedEvents, searchTerm]
-  )
+  const filteredEvents = useMemo(() => {
+    const byQuery = filterEventsByQuery(sortedEvents, searchTerm)
+    if (statusFilter === 'todos') {
+      return byQuery
+    }
+    return byQuery.filter((e) => e.status === statusFilter)
+  }, [sortedEvents, searchTerm, statusFilter])
   const pageSize = isMobile ? PAGE_SIZES.mobile : PAGE_SIZES.desktop
   const { currentPage, totalPages, pagedItems, goToPage } = usePagination(filteredEvents, pageSize)
   const showSearch = !loading && eventos.length > 0
@@ -380,6 +362,23 @@ function Dashboard() {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 3000)
   }, [])
+
+  const handleCopyEventLink = useCallback(
+    (evento) => {
+      const eventUrl = `${window.location.origin}/eventos/${evento.id}`
+      const message =
+        `Confira o evento "${evento.nome}"!\n\n` +
+        `📅 ${evento.data_evento}${evento.horario ? ` às ${evento.horario}` : ''}\n\n` +
+        `🔗 ${eventUrl}\n\n` +
+        `Divulgado pela Comunidade Cafe Bugado:\n` +
+        `Instagram: @comunidadecafebugado`
+      navigator.clipboard
+        .writeText(message)
+        .then(() => showNotification('Link e mensagem copiados!', 'success'))
+        .catch(() => showNotification('Não foi possível copiar', 'error'))
+    },
+    [showNotification]
+  )
 
   const loadEvents = useCallback(async () => {
     try {
@@ -424,30 +423,11 @@ function Dashboard() {
         })
       }
 
-      const savedTheme = localStorage.getItem('theme')
-      if (savedTheme === 'dark') {
-        setIsDarkMode(true)
-        document.documentElement.setAttribute('data-theme', 'dark')
-      }
-
       await loadEvents()
     }
 
     init()
   }, [navigate, loadEvents])
-
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode
-    setIsDarkMode(newTheme)
-
-    if (newTheme) {
-      document.documentElement.setAttribute('data-theme', 'dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.removeAttribute('data-theme')
-      localStorage.setItem('theme', 'light')
-    }
-  }
 
   const handleLogout = async () => {
     try {
@@ -477,6 +457,7 @@ function Dashboard() {
       endereco: '',
       cidade: '',
       estado: '',
+      status: 'rascunho',
     })
     setShowModal(true)
   }
@@ -499,6 +480,7 @@ function Dashboard() {
     setValue('endereco', evento.endereco || '')
     setValue('cidade', evento.cidade || '')
     setValue('estado', evento.estado || '')
+    setValue('status', evento.status || 'publicado')
     // Carregar tags do evento
     try {
       const eventTags = await getEventTags(evento.id)
@@ -552,7 +534,12 @@ function Dashboard() {
     setValue('dia_semana', dayName, { shouldValidate: true })
   }
 
-  const onSubmit = async (data) => {
+  const todayStr = (() => {
+    const t = getToday()
+    return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
+  })()
+
+  const onSubmit = async (data, statusOverride = null) => {
     const nomeNorm = data.nome.trim().toLowerCase()
     const duplicateEvent = eventos.find(
       (e) => e.nome.trim().toLowerCase() === nomeNorm && (!editingEvent || e.id !== editingEvent.id)
@@ -597,21 +584,31 @@ function Dashboard() {
         endereco: data.modalidade === 'Online' ? null : data.endereco || null,
         cidade: data.modalidade === 'Online' ? null : data.cidade || null,
         estado: data.modalidade === 'Online' ? null : data.estado || null,
+        status: statusOverride || data.status || 'rascunho',
       }
 
       let savedEvent
       if (editingEvent) {
         savedEvent = await updateEvent(editingEvent.id, eventData)
         await setEventTags(editingEvent.id, selectedTags)
-        showNotification(MESSAGES.events.updateSucess)
+        showNotification(
+          statusOverride === 'publicado' || eventData.status === 'publicado'
+            ? MESSAGES.events.publishSuccess
+            : MESSAGES.events.updateSucess
+        )
       } else {
         savedEvent = await createEvent(eventData)
         if (selectedTags.length > 0) {
           await setEventTags(savedEvent.id, selectedTags)
         }
-        showNotification(MESSAGES.events.createSucess)
+        showNotification(
+          statusOverride === 'publicado' || eventData.status === 'publicado'
+            ? MESSAGES.events.publishSuccess
+            : MESSAGES.events.createSucess
+        )
       }
 
+      invalidateEventsCache()
       closeModal()
       await loadEvents()
     } catch (error) {
@@ -627,12 +624,25 @@ function Dashboard() {
     if (window.confirm('Tem certeza que deseja excluir este evento?')) {
       try {
         await deleteEventService(id)
+        invalidateEventsCache()
         showNotification(MESSAGES.events.deleteSucess)
         await loadEvents()
       } catch (error) {
         console.error('Erro ao excluir evento:', error)
         showNotification(MESSAGES.events.deleteError, 'error')
       }
+    }
+  }
+
+  const handlePublishEvent = async (id) => {
+    try {
+      await publishEventService(id)
+      invalidateEventsCache()
+      showNotification(MESSAGES.events.publishSuccess)
+      await loadEvents()
+    } catch (error) {
+      console.error('Erro ao publicar evento:', error)
+      showNotification(MESSAGES.events.publishError, 'error')
     }
   }
 
@@ -1019,8 +1029,6 @@ function Dashboard() {
     <div className="admin-dashboard">
       {/* Sidebar */}
       <AdminSidebar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
         permissions={permissions}
         userProfile={userProfile}
         userEmail={userEmail}
@@ -1030,6 +1038,9 @@ function Dashboard() {
         isCollapsed={isCollapsed}
         onToggle={toggleSidebar}
       />
+
+      {/* Mobile Navigation */}
+      <AdminMobileNav permissions={permissions} />
 
       {/* Main Content */}
       <main className={`admin-main${isCollapsed ? ' admin-main--collapsed' : ''}`}>
@@ -1081,7 +1092,8 @@ function Dashboard() {
                 activeTab !== 'configuracoes' &&
                 activeTab !== 'repositorio' &&
                 activeTab !== 'galeria' &&
-                activeTab !== 'comunidades' && (
+                activeTab !== 'comunidades' &&
+                activeTab !== 'auditoria' && (
                   <>
                     {/* Stats */}
                     <div className="stats-grid">
@@ -1178,10 +1190,7 @@ function Dashboard() {
                         ) : (
                           <div className="upcoming-grid">
                             {eventosEstaSemana.map((evento) => {
-                              const evDate = parseDateValue(evento.data_evento)
-                              const hoje = new Date()
-                              hoje.setHours(0, 0, 0, 0)
-                              const encerrado = evDate && evDate < hoje
+                              const encerrado = isEventPast(evento.data_evento)
                               return (
                                 <EventCard
                                   key={evento.id}
@@ -1261,10 +1270,7 @@ function Dashboard() {
                               </thead>
                               <tbody>
                                 {eventosContribuicoes.map((evento) => {
-                                  const eventDate = parseDateValue(evento.data_evento)
-                                  const today = new Date()
-                                  today.setHours(0, 0, 0, 0)
-                                  const isPast = eventDate && eventDate < today
+                                  const isPast = isEventPast(evento.data_evento)
                                   return (
                                     <tr key={evento.id} className={isPast ? 'event-row-past' : ''}>
                                       <td data-label="Imagem">
@@ -1300,10 +1306,10 @@ function Dashboard() {
                                             <>
                                               <button
                                                 className="btn-icon btn-view"
-                                                onClick={() => window.open(evento.link, '_blank')}
-                                                title="Ver evento"
+                                                onClick={() => handleCopyEventLink(evento)}
+                                                title="Copiar link do evento"
                                               >
-                                                <Eye size={16} />
+                                                <Copy size={16} />
                                               </button>
                                               <button
                                                 className="btn-icon btn-edit"
@@ -1352,24 +1358,40 @@ function Dashboard() {
 
                         {showSearch && (
                           <div className="events-toolbar">
-                            <div className="events-search">
-                              <Search size={18} className="events-search-icon" />
-                              <input
-                                type="text"
-                                placeholder="Buscar por nome, descricao ou data..."
-                                value={searchTerm}
-                                onChange={(event) => setSearchTerm(event.target.value)}
-                                aria-label="Buscar eventos"
-                              />
-                              {searchTerm && (
-                                <button
-                                  type="button"
-                                  className="events-search-clear"
-                                  onClick={() => setSearchTerm('')}
-                                >
-                                  Limpar
-                                </button>
-                              )}
+                            <div className="events-filters-row">
+                              <div className="events-search">
+                                <Search size={18} className="events-search-icon" />
+                                <input
+                                  type="text"
+                                  placeholder="Buscar por nome, descricao ou data..."
+                                  value={searchTerm}
+                                  onChange={(event) => setSearchTerm(event.target.value)}
+                                  aria-label="Buscar eventos"
+                                />
+                                {searchTerm && (
+                                  <button
+                                    type="button"
+                                    className="events-search-clear"
+                                    onClick={() => setSearchTerm('')}
+                                  >
+                                    Limpar
+                                  </button>
+                                )}
+                              </div>
+                              <div className="status-filter-tabs">
+                                {['todos', 'publicado', 'rascunho', 'arquivado'].map((s) => (
+                                  <button
+                                    key={s}
+                                    type="button"
+                                    className={`status-filter-tab ${statusFilter === s ? 'active' : ''} status-tab-${s}`}
+                                    onClick={() => setStatusFilter(s)}
+                                  >
+                                    {s === 'todos'
+                                      ? 'Todos'
+                                      : s.charAt(0).toUpperCase() + s.slice(1)}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         )}
@@ -1406,10 +1428,7 @@ function Dashboard() {
                                 </thead>
                                 <tbody>
                                   {pagedItems.map((evento) => {
-                                    const eventDate = parseDateValue(evento.data_evento)
-                                    const today = new Date()
-                                    today.setHours(0, 0, 0, 0)
-                                    const isPast = eventDate && eventDate < today
+                                    const isPast = isEventPast(evento.data_evento)
 
                                     return (
                                       <tr
@@ -1435,9 +1454,21 @@ function Dashboard() {
                                               {stripRichText(evento.descricao)}
                                             </span>
                                           )}
-                                          {isPast && (
-                                            <span className="badge badge-encerrado">Encerrado</span>
-                                          )}
+                                          <div className="event-badges">
+                                            {isPast && (
+                                              <span className="badge badge-encerrado">
+                                                Encerrado
+                                              </span>
+                                            )}
+                                            {evento.status === 'rascunho' && (
+                                              <span className="badge badge-rascunho">Rascunho</span>
+                                            )}
+                                            {evento.status === 'arquivado' && (
+                                              <span className="badge badge-arquivado">
+                                                Arquivado
+                                              </span>
+                                            )}
+                                          </div>
                                         </td>
                                         <td data-label="Data do Evento">{evento.data_evento}</td>
                                         <td data-label="Cadastrado em">
@@ -1451,13 +1482,25 @@ function Dashboard() {
                                           <div className="action-buttons">
                                             {!isPast && (
                                               <>
-                                                <button
-                                                  className="btn-icon btn-view"
-                                                  onClick={() => window.open(evento.link, '_blank')}
-                                                  title="Ver evento"
-                                                >
-                                                  <Eye size={16} />
-                                                </button>
+                                                {evento.status === 'publicado' && (
+                                                  <button
+                                                    className="btn-icon btn-view"
+                                                    onClick={() => handleCopyEventLink(evento)}
+                                                    title="Copiar link do evento"
+                                                  >
+                                                    <Copy size={16} />
+                                                  </button>
+                                                )}
+                                                {permissions.canPublishEvents &&
+                                                  evento.status === 'rascunho' && (
+                                                    <button
+                                                      className="btn-icon btn-publish"
+                                                      onClick={() => handlePublishEvent(evento.id)}
+                                                      title="Publicar evento"
+                                                    >
+                                                      <ArrowUpRight size={16} />
+                                                    </button>
+                                                  )}
                                                 {permissions.canEditEvents && (
                                                   <button
                                                     className="btn-icon btn-edit"
@@ -1825,6 +1868,13 @@ function Dashboard() {
                 />
               )}
 
+              {/* Auditoria Section */}
+              {activeTab === 'auditoria' && permissions.canManageUsers && (
+                <div className="events-section">
+                  <AuditLog />
+                </div>
+              )}
+
               {/* Configurações Section */}
               {activeTab === 'configuracoes' && (
                 <div className="settings-section">
@@ -2064,8 +2114,14 @@ function Dashboard() {
               <input
                 type="date"
                 placeholder="Selecione uma data"
+                min={editingEvent ? undefined : todayStr}
                 {...register('data_evento', {
                   required: 'Data é obrigatória',
+                  validate: (value) =>
+                    editingEvent ||
+                    !value ||
+                    value >= todayStr ||
+                    'Não é permitido selecionar datas passadas',
                   onChange: (event) => syncDayOfWeek(event.target.value),
                 })}
               />
@@ -2078,11 +2134,7 @@ function Dashboard() {
                 <Clock size={16} />
                 Horário
               </label>
-              <input
-                type="text"
-                placeholder="Ex: 19:00"
-                {...register('horario', { required: 'Horário é obrigatório' })}
-              />
+              <input type="time" {...register('horario', { required: 'Horário é obrigatório' })} />
               {errors.horario && <span className="field-error">{errors.horario.message}</span>}
             </div>
           </div>
@@ -2135,6 +2187,20 @@ function Dashboard() {
                 {...register('link', { required: 'Link é obrigatório' })}
               />
               {errors.link && <span className="field-error">{errors.link.message}</span>}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-field">
+              <label>
+                <FileText size={16} />
+                Status do Evento
+              </label>
+              <select {...register('status')}>
+                <option value="rascunho">Rascunho — não aparece na listagem pública</option>
+                <option value="publicado">Publicado — visível para todos</option>
+                <option value="arquivado">Arquivado — removido da listagem pública</option>
+              </select>
             </div>
           </div>
 
@@ -2269,7 +2335,7 @@ function Dashboard() {
             <button type="button" className="btn-secondary" onClick={closeModal}>
               Cancelar
             </button>
-            <button type="submit" className="btn-primary" disabled={isSubmitting}>
+            <button type="submit" className="btn-secondary btn-save-draft" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <span className="button-spinner"></span>
@@ -2278,10 +2344,30 @@ function Dashboard() {
               ) : (
                 <>
                   <Save size={18} />
-                  {editingEvent ? 'Salvar Alterações' : 'Criar Evento'}
+                  Salvar
                 </>
               )}
             </button>
+            {permissions.canPublishEvents && (
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={isSubmitting}
+                onClick={handleSubmit((data) => onSubmit(data, 'publicado'))}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="button-spinner"></span>
+                    Publicando...
+                  </>
+                ) : (
+                  <>
+                    <ArrowUpRight size={18} />
+                    Publicar
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </form>
       </Modal>

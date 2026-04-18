@@ -1,7 +1,11 @@
-import React from 'react'
 import { Target, Zap, Globe, Handshake, BookOpen, Heart } from 'lucide-react'
+import StatCounter from './StatCounter'
+import { useEventStats } from '../hooks/useEvents'
 
 function AboutFeatures() {
+  const { stats } = useEventStats()
+  const totalEventos = stats?.total ?? null
+
   return (
     <div className="sobre-content">
       <h2>
@@ -17,14 +21,18 @@ function AboutFeatures() {
       </p>
 
       <div className="about-stats">
-        <div className="about-stat">
-          <h3>3 anos</h3>
-          <p>Conectando pessoas por meio de eventos e iniciativas da comunidade</p>
-        </div>
-        <div className="about-stat">
-          <h3>100%</h3>
-          <p>Eventos indicados, revisados e compartilhados pela comunidade</p>
-        </div>
+        <StatCounter
+          value={3}
+          suffix=" anos"
+          label="Conectando pessoas por meio de eventos e iniciativas da comunidade"
+        />
+        {totalEventos !== null && (
+          <StatCounter
+            value={totalEventos}
+            suffix="+"
+            label="Eventos cadastrados na plataforma pela comunidade"
+          />
+        )}
       </div>
 
       <div className="features">

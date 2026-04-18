@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/robots.txt", "destination": "/robots.txt" },
     {
       "source": "/eventos/:id",
       "has": [

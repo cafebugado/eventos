@@ -1,27 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Home, Calendar, Users, Mail, Images, Sun, Moon, X, Menu } from 'lucide-react'
+import { Sun, Moon, X, Menu } from 'lucide-react'
+import { useTheme } from '../hooks/useTheme'
+import { NAVIGATION_ITEMS } from '../constants/navigation'
+import LogoImg from '../assets/logoEventosCafeBugado.png'
 import './FloatingMenu.css'
 
-const NAVIGATION_ITEMS = [
-  { path: '/', label: 'Inicio', icon: Home },
-  { path: '/eventos', label: 'Eventos', icon: Calendar },
-  { path: '/sobre', label: 'Sobre', icon: Users },
-  { path: '/galeria', label: 'Galeria', icon: Images },
-  { path: '/contato', label: 'Contato', icon: Mail },
-]
-
 function FloatingMenu() {
+  const { isDarkMode, toggleTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    setIsDarkMode(savedTheme === 'dark')
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20)
     }
@@ -46,19 +38,6 @@ function FloatingMenu() {
     [navigate, closeMenu]
   )
 
-  const toggleTheme = useCallback(() => {
-    const newTheme = !isDarkMode
-    setIsDarkMode(newTheme)
-
-    if (newTheme) {
-      document.documentElement.setAttribute('data-theme', 'dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.removeAttribute('data-theme')
-      localStorage.setItem('theme', 'light')
-    }
-  }, [isDarkMode])
-
   const isActive = useCallback(
     (path) => {
       return location.pathname === path
@@ -76,10 +55,7 @@ function FloatingMenu() {
           rel="noopener noreferrer"
           className="mobile-logo-link"
         >
-          <div className="mobile-logo">
-            <h1>Eventos</h1>
-            <span>Cafe Bugado</span>
-          </div>
+          <img src={LogoImg} alt="Eventos Cafe Bugado" className="mobile-logo-img" />
         </a>
       </header>
 

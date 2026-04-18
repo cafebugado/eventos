@@ -1,0 +1,188 @@
+# Bot de labels e organização de PR
+# Aplica labels automáticas por área do código, cobra descrição mínima,
+# comenta checklist quando o autor não preencheu e avisa sobre falta de testes.
+
+name: PR Labeler e Organização
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  label:
+    name: Aplicar Labels por Área
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Aplicar labels por arquivos alterados
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+          sync-labels: true
+
+  validate-pr:
+    name: Validar Qualidade do PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verificar descrição e cobrar preenchimento
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const body = pr.body || '';
+            const title = pr.title || '';
+            const problems = [];
+
+            // Verifica se a descrição foi preenchida (não apenas comentários HTML)
+            const strippedBody = body.replace(/<!--[\s\S]*?-->/g, '').trim();
+            if (strippedBody.length < 30) {
+              problems.push('📝 **Descrição muito curta** — preencha a seção "Descrição" do template com pelo menos 30 caracteres explicando o que o PR faz.');
+            }
+
+            // Verifica se o campo "Closes #" foi preenchido com número real
+            const closesPattern = /closes\s+#\d+/i;
+            const hasIssueRef = closesPattern.test(body);
+            if (!hasIssueRef) {
+              problems.push('🔗 **Issue não referenciada** — adicione `Closes #<número>` na seção "Issue relacionada". Se não houver issue, escreva `N/A`.');
+            }
+
+            // Verifica se pelo menos um tipo de mudança foi marcado
+            const hasCheckedType = /- \[x\]/.test(body);
+            if (!hasCheckedType) {
+              problems.push('✅ **Tipo de mudança não selecionado** — marque pelo menos um item na seção "Tipo de mudança".');
+            }
+
+            // Verifica título com conventional commits básico
+            const conventionalPattern = /^(feat|fix|docs|style|refactor|test|chore|ci|perf|revert)(\([^)]+\))?(!)?:\s.+/i;
+            if (!conventionalPattern.test(title)) {
+              problems.push('🏷️ **Título fora do padrão** — use Conventional Commits: `feat(escopo): descricao`, `fix: descricao`, etc.');
+            }
+
+            if (problems.length === 0) {
+              console.log('PR validado com sucesso.');
+              return;
+            }
+
+            // Busca comentário anterior do bot para evitar duplicata
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('<!-- pr-quality-bot -->')
+            );
+
+            const commentBody = '<!-- pr-quality-bot -->\n' +
+              '## ⚠️ Atenção: este PR precisa de ajustes antes do review\n\n' +
+              problems.map(p => '- ' + p).join('\n') + '\n\n' +
+              '> _Este comentário é atualizado automaticamente. Edite o PR para corrigir os pontos acima._';
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }
+
+  check-tests:
+    name: Verificar Cobertura de Testes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Avisar quando código muda mas testes não
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              per_page: 100,
+            });
+
+            const changedFiles = files.map(f => f.filename);
+
+            // Arquivos de lógica alterados (ignora estilos, assets, config)
+            const logicFiles = changedFiles.filter(f =>
+              (f.endsWith('.jsx') || f.endsWith('.js')) &&
+              !f.includes('.test.') &&
+              !f.includes('.spec.') &&
+              !f.includes('node_modules') &&
+              !f.startsWith('.github/') &&
+              !f.includes('vite.config') &&
+              !f.includes('vitest.config') &&
+              !f.includes('playwright.config')
+            );
+
+            // Arquivos de teste alterados
+            const testFiles = changedFiles.filter(f =>
+              f.includes('.test.') || f.includes('.spec.')
+            );
+
+            // Se tem mudança de lógica mas zero teste alterado/criado
+            if (logicFiles.length > 0 && testFiles.length === 0) {
+              const fileList = logicFiles.slice(0, 8).map(f => '  - `' + f + '`').join('\n');
+              const extra = logicFiles.length > 8 ? '\n  - _...e mais ' + (logicFiles.length - 8) + ' arquivo(s)_' : '';
+
+              // Verifica se já existe comentário de teste do bot
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+
+              const botComment = comments.find(c =>
+                c.user.type === 'Bot' && c.body.includes('<!-- pr-test-bot -->')
+              );
+
+              const commentBody = '<!-- pr-test-bot -->\n' +
+                '## 🧪 Lembrete: arquivos de lógica alterados sem testes correspondentes\n\n' +
+                'Os arquivos abaixo foram modificados, mas nenhum arquivo de teste (*.test.jsx/js) foi adicionado ou alterado neste PR:\n\n' +
+                fileList + extra + '\n\n' +
+                'Se as mudanças não precisam de testes (ex: ajuste de estilo, refactor com comportamento idêntico), escreva no PR o motivo. Caso contrário, considere adicionar ou atualizar os testes.\n\n' +
+                '> _Este aviso não bloqueia o merge — é um lembrete para o reviewer avaliar._';
+
+              if (!botComment) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: commentBody,
+                });
+              }
+            }
