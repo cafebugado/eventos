@@ -14,14 +14,19 @@ pnpm dev
 
 ## Scripts Disponíveis
 
-| Comando             | Descrição                                |
-| ------------------- | ---------------------------------------- |
-| `pnpm dev`          | Inicia o servidor de desenvolvimento     |
-| `pnpm build`        | Gera build de produção                   |
-| `pnpm lint`         | Verifica erros de linting                |
-| `pnpm lint:fix`     | Corrige erros de linting automaticamente |
-| `pnpm format`       | Formata todos os arquivos com Prettier   |
-| `pnpm format:check` | Verifica se os arquivos estão formatados |
+| Comando              | Descrição                                |
+| -------------------- | ---------------------------------------- |
+| `pnpm dev`           | Inicia o servidor de desenvolvimento     |
+| `pnpm build`         | Gera build de produção                   |
+| `pnpm preview`       | Preview da build de produção             |
+| `pnpm lint`          | Verifica erros de linting                |
+| `pnpm lint:fix`      | Corrige erros de linting automaticamente |
+| `pnpm format`        | Formata todos os arquivos com Prettier   |
+| `pnpm format:check`  | Verifica se os arquivos estão formatados |
+| `pnpm test`          | Executa testes em modo watch             |
+| `pnpm test:run`      | Executa testes uma vez                   |
+| `pnpm test:coverage` | Relatório de cobertura de testes         |
+| `pnpm test:e2e`      | Testes E2E com Playwright                |
 
 ## Padrão de Commits (Conventional Commits)
 
@@ -211,13 +216,26 @@ hotfix/corrigir-crash-producao
 
 ```
 src/
-├── admin/          # Componentes do painel admin
-├── pages/          # Páginas públicas
-├── services/       # Serviços de API (Supabase)
-├── lib/            # Utilitários e configurações
+├── admin/          # Painel administrativo (Login, Dashboard, AdminSidebar, GalleryAdmin, CommunityAdmin, GithubStats, AuditLog)
+├── pages/          # Páginas públicas (Home, EventsPage, EventDetails, About, Contact, Gallery, NotFound)
+├── components/     # Componentes reutilizáveis
+│   ├── Modal/      # Sistema unificado de modais (Modal, ConfirmModal)
+│   ├── EventCard   # Card de evento (variant compact/full)
+│   ├── CalendarView/   # Visualização em calendário
+│   ├── LocationSelector/
+│   ├── PwaInstallBanner/  PwaInstallButton/  PwaUpdateBanner/
+│   ├── gallery/    # GalleryEventCard, GalleryPhotoModal
+│   └── ...         # Header, Footer, Pagination, ShareButtons, SEOHead, etc.
+├── services/       # Serviços de API (Supabase): event, tag, auth, contributor, community, galeria, profile, role, github, audit
+├── hooks/          # Custom hooks: useUserRole, useMediaQuery, usePagination, useSidebarCollapse, useGallery
+├── lib/            # Configurações base: supabase.js, apiClient.js (withRetry), sentry.js, vitals.js, pwa.js
+├── utils/          # Funções utilitárias: eventSearch.js, richText.js
+├── constants/      # Constantes da aplicação: messages.js
+├── context/        # React Context: ThemeProvider
+├── test/           # Infraestrutura de testes: setup.js, utils.jsx, mocks/
 ├── assets/         # Arquivos estáticos
-├── App.jsx         # Componente principal
-└── main.jsx        # Entry point
+├── App.jsx         # Listagem de eventos (/eventos)
+└── main.jsx        # Entry point (rotas, providers)
 ```
 
 ## Dúvidas
