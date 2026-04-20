@@ -45,17 +45,17 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 
 | Tecnologia       | Versão  | Descrição                    |
 | ---------------- | ------- | ---------------------------- |
-| React            | 19.1.1  | Biblioteca para interfaces   |
-| React Router DOM | 7.13.1  | Roteamento SPA               |
-| React Hook Form  | 7.71.2  | Gerenciamento de formulários |
+| React            | 19.2.5  | Biblioteca para interfaces   |
+| React Router DOM | 7.14.1  | Roteamento SPA               |
+| React Hook Form  | 7.72.1  | Gerenciamento de formulários |
 | Lucide React     | 0.577.0 | Biblioteca de ícones         |
 | Vite             | 7.1.2   | Build tool moderno           |
 
 ### Backend & Database
 
-| Tecnologia | Versão | Descrição                  |
-| ---------- | ------ | -------------------------- |
-| Supabase   | 2.99.1 | PostgreSQL, Auth e Storage |
+| Tecnologia | Versão  | Descrição                  |
+| ---------- | ------- | -------------------------- |
+| Supabase   | 2.104.0 | PostgreSQL, Auth e Storage |
 
 ### Monitoramento & Analytics
 
@@ -70,20 +70,20 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 | Ferramenta  | Versão | Descrição                  |
 | ----------- | ------ | -------------------------- |
 | ESLint      | 9.33.0 | Linting de código          |
-| Prettier    | 3.5.0  | Formatação de código       |
+| Prettier    | 3.8.3  | Formatação de código       |
 | Husky       | 9.1.0  | Git hooks                  |
-| Commitlint  | 19.8.0 | Validação de commits       |
-| lint-staged | 15.5.0 | Linting em arquivos staged |
+| Commitlint  | 20.5.0 | Validação de commits       |
+| lint-staged | 16.3.2 | Linting em arquivos staged |
 
 ### Testes
 
-| Ferramenta      | Versão  | Descrição                  |
-| --------------- | ------- | -------------------------- |
-| Vitest          | 4.0.18  | Framework de testes        |
-| Testing Library | 16.3.2  | Utilitários de teste React |
-| Playwright      | 1.58.2  | Testes E2E                 |
-| MSW             | 2.12.10 | Mock de APIs               |
-| jsdom           | 29.0.0  | Ambiente DOM para testes   |
+| Ferramenta      | Versão | Descrição                  |
+| --------------- | ------ | -------------------------- |
+| Vitest          | 4.0.18 | Framework de testes        |
+| Testing Library | 16.3.2 | Utilitários de teste React |
+| Playwright      | 1.59.1 | Testes E2E                 |
+| MSW             | 2.13.4 | Mock de APIs               |
+| jsdom           | 29.0.2 | Ambiente DOM para testes   |
 
 ## Instalação
 
@@ -361,14 +361,16 @@ agendas_eventos/
 ├── public/
 │
 ├── supabase/
-│   └── migrations/                   # 15 migrations (schema completo)
+│   └── migrations/                   # 17 migrations (schema completo)
 │
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml                    # Pipeline principal
 │       ├── pr-developer.yml          # PRs para developer
 │       ├── pr-main.yml               # PRs para main
-│       └── release.yml               # Releases com versionamento
+│       ├── release.yml               # Releases com versionamento semântico
+│       ├── codeql.yml                # Análise de segurança estática
+│       └── pr-labeler.yml            # Etiquetagem automática de PRs
 │
 ├── Dockerfile                        # Build de produção (multi-stage)
 ├── Dockerfile.dev                    # Build de desenvolvimento
@@ -380,23 +382,24 @@ agendas_eventos/
 
 ## Rotas da Aplicação
 
-| Rota               | Componente   | Descrição                       |
-| ------------------ | ------------ | ------------------------------- |
-| `/`                | Home         | Landing page                    |
-| `/eventos`         | App          | Listagem de eventos com filtros |
-| `/eventos/:id`     | EventDetails | Detalhe do evento               |
-| `/sobre`           | About        | Sobre a comunidade              |
-| `/contato`         | Contact      | Formulário de contato           |
-| `/galeria`         | Gallery      | Galeria de fotos da comunidade  |
-| `/admin`           | Login        | Login administrativo            |
-| `/admin/dashboard` | Dashboard    | Painel de gerenciamento         |
-| `/*`               | NotFound     | Página 404                      |
+| Rota                    | Componente   | Descrição                                |
+| ----------------------- | ------------ | ---------------------------------------- |
+| `/`                     | Home         | Landing page                             |
+| `/eventos`              | App          | Listagem de eventos com filtros          |
+| `/eventos/:id`          | EventDetails | Detalhe do evento                        |
+| `/sobre`                | About        | Sobre a comunidade                       |
+| `/contato`              | Contact      | Formulário de contato                    |
+| `/galeria`              | Gallery      | Galeria de fotos da comunidade           |
+| `/admin`                | Login        | Login administrativo                     |
+| `/admin/dashboard`      | Dashboard    | Painel de gerenciamento (aba padrão)     |
+| `/admin/dashboard/:tab` | Dashboard    | Painel de gerenciamento (aba específica) |
+| `/*`                    | NotFound     | Página 404                               |
 
 ## Configuração do Supabase
 
 Para configurar o Supabase, consulte o guia detalhado em [SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 
-O schema completo está em `supabase/migrations/` (15 arquivos).
+O schema completo está em `supabase/migrations/` (17 arquivos).
 
 ### Tabelas Principais
 
@@ -411,6 +414,7 @@ O schema completo está em `supabase/migrations/` (15 arquivos).
 | `galeria_fotos`  | Fotos com legenda, ordem e storage_path            |
 | `user_roles`     | Papéis dos usuários (RBAC)                         |
 | `user_profiles`  | Perfis dos usuários autenticados                   |
+| `audit_log`      | Log de auditoria de ações administrativas          |
 
 ### Controle de Acesso (RBAC)
 
@@ -448,12 +452,14 @@ O projeto utiliza GitHub Actions para integração e entrega contínuas.
 
 ### Workflows
 
-| Workflow           | Trigger        | Descrição                                             |
-| ------------------ | -------------- | ----------------------------------------------------- |
-| `ci.yml`           | Push/PR        | Lint, segurança, testes (cobertura), build            |
-| `pr-developer.yml` | PR → developer | Validação de origem + CI (1 aprovação)                |
-| `pr-main.yml`      | PR → main      | Validação rigorosa + análise de bundle (2 aprovações) |
-| `release.yml`      | Tag de release | Versionamento semântico                               |
+| Workflow           | Trigger          | Descrição                                              |
+| ------------------ | ---------------- | ------------------------------------------------------ |
+| `ci.yml`           | Push/PR          | Lint, segurança, testes (cobertura), build             |
+| `pr-developer.yml` | PR → developer   | Validação de origem + CI (1 aprovação)                 |
+| `pr-main.yml`      | PR → main        | Validação rigorosa + análise de bundle (2 aprovações)  |
+| `release.yml`      | Push em main     | Versionamento semântico + PR automático para developer |
+| `codeql.yml`       | Push/PR/schedule | Análise de segurança estática (CodeQL)                 |
+| `pr-labeler.yml`   | PR aberto        | Etiquetagem automática de PRs por caminhos alterados   |
 
 ### Etapas do CI
 
@@ -642,6 +648,7 @@ Consulte o guia completo em [CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ## Documentação Adicional
 
+- [CHANGELOG.md](CHANGELOG.md) - Histórico de versões e mudanças
 - [SETUP_INICIAL.md](docs/SETUP_INICIAL.md) - Montagem do ambiente (primeira vez)
 - [FLUXO_DE_TRABALHO.md](docs/FLUXO_DE_TRABALHO.md) - Fluxo de trabalho diário (Git, commits, PRs)
 - [FLUXO_DOCKER.md](docs/FLUXO_DOCKER.md) - Fluxo de trabalho com Docker

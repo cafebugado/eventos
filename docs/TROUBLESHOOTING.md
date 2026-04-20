@@ -258,9 +258,9 @@ pnpm dev
 pnpm test:e2e
 ```
 
-### Coverage abaixo do minimo (60%)
+### Coverage abaixo do minimo
 
-O projeto exige cobertura minima de 60%. Adicione testes para o codigo novo:
+O projeto exige cobertura minima de **55% de linhas** (50% de funções, 48% de branches). Adicione testes para o codigo novo:
 
 ```bash
 # Veja o relatorio detalhado
@@ -279,13 +279,13 @@ Clique em **"Details"** ao lado do check que falhou no PR para ver o log complet
 
 **Erros comuns:**
 
-| Erro no CI                   | Solucao                              |
-| ---------------------------- | ------------------------------------ |
-| Lint failed                  | `pnpm lint:fix && pnpm format`       |
-| Tests failed                 | `pnpm test:run` e corrija            |
-| Build failed                 | `pnpm build` e corrija               |
-| Branch origin invalid        | Verifique se o PR e para `developer` |
-| Bundle size exceeded (512KB) | Reduza o tamanho do bundle           |
+| Erro no CI                    | Solucao                              |
+| ----------------------------- | ------------------------------------ |
+| Lint failed                   | `pnpm lint:fix && pnpm format`       |
+| Tests failed                  | `pnpm test:run` e corrija            |
+| Build failed                  | `pnpm build` e corrija               |
+| Branch origin invalid         | Verifique se o PR e para `developer` |
+| Bundle size exceeded (1300KB) | Reduza o tamanho do bundle           |
 
 ### PR nao pode ser mergeado
 

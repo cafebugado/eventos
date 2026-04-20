@@ -3,6 +3,7 @@ node_modules/
 .pnpm-store/
 .claude
 skills-lock.json
+CLAUDE.md
 
 # Variáveis de ambiente
 .env
