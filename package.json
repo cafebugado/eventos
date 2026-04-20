@@ -20,7 +20,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@brazilian-utils/brazilian-utils": "^2.0.0",
+    "@brazilian-utils/brazilian-utils": "^2.3.0",
     "@sentry/react": "^10.49.0",
     "@supabase/supabase-js": "^2.103.3",
     "@vercel/analytics": "^2.0.1",
