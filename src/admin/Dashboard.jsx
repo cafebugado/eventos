@@ -520,6 +520,13 @@ function Dashboard() {
     }
   }
 
+  const handleImageURL = (e) => {
+    if (e.target.value && !imageFile) {
+      const imageURL = new URL(e.target.value)
+      setImagePreview(imageURL)
+    }
+  }
+
   const removeImage = () => {
     setImageFile(null)
     setImagePreview(null)
@@ -2320,11 +2327,7 @@ function Dashboard() {
                     type="url"
                     placeholder="https://..."
                     {...register('imagem')}
-                    onChange={(e) => {
-                      if (e.target.value && !imageFile) {
-                        setImagePreview(e.target.value)
-                      }
-                    }}
+                    onChange={handleImageURL}
                   />
                 </div>
               </div>
