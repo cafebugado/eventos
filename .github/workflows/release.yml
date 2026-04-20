@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   release:
@@ -158,19 +159,29 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Atualizar package.json na branch developer
+      - name: Atualizar package.json via PR na branch developer
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Trocar para developer e atualizar o package.json lá
-          # (developer não tem restrição de push direto)
+          # developer tem branch ruleset que exige PR — criamos uma branch temporária,
+          # commitamos o bump de versão e abrimos PR automático para developer.
+          BUMP_BRANCH="chore/release-v${{ steps.versioning.outputs.new_version }}"
+
           git fetch origin developer
-          git checkout developer
-          git pull origin developer
+          git checkout -b "$BUMP_BRANCH" origin/developer
 
           npm version ${{ steps.versioning.outputs.new_version }} --no-git-tag-version
 
           git add package.json
           git commit -m "chore(release): v${{ steps.versioning.outputs.new_version }} [skip ci]"
-          git push origin developer
+          git push origin "$BUMP_BRANCH"
+
+          gh pr create \
+            --base developer \
+            --head "$BUMP_BRANCH" \
+            --title "chore(release): bump version to v${{ steps.versioning.outputs.new_version }}" \
+            --body "Bump automático do \`package.json\` após release \`v${{ steps.versioning.outputs.new_version }}\` publicado em main." \
+            --label "release" || true
 
       - name: Resumo do Release
         run: |
@@ -183,4 +194,4 @@ jobs:
           echo "| Tipo de bump | \`${{ steps.versioning.outputs.bump }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Git tag | ✅ Criada |" >> $GITHUB_STEP_SUMMARY
           echo "| GitHub Release | ✅ Publicado |" >> $GITHUB_STEP_SUMMARY
-          echo "| package.json em developer | ✅ Atualizado |" >> $GITHUB_STEP_SUMMARY
+          echo "| package.json em developer | ✅ PR criado |" >> $GITHUB_STEP_SUMMARY
