@@ -20,24 +20,24 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@brazilian-utils/brazilian-utils": "^2.0.0",
+    "@brazilian-utils/brazilian-utils": "^2.3.0",
     "@sentry/react": "^10.49.0",
-    "@supabase/supabase-js": "^2.103.3",
+    "@supabase/supabase-js": "^2.104.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "lucide-react": "^0.577.0",
     "papaparse": "^5.5.3",
-    "react": "^19.1.1",
+    "react": "^19.2.5",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.72.1",
     "react-router-dom": "^7.14.1",
-    "web-vitals": "^5.1.0"
+    "web-vitals": "^5.2.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^9.39.4",
-    "@playwright/test": "^1.58.2",
+    "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -48,14 +48,14 @@
     "eslint": "^9.33.0",
     "eslint-config-prettier": "^10.1.0",
     "eslint-plugin-prettier": "^5.4.0",
-    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
     "husky": "^9.1.0",
     "jsdom": "^29.0.2",
     "lint-staged": "^16.3.2",
-    "msw": "^2.12.14",
-    "prettier": "^3.5.0",
+    "msw": "^2.13.4",
+    "prettier": "^3.8.3",
     "vite": "^7.1.2",
     "vitest": "^4.0.18"
   }
