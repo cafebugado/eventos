@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Verificar descrição e cobrar preenchimento
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const { data: pr } = await github.rest.pulls.get({
@@ -125,7 +125,7 @@ jobs:
           fetch-depth: 0
 
       - name: Avisar quando código muda mas testes não
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const { data: files } = await github.rest.pulls.listFiles({
