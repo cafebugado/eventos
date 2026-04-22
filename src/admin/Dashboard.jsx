@@ -108,6 +108,7 @@ import {
   formatDateToInput,
   formatDateToDisplay,
 } from '../utils/eventDate'
+import { validateURL } from '../utils/validateURL'
 
 const DAY_NAMES = [
   'Domingo',
@@ -517,6 +518,15 @@ function Dashboard() {
         setImagePreview(reader.result)
       }
       reader.readAsDataURL(file)
+    }
+  }
+
+  const handleImagePreview = (e) => {
+    const isURLValid = validateURL(e.target.value)
+
+    if (isURLValid && !imageFile) {
+      const urlObject = new URL(e.target.value)
+      setImagePreview(urlObject)
     }
   }
 
@@ -2320,11 +2330,7 @@ function Dashboard() {
                     type="url"
                     placeholder="https://..."
                     {...register('imagem')}
-                    onChange={(e) => {
-                      if (e.target.value && !imageFile) {
-                        setImagePreview(e.target.value)
-                      }
-                    }}
+                    onChange={handleImagePreview}
                   />
                 </div>
               </div>
