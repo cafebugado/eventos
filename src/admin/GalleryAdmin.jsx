@@ -25,7 +25,6 @@ import {
 } from '../services/galeriaService'
 import { Modal, ConfirmModal } from '../components/Modal'
 import './GalleryAdmin.css'
-import { validateURL } from '../utils/validateURL'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -177,10 +176,8 @@ function PhotoForm({ albumId, onAdded, disabled }) {
 
   const handleUrlChange = (e) => {
     const val = e.target.value
-    const isURLValid = validateURL(val)
-    const urlObject = isURLValid ? new URL(val) : null
     setUrlInput(val)
-    setPreview(urlObject)
+    setPreview(val || null)
     setSelectedFile(null)
     setError('')
     if (fileInputRef.current) {
