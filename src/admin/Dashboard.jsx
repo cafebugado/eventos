@@ -522,10 +522,11 @@ function Dashboard() {
   }
 
   const handleImagePreview = (e) => {
-    const isURLValid = validateURL(e.target.value)
+    const val = e.target.value
+    const isURLValid = validateURL(val)
 
     if (isURLValid && !imageFile) {
-      const urlObject = new URL(e.target.value)
+      const urlObject = new URL(val)
       setImagePreview(urlObject)
     }
   }
