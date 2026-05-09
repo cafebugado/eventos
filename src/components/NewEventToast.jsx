@@ -62,7 +62,7 @@ function ToastItem({ toast, onDismiss }) {
       <button
         className="net-toast-cta"
         onClick={() => {
-          navigate(`/eventos/${toast.id}`)
+          navigate(`/eventos/${toast.slug || toast.id}`)
           dismiss()
         }}
       >

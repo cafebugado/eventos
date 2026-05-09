@@ -102,22 +102,29 @@ describe('eventService', () => {
         imagem: 'https://exemplo.com/imagem.jpg',
       }
 
-      const createdEvent = { id: '1', ...newEvent }
+      const createdEvent = { id: '1', slug: 'novo-evento', ...newEvent }
 
-      const mockChain = {
+      // Primeiro from: busca de conflitos de slug
+      const mockConflictChain = {
+        select: vi.fn().mockReturnThis(),
+        like: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }
+      // Segundo from: insert do evento
+      const mockInsertChain = {
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: createdEvent, error: null }),
       }
 
-      supabase.from.mockReturnValue(mockChain)
+      supabase.from.mockReturnValueOnce(mockConflictChain).mockReturnValueOnce(mockInsertChain)
 
       const result = await createEvent(newEvent)
 
       expect(supabase.from).toHaveBeenCalledWith('eventos')
-      expect(mockChain.insert).toHaveBeenCalledWith([
-        {
+      expect(mockInsertChain.insert).toHaveBeenCalledWith([
+        expect.objectContaining({
           nome: newEvent.nome,
+          slug: 'novo-evento',
           descricao: newEvent.descricao,
           data_evento: newEvent.data_evento,
           horario: newEvent.horario,
@@ -130,7 +137,7 @@ describe('eventService', () => {
           cidade: null,
           estado: null,
           status: 'rascunho',
-        },
+        }),
       ])
       expect(result).toEqual(createdEvent)
     })
@@ -145,19 +152,29 @@ describe('eventService', () => {
         link: 'https://evento.com',
       }
 
-      const createdEvent = { id: '1', ...newEvent, descricao: null, imagem: null }
+      const createdEvent = {
+        id: '1',
+        slug: 'evento-minimo',
+        ...newEvent,
+        descricao: null,
+        imagem: null,
+      }
 
-      const mockChain = {
+      const mockConflictChain = {
+        select: vi.fn().mockReturnThis(),
+        like: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }
+      const mockInsertChain = {
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: createdEvent, error: null }),
       }
 
-      supabase.from.mockReturnValue(mockChain)
+      supabase.from.mockReturnValueOnce(mockConflictChain).mockReturnValueOnce(mockInsertChain)
 
       const result = await createEvent(newEvent)
 
-      expect(mockChain.insert).toHaveBeenCalledWith([
+      expect(mockInsertChain.insert).toHaveBeenCalledWith([
         expect.objectContaining({
           descricao: null,
           imagem: null,
@@ -169,15 +186,19 @@ describe('eventService', () => {
     it('deve lançar erro quando a criação falha', async () => {
       const mockError = new Error('Insert failed')
 
-      const mockChain = {
+      const mockConflictChain = {
+        select: vi.fn().mockReturnThis(),
+        like: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }
+      const mockInsertChain = {
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: mockError }),
       }
 
-      supabase.from.mockReturnValue(mockChain)
+      supabase.from.mockReturnValueOnce(mockConflictChain).mockReturnValueOnce(mockInsertChain)
 
-      await expect(createEvent({})).rejects.toThrow('Insert failed')
+      await expect(createEvent({ nome: 'Teste' })).rejects.toThrow('Insert failed')
     })
   })
 
@@ -194,38 +215,49 @@ describe('eventService', () => {
         imagem: 'https://nova-imagem.com',
       }
 
-      const updatedEvent = { id: '1', ...updatedData }
+      const updatedEvent = { id: '1', slug: 'evento-atualizado', ...updatedData }
 
-      const mockChain = {
+      // Primeiro from: busca de conflitos de slug (com neq para excluir o próprio evento)
+      const mockConflictChain = {
+        select: vi.fn().mockReturnThis(),
+        like: vi.fn().mockReturnThis(),
+        neq: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }
+      const mockUpdateChain = {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: updatedEvent, error: null }),
       }
 
-      supabase.from.mockReturnValue(mockChain)
+      supabase.from.mockReturnValueOnce(mockConflictChain).mockReturnValueOnce(mockUpdateChain)
 
       const result = await updateEvent('1', updatedData)
 
       expect(supabase.from).toHaveBeenCalledWith('eventos')
-      expect(mockChain.update).toHaveBeenCalled()
-      expect(mockChain.eq).toHaveBeenCalledWith('id', '1')
+      expect(mockUpdateChain.update).toHaveBeenCalled()
+      expect(mockUpdateChain.eq).toHaveBeenCalledWith('id', '1')
       expect(result).toEqual(updatedEvent)
     })
 
     it('deve lançar erro quando a atualização falha', async () => {
       const mockError = new Error('Update failed')
 
-      const mockChain = {
+      const mockConflictChain = {
+        select: vi.fn().mockReturnThis(),
+        like: vi.fn().mockReturnThis(),
+        neq: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }
+      const mockUpdateChain = {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null, error: mockError }),
       }
 
-      supabase.from.mockReturnValue(mockChain)
+      supabase.from.mockReturnValueOnce(mockConflictChain).mockReturnValueOnce(mockUpdateChain)
 
-      await expect(updateEvent('1', {})).rejects.toThrow('Update failed')
+      await expect(updateEvent('1', { nome: 'Teste' })).rejects.toThrow('Update failed')
     })
   })
 

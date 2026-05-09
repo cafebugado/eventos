@@ -51,7 +51,7 @@ createRoot(document.getElementById('root')).render(
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/eventos" element={<EventsPage />} />
-              <Route path="/eventos/:id" element={<EventDetails />} />
+              <Route path="/eventos/:slug" element={<EventDetails />} />
               <Route path="/sobre" element={<About />} />
               <Route path="/contato" element={<Contact />} />
               <Route path="/galeria" element={<Gallery />} />
