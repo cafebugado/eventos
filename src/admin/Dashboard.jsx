@@ -40,6 +40,7 @@ import {
   GitBranch,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { generateSlug } from '../utils/slug'
 import { getSession, signOut } from '../services/authService'
 import {
   getEvents,
@@ -366,7 +367,7 @@ function Dashboard() {
 
   const handleCopyEventLink = useCallback(
     (evento) => {
-      const eventUrl = `${window.location.origin}/eventos/${evento.id}`
+      const eventUrl = `${window.location.origin}/eventos/${evento.slug || evento.id}`
       const message =
         `Confira o evento "${evento.nome}"!\n\n` +
         `📅 ${evento.data_evento}${evento.horario ? ` às ${evento.horario}` : ''}\n\n` +
@@ -1035,6 +1036,7 @@ function Dashboard() {
   const watchModalidade = watch('modalidade')
   const watchEstado = watch('estado')
   const watchCidade = watch('cidade')
+  const watchNome = watch('nome') || ''
 
   return (
     <div className="admin-dashboard">
@@ -2093,6 +2095,9 @@ function Dashboard() {
                 {...register('nome', { required: 'Nome é obrigatório' })}
               />
               {errors.nome && <span className="field-error">{errors.nome.message}</span>}
+              {watchNome && (
+                <span className="field-helper">URL: /eventos/{generateSlug(watchNome)}</span>
+              )}
             </div>
           </div>
 

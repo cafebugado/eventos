@@ -29,7 +29,7 @@ export default function CalendarEventItem({
     if (onNavigate) {
       onNavigate()
     }
-    navigate(`/eventos/${event?.id}`)
+    navigate(`/eventos/${event?.slug || event?.id}`)
   }
 
   const badgeText = isPast ? 'Encerrado' : isToday ? 'Hoje' : event?.periodo

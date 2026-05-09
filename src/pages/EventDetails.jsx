@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Calendar, Clock, CalendarDays, ArrowUpRight, Monitor, Video, Wifi } from 'lucide-react'
-import { getEventById } from '../services/eventService'
+import { getEventBySlugOrId } from '../services/eventService'
 import { getEventTags } from '../services/tagService'
 import BackButton from '../components/BackButton'
 import EventLocation from '../components/EventLocation'
@@ -17,7 +17,7 @@ import { isEventPast } from '../utils/eventDate'
 import AddToCalendarButton from '../components/AddToCalendarButton'
 
 function EventDetails() {
-  const { id } = useParams()
+  const { slug } = useParams()
   const navigate = useNavigate()
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -26,10 +26,9 @@ function EventDetails() {
   const [isFavourite, setFavourite] = useState()
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [id])
+  }, [slug])
   useEffect(() => {
     const stored = localStorage.getItem('favourites')
-    console.log(stored)
     if (!stored) {
       localStorage.setItem('favourites', '[]')
     }
@@ -40,7 +39,7 @@ function EventDetails() {
     setLoading(true)
     setError(null)
     try {
-      const eventData = await getEventById(id)
+      const eventData = await getEventBySlugOrId(slug)
       if (!eventData) {
         setError('NOT_FOUND')
       } else {
@@ -69,7 +68,7 @@ function EventDetails() {
 
   useEffect(() => {
     loadEvent()
-  }, [id])
+  }, [slug])
 
   useEffect(() => {
     if (event) {
@@ -194,7 +193,7 @@ function EventDetails() {
         title={event.nome}
         description={event.descricao}
         image={event.imagem || BgEventos}
-        url={`${window.location.origin}/eventos/${event.id}`}
+        url={`${window.location.origin}/eventos/${event.slug || event.id}`}
         type="article"
         article={{
           publishedTime: event.created_at,
@@ -330,7 +329,7 @@ function EventDetails() {
                   eventName={event.nome}
                   eventDate={event.data_evento}
                   eventTime={event.horario}
-                  eventUrl={`${window.location.origin}/eventos/${event.id}`}
+                  eventUrl={`${window.location.origin}/eventos/${event.slug || event.id}`}
                 />
               )}
             </div>

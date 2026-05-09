@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { withRetry } from '../lib/apiClient'
 import { parseEventDate, getToday } from '../utils/eventDate'
+import { generateSlug, resolveUniqueSlug } from '../utils/slug'
 
 // Buscar todos os eventos (admin — inclui rascunhos e arquivados)
 export async function getEvents() {
@@ -65,13 +66,63 @@ export async function getEventById(id) {
   )
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-/i
+
+// Busca evento por slug ou UUID — garante compatibilidade retroativa com URLs antigas
+export async function getEventBySlugOrId(slugOrId) {
+  return withRetry(
+    async () => {
+      // Tenta por slug primeiro
+      const { data: bySlug, error: slugError } = await supabase
+        .from('eventos')
+        .select('*')
+        .eq('slug', slugOrId)
+        .maybeSingle()
+
+      if (slugError) {
+        throw slugError
+      }
+      if (bySlug) {
+        return bySlug
+      }
+
+      // Fallback por UUID (links antigos já compartilhados)
+      if (!UUID_REGEX.test(slugOrId)) {
+        const notFound = new Error('Event not found')
+        notFound.code = 'PGRST116'
+        throw notFound
+      }
+
+      const { data: byId, error: idError } = await supabase
+        .from('eventos')
+        .select('*')
+        .eq('id', slugOrId)
+        .single()
+
+      if (idError) {
+        throw idError
+      }
+      return byId
+    },
+    { context: 'getEventBySlugOrId' }
+  )
+}
+
 // Criar novo evento
 export async function createEvent(event) {
+  const baseSlug = generateSlug(event.nome)
+  const { data: conflicts } = await supabase
+    .from('eventos')
+    .select('slug')
+    .like('slug', `${baseSlug}%`)
+  const slug = resolveUniqueSlug(baseSlug, new Set((conflicts || []).map((r) => r.slug)))
+
   const { data, error } = await supabase
     .from('eventos')
     .insert([
       {
         nome: event.nome,
+        slug,
         descricao: event.descricao || null,
         data_evento: event.data_evento,
         horario: event.horario,
@@ -99,10 +150,19 @@ export async function createEvent(event) {
 
 // Atualizar evento
 export async function updateEvent(id, event) {
+  const baseSlug = generateSlug(event.nome)
+  const { data: conflicts } = await supabase
+    .from('eventos')
+    .select('slug')
+    .like('slug', `${baseSlug}%`)
+    .neq('id', id)
+  const slug = resolveUniqueSlug(baseSlug, new Set((conflicts || []).map((r) => r.slug)))
+
   const { data, error } = await supabase
     .from('eventos')
     .update({
       nome: event.nome,
+      slug,
       descricao: event.descricao || null,
       data_evento: event.data_evento,
       horario: event.horario,

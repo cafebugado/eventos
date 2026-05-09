@@ -44,7 +44,7 @@ function EventCard({
 }) {
   const navigate = useNavigate()
 
-  const handleClick = onClick ?? (() => navigate(`/eventos/${event.id}`))
+  const handleClick = onClick ?? (() => navigate(`/eventos/${event.slug || event.id}`))
   const isFull = variant === 'full'
   const iconSize = isFull ? 16 : 14
 
