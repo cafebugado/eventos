@@ -87,10 +87,12 @@ function UpcomingEvents() {
                 <div
                   key={event.id}
                   className="upcoming-card"
-                  onClick={() => navigate(`/eventos/${event.id}`)}
+                  onClick={() => navigate(`/eventos/${event.slug || event.id}`)}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/eventos/${event.id}`)}
+                  onKeyDown={(e) =>
+                    e.key === 'Enter' && navigate(`/eventos/${event.slug || event.id}`)
+                  }
                 >
                   <div className="upcoming-card-image">
                     <img
@@ -129,7 +131,7 @@ function UpcomingEvents() {
                       className="upcoming-card-btn"
                       onClick={(e) => {
                         e.stopPropagation()
-                        navigate(`/eventos/${event.id}`)
+                        navigate(`/eventos/${event.slug || event.id}`)
                       }}
                     >
                       Ver evento

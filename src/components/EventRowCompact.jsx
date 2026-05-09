@@ -10,10 +10,10 @@ export default function EventRowCompact({ event, style }) {
   return (
     <div
       className={`erc-row${past ? ' erc-row--past' : ''}`}
-      onClick={() => navigate(`/eventos/${event.id}`)}
+      onClick={() => navigate(`/eventos/${event.slug || event.id}`)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && navigate(`/eventos/${event.id}`)}
+      onKeyDown={(e) => e.key === 'Enter' && navigate(`/eventos/${event.slug || event.id}`)}
       style={style}
     >
       <span className="erc-name">{event.nome}</span>
