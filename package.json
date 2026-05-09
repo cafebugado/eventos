@@ -1,7 +1,7 @@
 {
   "name": "eventos-cafe-bugado",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.25.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
