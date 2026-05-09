@@ -47,6 +47,31 @@ export default function EventsPage() {
   const pageSize = isMobile ? 6 : 9
   const { currentPage, totalPages, pagedItems, goToPage } = usePagination(filteredEvents, pageSize)
 
+  const handleSearchChange = (v) => {
+    goToPage(1)
+    setSearchTerm(v)
+  }
+  const handleSelectTag = (v) => {
+    goToPage(1)
+    setSelectedTagId(v)
+  }
+  const handleTogglePast = () => {
+    goToPage(1)
+    setShowPastEvents((v) => !v)
+  }
+  const handleToggleFavourites = () => {
+    goToPage(1)
+    setShowOnlyFavourites((v) => !v)
+  }
+  const handleDateFrom = (v) => {
+    goToPage(1)
+    setDateFrom(v)
+  }
+  const handleDateTo = (v) => {
+    goToPage(1)
+    setDateTo(v)
+  }
+
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [currentPage])
@@ -87,18 +112,18 @@ export default function EventsPage() {
 
         <EventsFilters
           searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
+          onSearchChange={handleSearchChange}
           selectedTagId={selectedTagId}
-          onSelectTag={setSelectedTagId}
+          onSelectTag={handleSelectTag}
           showPastEvents={showPastEvents}
-          onTogglePast={() => setShowPastEvents((v) => !v)}
+          onTogglePast={handleTogglePast}
           dateFrom={dateFrom}
           dateTo={dateTo}
-          onDateFrom={setDateFrom}
-          onDateTo={setDateTo}
+          onDateFrom={handleDateFrom}
+          onDateTo={handleDateTo}
           filterActiveCount={filterActiveCount}
           showOnlyFavourites={showOnlyFavourites}
-          onToggleFavourites={() => setShowOnlyFavourites((v) => !v)}
+          onToggleFavourites={handleToggleFavourites}
           favouriteIds={favouriteIds}
           viewMode={viewMode}
           onChangeViewMode={changeViewMode}

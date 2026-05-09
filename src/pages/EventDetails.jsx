@@ -164,7 +164,7 @@ function EventDetails() {
       <Layout>
         <main className="details-main">
           <div className="details-container">
-            <BackButton onClick={() => navigate('/eventos')} label="Voltar para Eventos" />
+            <BackButton onClick={() => navigate(-1)} label="Voltar para Eventos" />
             <div className="error-container" role="alert" aria-live="polite">
               <div className="error-icon">
                 <Calendar size={48} />
@@ -177,7 +177,7 @@ function EventDetails() {
                     Tentar novamente
                   </button>
                 )}
-                <BackButton onClick={() => navigate('/eventos')} label="Voltar para Eventos" />
+                <BackButton onClick={() => navigate(-1)} label="Voltar para Eventos" />
               </div>
             </div>
           </div>
@@ -203,7 +203,7 @@ function EventDetails() {
 
       <main className="details-main">
         <div className="details-container">
-          <BackButton onClick={() => navigate('/eventos')} label="Voltar para Eventos" />
+          <BackButton onClick={() => navigate(-1)} label="Voltar para Eventos" />
 
           <div className={`event-details-card ${isPast ? 'evento-encerrado' : ''}`}>
             <div className="event-image-container">
