@@ -1,7 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 export default function usePagination(items, pageSize) {
-  const [currentPage, setCurrentPage] = useState(1)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const currentPage = useMemo(() => {
+    const p = parseInt(searchParams.get('page') || '1', 10)
+    return isNaN(p) || p < 1 ? 1 : p
+  }, [searchParams])
 
   const totalPages = useMemo(() => {
     if (pageSize <= 0) {
@@ -10,21 +16,22 @@ export default function usePagination(items, pageSize) {
     return Math.max(1, Math.ceil(items.length / pageSize))
   }, [items.length, pageSize])
 
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [items, pageSize])
-
   const pagedItems = useMemo(() => {
     if (pageSize <= 0) {
       return items
     }
-    const startIndex = (currentPage - 1) * pageSize
+    const page = Math.min(currentPage, totalPages)
+    const startIndex = (page - 1) * pageSize
     return items.slice(startIndex, startIndex + pageSize)
-  }, [items, currentPage, pageSize])
+  }, [items, currentPage, totalPages, pageSize])
 
   const goToPage = (page) => {
-    const nextPage = Math.min(Math.max(page, 1), totalPages)
-    setCurrentPage(nextPage)
+    const next = Math.min(Math.max(page, 1), totalPages)
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev)
+      params.set('page', String(next))
+      return params
+    })
   }
 
   return {
