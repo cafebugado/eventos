@@ -47,10 +47,15 @@ const ICONS = {
   ),
 }
 
-function SocialIcons({ eventName, eventDate, eventTime, eventUrl }) {
+function SocialIcons({ eventName, eventDate, eventTime, eventUrl, eventLocation }) {
   const [copied, setCopied] = useState(false)
-  const shareText = `Confira o evento "${eventName}" - ${eventDate} às ${eventTime}`
   const shareUrl = eventUrl || window.location.href
+  const shareText =
+    `✅ ${eventName || ''}\n\n` +
+    (eventDate ? `📍 Data: ${eventDate}\n` : '') +
+    (eventTime ? `🕠 Horário: ${eventTime}\n` : '') +
+    (eventLocation ? `📌 Local: ${eventLocation}\n` : '') +
+    `🔗 Link: ${shareUrl}`
 
   const handleShare = (e, platform) => {
     e.stopPropagation()
@@ -60,12 +65,12 @@ function SocialIcons({ eventName, eventDate, eventTime, eventUrl }) {
   }
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl)
+      await navigator.clipboard.writeText(shareText)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
       const textArea = document.createElement('textarea')
-      textArea.value = shareUrl
+      textArea.value = shareText
       textArea.style.position = 'fixed'
       textArea.style.opacity = '0'
       document.body.appendChild(textArea)

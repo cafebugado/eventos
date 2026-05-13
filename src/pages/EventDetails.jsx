@@ -330,6 +330,11 @@ function EventDetails() {
                   eventDate={event.data_evento}
                   eventTime={event.horario}
                   eventUrl={`${window.location.origin}/eventos/${event.slug || event.id}`}
+                  eventLocation={
+                    [event.endereco, event.cidade, event.estado].filter(Boolean).join(', ') ||
+                    event.modalidade ||
+                    ''
+                  }
                 />
               )}
             </div>
