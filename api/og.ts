@@ -171,7 +171,7 @@ export default async function handler(request: Request): Promise<Response> {
   const eventMatch = pathname.match(/^\/eventos\/([^/]+)$/)
 
   if (eventMatch) {
-    const eventId = eventMatch[1]
+    const eventSlugOrId = eventMatch[1]
 
     try {
       const supabaseUrl = process.env.VITE_SUPABASE_URL
@@ -181,8 +181,16 @@ export default async function handler(request: Request): Promise<Response> {
         throw new Error('Supabase credentials not configured')
       }
 
+      const fields = 'id,slug,nome,descricao,imagem,data_evento,horario,modalidade,endereco,cidade,estado,created_at'
+
+      // Try slug first, fall back to UUID lookup
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventSlugOrId)
+      const queryParam = isUuid
+        ? `id=eq.${eventSlugOrId}`
+        : `slug=eq.${encodeURIComponent(eventSlugOrId)}`
+
       const response = await fetch(
-        `${supabaseUrl}/rest/v1/eventos?id=eq.${eventId}&select=id,nome,descricao,imagem,data_evento,horario,modalidade,cidade,estado,created_at`,
+        `${supabaseUrl}/rest/v1/eventos?${queryParam}&select=${fields}&limit=1`,
         {
           headers: {
             apikey: supabaseKey,
@@ -207,27 +215,26 @@ export default async function handler(request: Request): Promise<Response> {
         ? eventImage
         : `${origin}${eventImage.startsWith('/') ? '' : '/'}${eventImage}`
 
-      // Build a richer description with event details
       const cleanDescription = truncateText(stripHtmlTags(event.descricao)) || ''
       const details: string[] = []
       if (event.data_evento) details.push(`Data: ${event.data_evento}`)
       if (event.horario) details.push(`Horário: ${event.horario}`)
       if (event.modalidade) details.push(event.modalidade)
-      if (event.cidade) {
-        const location = [event.cidade, event.estado].filter(Boolean).join(' - ')
-        details.push(location)
-      }
+      const locationParts = [event.endereco, event.cidade, event.estado].filter(Boolean)
+      if (locationParts.length > 0) details.push(locationParts.join(', '))
 
       const detailsSuffix = details.length > 0 ? ` | ${details.join(' · ')}` : ''
       const fullDescription = cleanDescription
         ? truncateText(cleanDescription + detailsSuffix, 200)
         : truncateText(details.join(' · ') || DEFAULT_DESCRIPTION, 200)
 
+      const canonicalSlug = event.slug || event.id
+
       const html = generateHtml({
         title: event.nome,
         description: fullDescription,
         image: absoluteImage,
-        url: `${origin}/eventos/${event.id}`,
+        url: `${origin}/eventos/${canonicalSlug}`,
         type: 'article',
         publishedTime: event.created_at,
       })
