@@ -181,10 +181,13 @@ export default async function handler(request: Request): Promise<Response> {
         throw new Error('Supabase credentials not configured')
       }
 
-      const fields = 'id,slug,nome,descricao,imagem,data_evento,horario,modalidade,endereco,cidade,estado,created_at'
+      const fields =
+        'id,slug,nome,descricao,imagem,data_evento,horario,modalidade,endereco,cidade,estado,created_at'
 
       // Try slug first, fall back to UUID lookup
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventSlugOrId)
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        eventSlugOrId
+      )
       const queryParam = isUuid
         ? `id=eq.${eventSlugOrId}`
         : `slug=eq.${encodeURIComponent(eventSlugOrId)}`
