@@ -368,12 +368,15 @@ function Dashboard() {
   const handleCopyEventLink = useCallback(
     (evento) => {
       const eventUrl = `${window.location.origin}/eventos/${evento.slug || evento.id}`
+      const localParts = [evento.endereco, evento.cidade, evento.estado].filter(Boolean)
+      const local =
+        localParts.length > 0 ? localParts.join(', ') : evento.modalidade || 'Local a confirmar'
       const message =
-        `Confira o evento "${evento.nome}"!\n\n` +
-        `📅 ${evento.data_evento}${evento.horario ? ` às ${evento.horario}` : ''}\n\n` +
-        `🔗 ${eventUrl}\n\n` +
-        `Divulgado pela Comunidade Cafe Bugado:\n` +
-        `Instagram: @comunidadecafebugado`
+        `✅ ${evento.nome}\n\n` +
+        `📍 Data: ${evento.data_evento}\n` +
+        (evento.horario ? `🕠 Horário: ${evento.horario}\n` : '') +
+        `📌 Local: ${local}\n` +
+        `🔗 Link: ${eventUrl}`
       navigator.clipboard
         .writeText(message)
         .then(() => showNotification('Link e mensagem copiados!', 'success'))
