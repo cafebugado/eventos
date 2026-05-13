@@ -17,7 +17,7 @@ Uma plataforma moderna e minimalista da Comunidade Café Bugado para descobrir e
 - **Favoritos** - Marque eventos favoritos com persistência em localStorage
 - **Recomendações** - Sugestões baseadas em tags e proximidade de data (lazy-load)
 - **Galeria de Fotos** - Galeria pública de fotos da comunidade por álbuns de evento
-- **Compartilhamento** - Botões para compartilhar eventos em redes sociais
+- **Compartilhamento** - Botões para compartilhar eventos (WhatsApp, Telegram, Twitter, LinkedIn) com mensagem formatada incluindo nome, data, horário, local e link do evento
 - **SEO Otimizado** - Meta tags dinâmicas e Open Graph por página
 
 ### Painel Administrativo

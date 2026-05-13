@@ -98,7 +98,7 @@ function SEOHead({
     setMetaTag('robots', noIndex ? 'noindex, nofollow' : 'index, follow', true)
 
     // Open Graph tags
-    setMetaTag('og:title', seoTitle)
+    setMetaTag('og:title', fullTitle)
     setMetaTag('og:description', seoDescription)
     setMetaTag('og:image', seoImage)
     setMetaTag('og:url', seoUrl)
@@ -108,7 +108,7 @@ function SEOHead({
 
     // Twitter Card tags
     setMetaTag('twitter:card', DEFAULT_SEO.twitterCard, true)
-    setMetaTag('twitter:title', seoTitle, true)
+    setMetaTag('twitter:title', fullTitle, true)
     setMetaTag('twitter:description', seoDescription, true)
     setMetaTag('twitter:image', seoImage, true)
 

@@ -48,7 +48,7 @@ describe('SEOHead', () => {
     )
 
     expect(document.querySelector('meta[property="og:title"]').getAttribute('content')).toBe(
-      'Evento Teste'
+      'Evento Teste | Eventos - Comunidade Café Bugado'
     )
     expect(document.querySelector('meta[property="og:description"]').getAttribute('content')).toBe(
       'Descricao teste'
@@ -80,7 +80,7 @@ describe('SEOHead', () => {
       'summary_large_image'
     )
     expect(document.querySelector('meta[name="twitter:title"]').getAttribute('content')).toBe(
-      'Evento Teste'
+      'Evento Teste | Eventos - Comunidade Café Bugado'
     )
     expect(document.querySelector('meta[name="twitter:description"]').getAttribute('content')).toBe(
       'Descricao teste'
