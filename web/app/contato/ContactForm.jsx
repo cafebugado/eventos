@@ -15,8 +15,7 @@ const INITIAL_VALUES = { nome: '', email: '', assunto: '', mensagem: '' }
 
 // O app antigo usava react-hook-form aqui; como esse formulário não envia
 // para nenhum backend (só simula com alert()), optamos por state manual em
-// vez de adicionar react-hook-form como dependência nova de web/ nesta fase
-// — reavaliar se formulários maiores (ex.: admin, Fase 3) justificarem a lib.
+// vez de adicionar react-hook-form como dependência nova de web/.
 function validate(values) {
   const errors = {}
   if (!values.nome || values.nome.trim().length < 2) {

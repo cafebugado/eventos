@@ -1,12 +1,11 @@
 import { withRetry } from '../lib/apiClient'
 import { parseEventDate, getToday } from '../utils/eventDate'
-import { generateSlug, resolveUniqueSlug } from '../utils/slug'
 
 // Todas as funções recebem o client Supabase como primeiro argumento —
 // Server Components/Actions usam lib/supabase/server (async), Client
 // Components usam lib/supabase/client (síncrono).
 
-// Buscar todos os eventos (admin — inclui rascunhos e arquivados)
+// Buscar todos os eventos, incluindo rascunhos e arquivados (uso: sitemap)
 export async function getEvents(supabase) {
   return withRetry(
     async () => {
@@ -111,115 +110,6 @@ export async function getEventBySlugOrId(supabase, slugOrId) {
   )
 }
 
-// Criar novo evento
-export async function createEvent(supabase, event) {
-  const baseSlug = generateSlug(event.nome)
-  const { data: conflicts } = await supabase
-    .from('eventos')
-    .select('slug')
-    .like('slug', `${baseSlug}%`)
-  const slug = resolveUniqueSlug(baseSlug, new Set((conflicts || []).map((r) => r.slug)))
-
-  const { data, error } = await supabase
-    .from('eventos')
-    .insert([
-      {
-        nome: event.nome,
-        slug,
-        descricao: event.descricao || null,
-        data_evento: event.data_evento,
-        horario: event.horario,
-        dia_semana: event.dia_semana,
-        periodo: event.periodo,
-        link: event.link,
-        imagem: event.imagem || null,
-        modalidade: event.modalidade || null,
-        endereco: event.endereco || null,
-        cidade: event.cidade || null,
-        estado: event.estado || null,
-        status: event.status || 'rascunho',
-      },
-    ])
-    .select()
-    .single()
-
-  if (error) {
-    console.error('Erro ao criar evento:', error)
-    throw error
-  }
-
-  return data
-}
-
-// Atualizar evento
-export async function updateEvent(supabase, id, event) {
-  const baseSlug = generateSlug(event.nome)
-  const { data: conflicts } = await supabase
-    .from('eventos')
-    .select('slug')
-    .like('slug', `${baseSlug}%`)
-    .neq('id', id)
-  const slug = resolveUniqueSlug(baseSlug, new Set((conflicts || []).map((r) => r.slug)))
-
-  const { data, error } = await supabase
-    .from('eventos')
-    .update({
-      nome: event.nome,
-      slug,
-      descricao: event.descricao || null,
-      data_evento: event.data_evento,
-      horario: event.horario,
-      dia_semana: event.dia_semana,
-      periodo: event.periodo,
-      link: event.link,
-      imagem: event.imagem || null,
-      modalidade: event.modalidade || null,
-      endereco: event.endereco || null,
-      cidade: event.cidade || null,
-      estado: event.estado || null,
-      status: event.status || 'rascunho',
-    })
-    .eq('id', id)
-    .select()
-    .single()
-
-  if (error) {
-    console.error('Erro ao atualizar evento:', error)
-    throw error
-  }
-
-  return data
-}
-
-// Publicar evento diretamente (sem abrir o form)
-export async function publishEvent(supabase, id) {
-  const { data, error } = await supabase
-    .from('eventos')
-    .update({ status: 'publicado' })
-    .eq('id', id)
-    .select()
-    .single()
-
-  if (error) {
-    console.error('Erro ao publicar evento:', error)
-    throw error
-  }
-
-  return data
-}
-
-// Deletar evento
-export async function deleteEvent(supabase, id) {
-  const { error } = await supabase.from('eventos').delete().eq('id', id)
-
-  if (error) {
-    console.error('Erro ao deletar evento:', error)
-    throw error
-  }
-
-  return true
-}
-
 // Buscar eventos por período (com retry automático)
 export async function getEventsByPeriod(supabase, periodo) {
   return withRetry(
@@ -307,25 +197,6 @@ export async function getEventStats(supabase) {
   ).length
 
   return { total, publicados, rascunhos, noturno, diurno }
-}
-
-// Upload de imagem para o Supabase Storage
-export async function uploadEventImage(supabase, file) {
-  const fileExt = file.name.split('.').pop()
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
-  const filePath = `eventos/${fileName}`
-
-  const { error: uploadError } = await supabase.storage.from('imagens').upload(filePath, file)
-
-  if (uploadError) {
-    console.error('Erro ao fazer upload da imagem:', uploadError)
-    throw uploadError
-  }
-
-  // Retorna a URL pública da imagem
-  const { data } = supabase.storage.from('imagens').getPublicUrl(filePath)
-
-  return data.publicUrl
 }
 
 // Helper privado para calcular semana ISO 8601
@@ -427,26 +298,4 @@ export async function getRecommendedEvents(
     ...ev,
     tags: evTags,
   }))
-}
-
-// Deletar imagem do Storage
-export async function deleteEventImage(supabase, imageUrl) {
-  if (!imageUrl) {
-    return
-  }
-
-  // Extrai o path da URL
-  const url = new URL(imageUrl)
-  const pathParts = url.pathname.split('/storage/v1/object/public/imagens/')
-  if (pathParts.length < 2) {
-    return
-  }
-
-  const filePath = pathParts[1]
-
-  const { error } = await supabase.storage.from('imagens').remove([filePath])
-
-  if (error) {
-    console.error('Erro ao deletar imagem:', error)
-  }
 }

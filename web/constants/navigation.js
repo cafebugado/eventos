@@ -11,8 +11,6 @@ export const ROUTES = {
   ABOUT: '/sobre',
   GALLERY: '/galeria',
   CONTACT: '/contato',
-  ADMIN: '/admin',
-  ADMIN_DASHBOARD: '/admin/dashboard',
 }
 
 export const NAVIGATION_ITEMS = [
