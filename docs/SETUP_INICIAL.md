@@ -194,16 +194,19 @@ Adicione ao seu `settings.json` (Ctrl+Shift+P > "Open User Settings JSON"):
 
 ```
 eventos/
-├── app/               # Rotas (App Router)
-├── components/        # Componentes reutilizaveis
-├── services/          # Servicos de leitura (Supabase)
-├── hooks/             # Custom hooks
-├── store/             # Estado global (Zustand)
-├── lib/               # Configuracoes (Supabase, Sentry)
-├── theme/             # Tema MUI
-├── utils/             # Funcoes utilitarias
-├── test/              # Setup e mocks de testes
+├── src/
+│   ├── app/           # Rotas (App Router)
+│   ├── components/    # Componentes reutilizaveis
+│   ├── services/      # Servicos de leitura (Supabase)
+│   ├── hooks/         # Custom hooks
+│   ├── store/         # Estado global (Zustand)
+│   ├── lib/           # Configuracoes (Supabase, Sentry)
+│   ├── theme/         # Tema MUI
+│   ├── utils/         # Funcoes utilitarias
+│   ├── test/          # Setup e mocks de testes
+│   └── instrumentation*.js, sentry.*.config.js
 ├── e2e/               # Testes end-to-end (Playwright)
+├── public/            # Arquivos estaticos
 ├── supabase/          # Migracoes SQL
 ├── docs/              # Documentacao do projeto (esta pasta)
 ├── .github/           # Workflows CI/CD

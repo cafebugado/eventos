@@ -1,6 +1,6 @@
 /** @type { import('@storybook/nextjs-vite').StorybookConfig } */
 const config = {
-  stories: ['../components/**/*.mdx', '../components/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
+  stories: ['../src/components/**/*.mdx', '../src/components/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
   addons: [
     '@chromatic-com/storybook',
     '@storybook/addon-vitest',

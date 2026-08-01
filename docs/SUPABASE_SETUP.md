@@ -233,16 +233,16 @@ As políticas de segurança configuradas garantem que:
 ## Arquivos Relevantes
 
 ```
-lib/
+src/lib/
 └── supabase/
     ├── server.js        # Cliente Supabase para Server Components (async)
     └── client.js        # Cliente Supabase para Client Components (síncrono)
-services/
+src/services/
 ├── eventService.js      # Leitura de eventos (getPublishedEvents, getEventBySlug...)
 ├── contributorService.js # Leitura de contribuintes
 ├── galeriaService.js    # Leitura de álbuns/fotos
 └── tagService.js        # Leitura de tags
-app/                     # Rotas (Server Components consomem os services acima)
+src/app/                 # Rotas (Server Components consomem os services acima)
 ```
 
 Não há mais painel administrativo no app novo (decisão de negócio) — os services só expõem operações de leitura. Gerenciar eventos/tags/contribuintes/galeria é feito direto no Supabase Studio.

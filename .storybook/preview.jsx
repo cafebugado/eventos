@@ -1,6 +1,6 @@
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
-import theme from '../theme/theme'
+import theme from '../src/theme/theme'
 
 /** @type { import('@storybook/nextjs-vite').Preview } */
 const preview = {

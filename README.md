@@ -48,10 +48,11 @@ Ver [`.env.example`](.env.example). As obrigatórias são `NEXT_PUBLIC_SUPABASE_
 
 ## Padrões do projeto
 
-- Chamadas ao Supabase sempre via `withRetry` (`lib/apiClient.js`).
-- Server Components usam `lib/supabase/server.js` (async); Client Components usam `lib/supabase/client.js` (síncrono).
-- Busca de dados acontece em Server Components (`app/**/page.jsx`), sem hooks client-side de fetch.
-- Modais usam `components/Modal/`.
+- Código do app em `src/` (convenção do Next.js); `public/`, `e2e/`, `supabase/` e `docs/` ficam na raiz.
+- Chamadas ao Supabase sempre via `withRetry` (`src/lib/apiClient.js`).
+- Server Components usam `src/lib/supabase/server.js` (async); Client Components usam `src/lib/supabase/client.js` (síncrono).
+- Busca de dados acontece em Server Components (`src/app/**/page.jsx`), sem hooks client-side de fetch.
+- Modais usam `src/components/Modal/`.
 
 Ver [CLAUDE.md](CLAUDE.md) para o guia completo de convenções.
 

@@ -77,10 +77,10 @@ Acesse: **http://localhost:3000**
 
 Edite os arquivos necessarios. Algumas dicas:
 
-- Rotas ficam em `app/` (App Router)
-- Componentes reutilizaveis ficam em `components/`
-- Servicos de leitura (Supabase) ficam em `services/`
-- Configuracoes ficam em `lib/`
+- Rotas ficam em `src/app/` (App Router)
+- Componentes reutilizaveis ficam em `src/components/`
+- Servicos de leitura (Supabase) ficam em `src/services/`
+- Configuracoes ficam em `src/lib/`
 
 ### 3.3 Verifique o codigo enquanto desenvolve
 
@@ -138,7 +138,7 @@ tipo(escopo): descricao curta
 
 ```bash
 # Adicione os arquivos modificados (o commit e feito a partir da raiz do repo)
-git add app/page.jsx components/FilterCity.jsx
+git add src/app/page.jsx src/components/FilterCity.jsx
 
 # Faca o commit com mensagem no padrao
 git commit -m "feat(eventos): adiciona filtro por cidade"
