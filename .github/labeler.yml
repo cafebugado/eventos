@@ -5,20 +5,20 @@
 frontend:
   - changed-files:
       - any-glob-to-any-file:
-          - 'web/app/**'
-          - 'web/components/**'
-          - 'web/theme/**'
+          - 'app/**'
+          - 'components/**'
+          - 'theme/**'
           - '**/*.css'
           - '**/*.jsx'
 
 backend:
   - changed-files:
       - any-glob-to-any-file:
-          - 'web/services/**'
-          - 'web/lib/**'
-          - 'web/hooks/**'
-          - 'web/store/**'
-          - 'web/utils/**'
+          - 'services/**'
+          - 'lib/**'
+          - 'hooks/**'
+          - 'store/**'
+          - 'utils/**'
 
 tests:
   - changed-files:
@@ -27,9 +27,9 @@ tests:
           - '**/*.test.js'
           - '**/*.spec.jsx'
           - '**/*.spec.js'
-          - 'web/e2e/**'
-          - 'web/playwright.config.*'
-          - 'web/vitest.config.*'
+          - 'e2e/**'
+          - 'playwright.config.*'
+          - 'vitest.config.*'
 
 ci:
   - changed-files:
@@ -40,19 +40,17 @@ docs:
   - changed-files:
       - any-glob-to-any-file:
           - '**/*.md'
-          - 'web/docs/**'
+          - 'docs/**'
 
 dependencies:
   - changed-files:
       - any-glob-to-any-file:
           - 'package.json'
-          - 'package-lock.json'
-          - 'web/package.json'
-          - 'web/pnpm-lock.yaml'
+          - 'pnpm-lock.yaml'
 
 infra:
   - changed-files:
       - any-glob-to-any-file:
-          - 'web/next.config.mjs'
-          - 'web/vercel.json'
-          - 'web/.env.example'
+          - 'next.config.mjs'
+          - 'vercel.json'
+          - '.env.example'

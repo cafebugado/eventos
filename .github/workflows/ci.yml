@@ -39,14 +39,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-          cache-dependency-path: web/pnpm-lock.yaml
 
-      - name: Instalar dependências (web/)
-        working-directory: web
+      - name: Instalar dependências
         run: pnpm install --frozen-lockfile
 
       - name: Auditoria de dependências (pnpm audit)
-        working-directory: web
         run: pnpm audit --prod
         continue-on-error: true
 
@@ -63,16 +60,16 @@ jobs:
 
       - name: Validar security headers no next.config.mjs
         run: |
-          echo "Validando security headers no web/next.config.mjs..."
+          echo "Validando security headers no next.config.mjs..."
           MISSING=""
-          grep -q "X-Frame-Options" web/next.config.mjs || MISSING="$MISSING X-Frame-Options"
-          grep -q "X-Content-Type-Options" web/next.config.mjs || MISSING="$MISSING X-Content-Type-Options"
-          grep -q "X-XSS-Protection" web/next.config.mjs || MISSING="$MISSING X-XSS-Protection"
-          grep -q "Referrer-Policy" web/next.config.mjs || MISSING="$MISSING Referrer-Policy"
-          grep -q "Content-Security-Policy" web/next.config.mjs || MISSING="$MISSING CSP"
-          grep -q "Permissions-Policy" web/next.config.mjs || MISSING="$MISSING Permissions-Policy"
+          grep -q "X-Frame-Options" next.config.mjs || MISSING="$MISSING X-Frame-Options"
+          grep -q "X-Content-Type-Options" next.config.mjs || MISSING="$MISSING X-Content-Type-Options"
+          grep -q "X-XSS-Protection" next.config.mjs || MISSING="$MISSING X-XSS-Protection"
+          grep -q "Referrer-Policy" next.config.mjs || MISSING="$MISSING Referrer-Policy"
+          grep -q "Content-Security-Policy" next.config.mjs || MISSING="$MISSING CSP"
+          grep -q "Permissions-Policy" next.config.mjs || MISSING="$MISSING Permissions-Policy"
           if [ -n "$MISSING" ]; then
-            echo "::error::Security headers ausentes no web/next.config.mjs:$MISSING"
+            echo "::error::Security headers ausentes no next.config.mjs:$MISSING"
             exit 1
           else
             echo "Todos os security headers presentes."
@@ -96,18 +93,14 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-          cache-dependency-path: web/pnpm-lock.yaml
 
       - name: Instalar dependências
-        working-directory: web
         run: pnpm install --frozen-lockfile
 
       - name: Verificar formatação (Prettier)
-        working-directory: web
         run: pnpm format:check
 
       - name: Executar ESLint
-        working-directory: web
         run: pnpm lint
 
   test:
@@ -129,20 +122,17 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-          cache-dependency-path: web/pnpm-lock.yaml
 
       - name: Instalar dependências
-        working-directory: web
         run: pnpm install --frozen-lockfile
 
       - name: Executar testes com cobertura
-        working-directory: web
         run: pnpm test:coverage
 
       - name: Upload cobertura para Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: ./web/coverage/coverage-final.json
+          files: ./coverage/coverage-final.json
           fail_ci_if_error: false
 
   build:
@@ -164,12 +154,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-          cache-dependency-path: web/pnpm-lock.yaml
 
       - name: Instalar dependências
-        working-directory: web
         run: pnpm install --frozen-lockfile
 
       - name: Build de produção
-        working-directory: web
         run: pnpm build

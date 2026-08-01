@@ -1,8 +1,4 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { withSentryConfig } from '@sentry/nextjs'
-
-const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Equivalente aos security headers que o app antigo servia via nginx.conf
 // (o Next/Vercel não passa por nginx, então isso precisa ser declarado aqui).
@@ -34,11 +30,6 @@ const SECURITY_HEADERS = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Repo contém o app Vite legado na raiz (com seu próprio lockfile) enquanto
-  // esta migração está em andamento — fixamos a raiz para não inferir errado.
-  turbopack: {
-    root: dirname,
-  },
   async headers() {
     return [
       {

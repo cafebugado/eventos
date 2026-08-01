@@ -215,7 +215,7 @@ hotfix/corrigir-crash-producao
 ## Estrutura do Projeto
 
 ```
-web/
+eventos/
 ├── app/             # Rotas (App Router): page.jsx, eventos/, sobre/, contato/, galeria/
 │                    # cada rota tem seu Server Component de dados + loading/error nativos
 ├── components/      # Componentes reutilizáveis (Header, Footer, EventCard, Modal/, gallery/, CalendarView/, MobileNav...)
@@ -229,7 +229,9 @@ web/
 ├── test/            # Infraestrutura de testes: setup, mocks/
 ├── e2e/             # Testes end-to-end (Playwright)
 ├── supabase/        # migrations/ do banco
-└── docs/            # esta pasta
+├── docs/            # esta pasta
+├── .github/         # Workflows CI/CD
+└── .husky/          # Git hooks (pre-commit, commit-msg)
 ```
 
 ## Dúvidas

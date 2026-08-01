@@ -15,6 +15,15 @@ dist/
 build/
 .cache/
 *.local
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.vercel
+
+# Storybook
+storybook-static/
+*storybook.log
 
 # Logs
 logs/

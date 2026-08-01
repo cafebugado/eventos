@@ -144,7 +144,7 @@ Vá em **Settings** > **API** no menu lateral:
 
 ## 6. Configurar Variáveis de Ambiente
 
-Crie ou edite o arquivo `web/.env.local`:
+Crie ou edite o arquivo `.env.local`:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
@@ -230,27 +230,24 @@ As políticas de segurança configuradas garantem que:
 - **Criação/Edição/Exclusão**: Apenas usuários autenticados (admins)
 - **Imagens**: Públicas para visualização, upload/delete apenas por admins
 
-## Arquivos Relevantes (web/)
+## Arquivos Relevantes
 
 ```
-web/
-├── lib/
-│   └── supabase/
-│       ├── server.js        # Cliente Supabase para Server Components (async)
-│       └── client.js        # Cliente Supabase para Client Components (síncrono)
-├── services/
-│   ├── eventService.js      # Leitura de eventos (getPublishedEvents, getEventBySlug...)
-│   ├── contributorService.js # Leitura de contribuintes
-│   ├── galeriaService.js    # Leitura de álbuns/fotos
-│   └── tagService.js        # Leitura de tags
-└── app/                     # Rotas (Server Components consomem os services acima)
+lib/
+└── supabase/
+    ├── server.js        # Cliente Supabase para Server Components (async)
+    └── client.js        # Cliente Supabase para Client Components (síncrono)
+services/
+├── eventService.js      # Leitura de eventos (getPublishedEvents, getEventBySlug...)
+├── contributorService.js # Leitura de contribuintes
+├── galeriaService.js    # Leitura de álbuns/fotos
+└── tagService.js        # Leitura de tags
+app/                     # Rotas (Server Components consomem os services acima)
 ```
 
 Não há mais painel administrativo no app novo (decisão de negócio) — os services só expõem operações de leitura. Gerenciar eventos/tags/contribuintes/galeria é feito direto no Supabase Studio.
 
 ## Comandos Úteis
-
-Rodar sempre dentro de `web/`:
 
 ```bash
 # Instalar dependências

@@ -2,7 +2,7 @@
 
 ## Estrutura
 
-As migrations ficam em `web/supabase/migrations/` e devem ser executadas em ordem:
+As migrations ficam em `supabase/migrations/` e devem ser executadas em ordem:
 
 | Arquivo                                | Descrição                                                     |
 | -------------------------------------- | ------------------------------------------------------------- |
@@ -36,7 +36,7 @@ As migrations ficam em `web/supabase/migrations/` e devem ser executadas em orde
 
 ### Nova migration
 
-1. Crie o arquivo `web/supabase/migrations/NNN_descricao.sql`
+1. Crie o arquivo `supabase/migrations/NNN_descricao.sql`
 2. Use `IF NOT EXISTS` e `IF EXISTS` para idempotência
 3. Teste no ambiente de staging primeiro
 4. Execute em produção via SQL Editor

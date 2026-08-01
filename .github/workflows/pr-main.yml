@@ -60,26 +60,20 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-          cache-dependency-path: web/pnpm-lock.yaml
 
       - name: Instalar dependências
-        working-directory: web
         run: pnpm install --frozen-lockfile
 
       - name: Verificar formatação
-        working-directory: web
         run: pnpm format:check
 
       - name: Executar lint
-        working-directory: web
         run: pnpm lint
 
       - name: Executar testes com cobertura
-        working-directory: web
         run: pnpm test:coverage
 
       - name: Build de produção
-        working-directory: web
         run: pnpm build
 
       # Sem checagem de tamanho de bundle aqui: a saída do Next.js (.next/)

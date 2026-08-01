@@ -170,9 +170,9 @@ jobs:
           git fetch origin developer
           git checkout -b "$BUMP_BRANCH" origin/developer
 
-          npm --prefix web version ${{ steps.versioning.outputs.new_version }} --no-git-tag-version
+          npm version ${{ steps.versioning.outputs.new_version }} --no-git-tag-version
 
-          git add web/package.json
+          git add package.json
           git commit -m "chore(release): v${{ steps.versioning.outputs.new_version }} [skip ci]"
           git push origin "$BUMP_BRANCH"
 
@@ -180,7 +180,7 @@ jobs:
             --base developer \
             --head "$BUMP_BRANCH" \
             --title "chore(release): bump version to v${{ steps.versioning.outputs.new_version }}" \
-            --body "Bump automático do \`web/package.json\` após release \`v${{ steps.versioning.outputs.new_version }}\` publicado em main." \
+            --body "Bump automático do \`package.json\` após release \`v${{ steps.versioning.outputs.new_version }}\` publicado em main." \
             --label "release" || true
 
       - name: Resumo do Release
@@ -194,4 +194,4 @@ jobs:
           echo "| Tipo de bump | \`${{ steps.versioning.outputs.bump }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Git tag | ✅ Criada |" >> $GITHUB_STEP_SUMMARY
           echo "| GitHub Release | ✅ Publicado |" >> $GITHUB_STEP_SUMMARY
-          echo "| web/package.json em developer | ✅ PR criado |" >> $GITHUB_STEP_SUMMARY
+          echo "| package.json em developer | ✅ PR criado |" >> $GITHUB_STEP_SUMMARY

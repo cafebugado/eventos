@@ -46,11 +46,8 @@ corepack prepare pnpm@latest --activate
 ## Passo 1 - Clonar o Repositorio
 
 ```bash
-# Clone o projeto do GitHub
 git clone https://github.com/cafebugado/eventos.git
-
-# Entre na pasta do app (web/)
-cd eventos/web
+cd eventos
 ```
 
 > Se voce usa SSH em vez de HTTPS:
@@ -67,7 +64,7 @@ cd eventos/web
 pnpm install
 ```
 
-Esse comando instala todas as dependencias listadas no `package.json`. Aguarde a conclusao (pode levar alguns minutos na primeira vez).
+Esse comando instala as dependencias do app **e** configura os git hooks (Husky) automaticamente via `prepare`. Aguarde a conclusao (pode levar alguns minutos na primeira vez).
 
 > O `pnpm-lock.yaml` garante que todos usem as mesmas versoes. Nunca delete esse arquivo.
 
@@ -78,7 +75,6 @@ Esse comando instala todas as dependencias listadas no `package.json`. Aguarde a
 ### 3.1 Criar o arquivo `.env.local`
 
 ```bash
-# Copie o arquivo de exemplo (dentro de web/)
 cp .env.example .env.local
 ```
 
@@ -111,19 +107,17 @@ Peca ao lider do projeto ou acesse o Supabase Dashboard:
 
 ---
 
-## Passo 4 - Configurar Git Hooks (Husky)
+## Passo 4 - Confirmar os Git Hooks (Husky)
 
-Os git hooks (pre-commit, commit-msg) sao configurados na **raiz do repositorio**, nao dentro de `web/` — sao por repositorio, nao por app. Ao rodar `git clone` e fazer o primeiro `npm install` na raiz (fora de `web/`), o Husky ja e configurado automaticamente via `prepare`.
+Os git hooks (pre-commit, commit-msg) ja foram configurados no Passo 2 (`pnpm install` roda o `prepare` do Husky automaticamente). Para confirmar:
 
 ```bash
-# Na raiz do repositorio (nao em web/)
-cd ..
-npm install
+pnpm exec husky
 ```
 
-Isso configura o Husky para executar automaticamente:
+Isso garante que o Husky execute automaticamente:
 
-- **Pre-commit**: Roda ESLint e Prettier nos arquivos modificados (delegando para as ferramentas instaladas em `web/`)
+- **Pre-commit**: Roda ESLint e Prettier (`lint-staged`) nos arquivos modificados
 - **Commit-msg**: Valida se a mensagem de commit segue o padrao Conventional Commits
 
 ---
@@ -131,7 +125,6 @@ Isso configura o Husky para executar automaticamente:
 ## Passo 5 - Rodar o Projeto
 
 ```bash
-# Dentro de web/
 pnpm dev
 ```
 
@@ -201,31 +194,28 @@ Adicione ao seu `settings.json` (Ctrl+Shift+P > "Open User Settings JSON"):
 
 ```
 eventos/
-├── web/                  # o app (Next.js) — tudo roda daqui
-│   ├── app/              # Rotas (App Router)
-│   ├── components/       # Componentes reutilizaveis
-│   ├── services/         # Servicos de leitura (Supabase)
-│   ├── hooks/            # Custom hooks
-│   ├── store/            # Estado global (Zustand)
-│   ├── lib/              # Configuracoes (Supabase, Sentry)
-│   ├── utils/            # Funcoes utilitarias
-│   ├── test/             # Setup e mocks de testes
-│   ├── e2e/              # Testes end-to-end (Playwright)
-│   ├── supabase/         # Migracoes SQL
-│   ├── docs/             # Documentacao do projeto (esta pasta)
-│   ├── next.config.mjs   # Configuracao do Next.js
-│   ├── package.json      # Dependencias e scripts do app
-│   └── .env.local        # Variaveis de ambiente (NAO commitar!)
-├── .github/               # Workflows CI/CD
-├── .husky/                 # Git hooks (repo-wide)
-└── package.json           # So tooling de git hooks (husky, lint-staged, commitlint)
+├── app/               # Rotas (App Router)
+├── components/        # Componentes reutilizaveis
+├── services/          # Servicos de leitura (Supabase)
+├── hooks/             # Custom hooks
+├── store/             # Estado global (Zustand)
+├── lib/               # Configuracoes (Supabase, Sentry)
+├── theme/             # Tema MUI
+├── utils/             # Funcoes utilitarias
+├── test/              # Setup e mocks de testes
+├── e2e/               # Testes end-to-end (Playwright)
+├── supabase/          # Migracoes SQL
+├── docs/              # Documentacao do projeto (esta pasta)
+├── .github/           # Workflows CI/CD
+├── .husky/            # Git hooks
+├── next.config.mjs    # Configuracao do Next.js
+├── package.json       # Dependencias e scripts (app + tooling de git hooks)
+└── .env.local         # Variaveis de ambiente (NAO commitar!)
 ```
 
 ---
 
 ## Scripts Disponiveis
-
-Rodar sempre dentro de `web/`:
 
 | Comando              | O que faz                                 |
 | -------------------- | ----------------------------------------- |

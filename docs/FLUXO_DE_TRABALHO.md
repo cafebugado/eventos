@@ -68,7 +68,6 @@ git checkout -b hotfix/corrigir-exibicao-data
 ### 3.1 Iniciar o servidor de desenvolvimento
 
 ```bash
-# Dentro de web/
 pnpm dev
 ```
 
@@ -76,12 +75,12 @@ Acesse: **http://localhost:3000**
 
 ### 3.2 Faca suas alteracoes
 
-Edite os arquivos necessarios (tudo dentro de `web/`). Algumas dicas:
+Edite os arquivos necessarios. Algumas dicas:
 
-- Rotas ficam em `web/app/` (App Router)
-- Componentes reutilizaveis ficam em `web/components/`
-- Servicos de leitura (Supabase) ficam em `web/services/`
-- Configuracoes ficam em `web/lib/`
+- Rotas ficam em `app/` (App Router)
+- Componentes reutilizaveis ficam em `components/`
+- Servicos de leitura (Supabase) ficam em `services/`
+- Configuracoes ficam em `lib/`
 
 ### 3.3 Verifique o codigo enquanto desenvolve
 
@@ -139,7 +138,7 @@ tipo(escopo): descricao curta
 
 ```bash
 # Adicione os arquivos modificados (o commit e feito a partir da raiz do repo)
-git add web/app/page.jsx web/components/FilterCity.jsx
+git add app/page.jsx components/FilterCity.jsx
 
 # Faca o commit com mensagem no padrao
 git commit -m "feat(eventos): adiciona filtro por cidade"

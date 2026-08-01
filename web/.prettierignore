@@ -1,9 +1,0 @@
-.next
-node_modules
-pnpm-lock.yaml
-coverage
-storybook-static
-playwright-report
-test-results
-*.min.js
-*.min.css

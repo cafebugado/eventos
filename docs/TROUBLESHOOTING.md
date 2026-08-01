@@ -45,10 +45,10 @@ node --version
 
 ### Tela branca / Erro de conexao com Supabase
 
-**Causa**: Arquivo `web/.env.local` ausente ou com credenciais erradas.
+**Causa**: Arquivo `.env.local` ausente ou com credenciais erradas.
 
 ```bash
-# Dentro de web/, verifique se o .env.local existe
+# Verifique se o .env.local existe
 ls .env.local
 
 # Se nao existe, crie a partir do exemplo
@@ -234,8 +234,6 @@ Clique em **"Details"** ao lado do check que falhou no PR para ver o log complet
 | Build failed          | `pnpm build` e corrija               |
 | Branch origin invalid | Verifique se o PR e para `developer` |
 
-Todos os comandos acima rodam dentro de `web/`.
-
 ### PR nao pode ser mergeado
 
 Verifique:
@@ -263,7 +261,7 @@ git push --force-with-lease
 
 ### Dados nao aparecem
 
-1. Verifique as credenciais no `web/.env.local`
+1. Verifique as credenciais no `.env.local`
 2. Verifique se as tabelas existem no Supabase (SQL Editor > ver tabelas)
 3. Verifique o console do navegador (F12) para erros de API
 

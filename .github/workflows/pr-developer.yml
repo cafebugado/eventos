@@ -55,26 +55,20 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-          cache-dependency-path: web/pnpm-lock.yaml
 
       - name: Instalar dependências
-        working-directory: web
         run: pnpm install --frozen-lockfile
 
       - name: Verificar formatação
-        working-directory: web
         run: pnpm format:check
 
       - name: Executar lint
-        working-directory: web
         run: pnpm lint
 
       - name: Executar testes
-        working-directory: web
         run: pnpm test:run
 
       - name: Build
-        working-directory: web
         run: pnpm build
 
   pr-info:

@@ -13,13 +13,12 @@
 ### Desenvolvimento local
 
 ```bash
-# Dentro de web/
 pnpm dev
 ```
 
 ### Producao (Vercel)
 
-O deploy e automatico via push para `main` (Root Directory do projeto Vercel aponta para `web/`). Toda outra branch/PR gera um deploy de preview automaticamente.
+O deploy e automatico via push para `main`. Toda outra branch/PR gera um deploy de preview automaticamente.
 
 ## Rollback
 
@@ -47,14 +46,14 @@ O deploy e automatico via push para `main` (Root Directory do projeto Vercel apo
 
 ### Erro de CORS
 
-1. Verificar `connect-src` no CSP declarado em `web/next.config.mjs` (`headers()`)
+1. Verificar `connect-src` no CSP declarado em `next.config.mjs` (`headers()`)
 2. Verificar `NEXT_PUBLIC_SUPABASE_URL` nas env vars do projeto
 
 ### Build falha no CI
 
 1. Verificar logs no GitHub Actions
-2. Rodar `pnpm build` localmente dentro de `web/`
-3. Verificar se `web/pnpm-lock.yaml` esta atualizado
+2. Rodar `pnpm build` localmente
+3. Verificar se `pnpm-lock.yaml` esta atualizado
 
 ### Supabase nao responde
 
