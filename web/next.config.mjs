@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { withSentryConfig } from '@sentry/nextjs'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -12,4 +13,9 @@ const nextConfig = {
   },
 }
 
-export default nextConfig
+// org/project/authToken ficam de fora por enquanto (não temos esses valores
+// aqui) — sem eles o wrapper ainda injeta as rotas de monitoramento e a
+// config de instrumentation, só pula o upload de source maps pro Sentry.
+export default withSentryConfig(nextConfig, {
+  silent: true,
+})
