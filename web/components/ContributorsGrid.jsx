@@ -1,3 +1,5 @@
+'use client'
+
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
@@ -8,9 +10,13 @@ import GitHubIcon from '@mui/icons-material/GitHub'
 import LinkedInIcon from '@mui/icons-material/LinkedIn'
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNewOutlined'
 
-// Server Component: `contributors` vem pronto do servidor (app/sobre/page.jsx
-// via getContributors) — sem loading state/skeleton client-side, ao contrário
-// do useEffect+useState do app antigo.
+// `contributors` vem pronto do servidor (app/sobre/page.jsx via
+// getContributors, passado como prop) — sem loading state/skeleton
+// client-side, ao contrário do useEffect+useState do app antigo. Precisa ser
+// 'use client' porque Tooltip + IconButton component="a" como filho direto
+// de um Server Component causa hydration mismatch (o servidor renderiza um
+// <span> placeholder no lugar do <a> real) — mesmo padrão de Tooltip usado
+// em Footer.jsx, que já é client, funciona sem esse problema.
 export default function ContributorsGrid({ contributors = [] }) {
   return (
     <Stack spacing={3} sx={{ mt: { xs: 6, md: 8 } }}>
