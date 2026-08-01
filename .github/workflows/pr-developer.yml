@@ -65,6 +65,9 @@ jobs:
       - name: Executar lint
         run: pnpm lint
 
+      - name: Instalar navegador do Playwright (Chromium)
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Executar testes
         run: pnpm test:run
 
