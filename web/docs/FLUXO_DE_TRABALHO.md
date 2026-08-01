@@ -68,24 +68,20 @@ git checkout -b hotfix/corrigir-exibicao-data
 ### 3.1 Iniciar o servidor de desenvolvimento
 
 ```bash
-# Localmente
+# Dentro de web/
 pnpm dev
-
-# OU via Docker
-docker-compose up app-dev
 ```
 
-Acesse: **http://localhost:5173**
+Acesse: **http://localhost:3000**
 
 ### 3.2 Faca suas alteracoes
 
-Edite os arquivos necessarios. Algumas dicas:
+Edite os arquivos necessarios (tudo dentro de `web/`). Algumas dicas:
 
-- Componentes de paginas ficam em `src/pages/`
-- Componentes do admin ficam em `src/admin/`
-- Componentes reutilizaveis ficam em `src/components/`
-- Servicos de API ficam em `src/services/`
-- Configuracoes ficam em `src/lib/`
+- Rotas ficam em `web/app/` (App Router)
+- Componentes reutilizaveis ficam em `web/components/`
+- Servicos de leitura (Supabase) ficam em `web/services/`
+- Configuracoes ficam em `web/lib/`
 
 ### 3.3 Verifique o codigo enquanto desenvolve
 
@@ -142,8 +138,8 @@ tipo(escopo): descricao curta
 ### 4.4 Fazendo o commit
 
 ```bash
-# Adicione os arquivos modificados
-git add src/pages/Home.jsx src/components/FilterCity.jsx
+# Adicione os arquivos modificados (o commit e feito a partir da raiz do repo)
+git add web/app/page.jsx web/components/FilterCity.jsx
 
 # Faca o commit com mensagem no padrao
 git commit -m "feat(eventos): adiciona filtro por cidade"
@@ -349,48 +345,6 @@ git branch -d feature/minha-tarefa
 
 ---
 
-## Docker no Dia a Dia
-
-### Comandos mais usados
-
-```bash
-# Iniciar ambiente de desenvolvimento
-docker-compose up app-dev
-
-# Iniciar em background (sem travar o terminal)
-docker-compose up -d app-dev
-
-# Ver logs do container
-docker-compose logs -f app-dev
-
-# Parar os containers
-docker-compose down
-
-# Reconstruir o container (apos mudar Dockerfile ou dependencias)
-docker-compose up --build app-dev
-
-# Testar build de staging
-docker-compose --profile staging up app-staging
-
-# Testar build de producao
-docker-compose --profile production up app-prod
-```
-
-### Quando reconstruir o container
-
-Reconstrua (`--build`) quando:
-
-- Alterar o `package.json` (novas dependencias)
-- Alterar o `Dockerfile.dev`
-- Alterar o `docker-compose.yml`
-
-**NAO precisa** reconstruir quando:
-
-- Altera arquivos do `src/` (o hot reload cuida disso)
-- Altera o `.env` (apenas reinicie: `docker-compose restart app-dev`)
-
----
-
 ## Regras Importantes
 
 ### O que FAZER
@@ -409,7 +363,7 @@ Reconstrua (`--build`) quando:
 - PR de feature diretamente para `main`
 - Merge com CI falhando
 - Merge sem as aprovacoes necessarias
-- Commitar o arquivo `.env`
+- Commitar o arquivo `.env.local`
 - Usar `console.log` no codigo (use `console.warn` ou `console.error` se necessario)
 
 ---

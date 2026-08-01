@@ -144,14 +144,14 @@ Vá em **Settings** > **API** no menu lateral:
 
 ## 6. Configurar Variáveis de Ambiente
 
-Crie ou edite o arquivo `.env` na raiz do projeto:
+Crie ou edite o arquivo `web/.env.local`:
 
 ```env
-VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-VITE_SUPABASE_ANON_KEY=sua-anon-key-aqui
+NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key-aqui
 ```
 
-**IMPORTANTE**: Nunca commite o arquivo `.env` no Git! Ele já está no `.gitignore`.
+**IMPORTANTE**: Nunca commite o arquivo `.env.local` no Git! Ele já está no `.gitignore`.
 
 ## 7. Testar a Aplicação
 
@@ -161,9 +161,7 @@ VITE_SUPABASE_ANON_KEY=sua-anon-key-aqui
    pnpm dev
    ```
 
-2. Acesse `http://localhost:5173` para ver a página pública
-
-3. Acesse `http://localhost:5173/admin` para fazer login com o usuário criado
+2. Acesse `http://localhost:3000` para ver a página pública (o app novo não tem mais painel administrativo — o usuário criado é usado para gerenciar dados direto pelo Supabase Studio)
 
 ## 8. Inserir Dados de Teste (Opcional)
 
@@ -232,35 +230,27 @@ As políticas de segurança configuradas garantem que:
 - **Criação/Edição/Exclusão**: Apenas usuários autenticados (admins)
 - **Imagens**: Públicas para visualização, upload/delete apenas por admins
 
-## Arquivos Criados/Modificados
+## Arquivos Relevantes (web/)
 
 ```
-src/
+web/
 ├── lib/
-│   └── supabase.js          # Cliente Supabase
+│   └── supabase/
+│       ├── server.js        # Cliente Supabase para Server Components (async)
+│       └── client.js        # Cliente Supabase para Client Components (síncrono)
 ├── services/
-│   ├── authService.js       # Serviço de autenticação
-│   ├── eventService.js      # Serviço de eventos (CRUD + Upload)
-│   ├── contributorService.js # Serviço de contribuintes
-│   └── tagService.js        # Serviço de tags (CRUD + associação)
-├── admin/
-│   ├── Login.jsx            # Login com Supabase Auth
-│   ├── Dashboard.jsx        # Dashboard com CRUD e Upload
-│   └── Admin.css            # Estilos do admin
-└── App.jsx                  # App público com Supabase
+│   ├── eventService.js      # Leitura de eventos (getPublishedEvents, getEventBySlug...)
+│   ├── contributorService.js # Leitura de contribuintes
+│   ├── galeriaService.js    # Leitura de álbuns/fotos
+│   └── tagService.js        # Leitura de tags
+└── app/                     # Rotas (Server Components consomem os services acima)
 ```
 
-## Funcionalidades
-
-- **Upload de Imagem**: Arraste ou clique para fazer upload direto no Supabase Storage
-- **URL de Imagem**: Também pode colar URL externa de imagem
-- **Descrição**: Campo de texto para descrever o evento
-- **Preview**: Visualização da imagem antes de salvar
-- **Tags de Tecnologia**: CRUD de tags com cor customizada e associação N:N com eventos
-- **Modalidade**: Presencial, Online ou Híbrido para cada evento
-- **Localização**: Endereço, cidade e estado com link para Google Maps
+Não há mais painel administrativo no app novo (decisão de negócio) — os services só expõem operações de leitura. Gerenciar eventos/tags/contribuintes/galeria é feito direto no Supabase Studio.
 
 ## Comandos Úteis
+
+Rodar sempre dentro de `web/`:
 
 ```bash
 # Instalar dependências
@@ -272,8 +262,8 @@ pnpm dev
 # Build para produção
 pnpm build
 
-# Preview do build
-pnpm preview
+# Rodar o build de produção localmente
+pnpm start
 ```
 
 ## Suporte

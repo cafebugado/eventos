@@ -2,37 +2,24 @@
 
 ## Ambientes
 
-| Ambiente     | URL                   | Docker Profile | Porta |
-| ------------ | --------------------- | -------------- | ----- |
-| **Dev**      | http://localhost:5173 | (default)      | 5173  |
-| **Staging**  | http://localhost:3000 | `staging`      | 3000  |
-| **Producao** | http://localhost      | `production`   | 80    |
+| Ambiente     | URL                                      |
+| ------------ | ---------------------------------------- |
+| **Dev**      | http://localhost:3000                    |
+| **Preview**  | URL gerada pela Vercel a cada PR/push    |
+| **Producao** | domínio configurado no projeto da Vercel |
 
 ## Deploy
 
 ### Desenvolvimento local
 
 ```bash
+# Dentro de web/
 pnpm dev
-# ou via Docker
-docker-compose up app-dev
-```
-
-### Staging
-
-```bash
-docker-compose --profile staging up app-staging --build
-```
-
-### Producao (Docker)
-
-```bash
-docker-compose --profile production up app-prod --build -d
 ```
 
 ### Producao (Vercel)
 
-O deploy e automatico via push para `main`.
+O deploy e automatico via push para `main` (Root Directory do projeto Vercel aponta para `web/`). Toda outra branch/PR gera um deploy de preview automaticamente.
 
 ## Rollback
 
@@ -41,30 +28,6 @@ O deploy e automatico via push para `main`.
 1. Acesse **Vercel Dashboard** > **Deployments**
 2. Encontre o deploy anterior
 3. Clique nos **3 pontos** > **Promote to Production**
-
-### Docker
-
-```bash
-# Listar imagens anteriores
-docker images eventos-cafe-prod
-
-# Recriar com a versao anterior do codigo
-git checkout <commit-anterior>
-docker-compose --profile production up app-prod --build -d
-```
-
-## Health Checks
-
-```bash
-# Liveness (nginx rodando?)
-curl http://localhost/health/live
-
-# Readiness (app pronto?)
-curl http://localhost/health/ready
-
-# Health geral
-curl http://localhost/health
-```
 
 ## Monitoramento
 
@@ -79,20 +42,19 @@ curl http://localhost/health
 ### App nao carrega (tela branca)
 
 1. Verificar console do browser (F12)
-2. Verificar se as env vars estao configuradas
-3. Verificar health check: `curl http://localhost/health`
-4. Verificar logs: `docker logs eventos-cafe-prod`
+2. Verificar se as env vars estao configuradas no projeto Vercel (Settings > Environment Variables)
+3. Verificar logs de build/runtime no Vercel Dashboard
 
 ### Erro de CORS
 
-1. Verificar `connect-src` no CSP do `nginx.conf`
-2. Verificar URL do Supabase no `.env`
+1. Verificar `connect-src` no CSP declarado em `web/next.config.mjs` (`headers()`)
+2. Verificar `NEXT_PUBLIC_SUPABASE_URL` nas env vars do projeto
 
 ### Build falha no CI
 
 1. Verificar logs no GitHub Actions
-2. Rodar `pnpm build` localmente
-3. Verificar se `pnpm-lock.yaml` esta atualizado
+2. Rodar `pnpm build` localmente dentro de `web/`
+3. Verificar se `web/pnpm-lock.yaml` esta atualizado
 
 ### Supabase nao responde
 
