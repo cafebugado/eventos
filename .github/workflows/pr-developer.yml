@@ -71,10 +71,51 @@ jobs:
       - name: Build
         run: pnpm build
 
+  ci-checks-web:
+    name: CI Checks (web/)
+    runs-on: ubuntu-latest
+    needs: validate-branch
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Instalar dependências
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Verificar formatação
+        working-directory: web
+        run: pnpm format:check
+
+      - name: Executar lint
+        working-directory: web
+        run: pnpm lint
+
+      - name: Executar testes
+        working-directory: web
+        run: pnpm test:run
+
+      - name: Build
+        working-directory: web
+        run: pnpm build
+
   pr-info:
     name: Informações do PR
     runs-on: ubuntu-latest
-    needs: ci-checks
+    needs: [ci-checks, ci-checks-web]
 
     steps:
       - name: Resumo do PR
