@@ -1,9 +1,16 @@
 import { DM_Sans } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 import Box from '@mui/material/Box'
 import ThemeRegistry from '../theme/ThemeRegistry'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import MobileNav from '../components/MobileNav'
+import PwaInstallBanner from '../components/PwaInstallBanner'
+import PwaUpdateBanner from '../components/PwaUpdateBanner'
+import NewEventToastContainer from '../components/NewEventToastContainer'
+import WebVitalsReporter from '../components/WebVitalsReporter'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -32,6 +39,10 @@ export const metadata = {
   },
 }
 
+export const viewport = {
+  themeColor: '#2563eb',
+}
+
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR" className={dmSans.variable} suppressHydrationWarning>
@@ -49,7 +60,14 @@ export default function RootLayout({ children }) {
             </Box>
             <Footer />
           </Box>
+          <MobileNav />
+          <PwaUpdateBanner />
+          <PwaInstallBanner />
+          <NewEventToastContainer />
+          <WebVitalsReporter />
         </ThemeRegistry>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
