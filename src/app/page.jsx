@@ -6,20 +6,25 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import CodeOutlinedIcon from '@mui/icons-material/CodeOutlined'
 import DataObjectOutlinedIcon from '@mui/icons-material/DataObjectOutlined'
 import TagOutlinedIcon from '@mui/icons-material/TagOutlined'
-import { createClient } from '../lib/supabase/server'
 import { getUpcomingEvents } from '../services/eventService'
 import { getAllEventTags } from '../services/tagService'
 import { captureError } from '../lib/sentry'
 import UpcomingEvents from '../components/UpcomingEvents'
 import Testimonials from '../components/Testimonials'
 
+// Força renderização dinâmica: a API é chamada com cache: 'no-store' (dado
+// sempre atual) em toda página. Sem isso, o `next build` tenta pré-renderizar
+// estaticamente, detecta o fetch não-cacheável e aborta via uma exceção
+// interna do Next — que cairia no catch abaixo e seria reportada ao Sentry
+// como erro real, poluindo o build. Declarar aqui evita a tentativa.
+export const dynamic = 'force-dynamic'
+
 // Server Component: busca eventos + tags direto no servidor (sem estado de
 // loading client-side) — substitui o useUpcomingEvents/useEffect do app antigo.
 async function loadUpcomingEvents() {
-  const supabase = await createClient()
   try {
-    const events = await getUpcomingEvents(supabase, 3)
-    const tagsMap = events.length > 0 ? await getAllEventTags(supabase) : {}
+    const events = await getUpcomingEvents(3)
+    const tagsMap = events.length > 0 ? await getAllEventTags() : {}
     return { events, tagsMap }
   } catch (error) {
     captureError(error, { context: 'Home.loadUpcomingEvents' })

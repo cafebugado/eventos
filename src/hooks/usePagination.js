@@ -8,7 +8,7 @@ import { withUpdatedParams } from '../utils/urlSearchParams'
 // react-router) para next/navigation. A página /eventos (app/eventos/page.jsx)
 // deliberadamente NÃO lê a prop `searchParams` — por isso, navegações que só
 // mudam a query string aqui ficam inteiramente client-side (Partial Rendering
-// do App Router), sem round-trip ao servidor/Supabase a cada troca de página.
+// do App Router), sem round-trip ao servidor/API a cada troca de página.
 export function usePagination(items, pageSize) {
   const router = useRouter()
   const pathname = usePathname()

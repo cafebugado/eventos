@@ -1,103 +1,65 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { http, HttpResponse } from 'msw'
+import { server } from '../test/mocks/server'
 import { getAlbuns, normalizeAlbum } from './galeriaService'
 
-function createMockSupabase(responses) {
-  return {
-    from: vi.fn((table) => {
-      const response = responses[table] || { data: null, error: null }
-      const builder = {
-        select: vi.fn(() => builder),
-        order: vi.fn(() => Promise.resolve(response)),
-        in: vi.fn(() => Promise.resolve(response)),
-      }
-      return builder
-    }),
-  }
-}
+const API_BASE_URL = 'https://v2.backendeventoscfb.cafebugado.com.br'
 
 describe('getAlbuns', () => {
-  it('busca álbuns e enriquece com perfil de quem criou e de quem fez upload das fotos', async () => {
+  it('busca álbuns já resolvidos (nome de evento/comunidade/autor) na API', async () => {
     const albuns = [
       {
         id: 'album-1',
-        created_by: 'user-1',
-        galeria_fotos: [{ id: 'foto-1', uploaded_by: 'user-2' }],
+        evento_nome: 'Meetup React',
+        evento_data: '10/08/2026',
+        comunidade_nome: 'Comunidade Tech',
+        created_by_nome: 'Ana Silva',
+        created_at: '2026-08-01T00:00:00Z',
+        fotos: [],
       },
     ]
-    const profiles = [
-      { user_id: 'user-1', nome: 'Ana', sobrenome: 'Silva' },
-      { user_id: 'user-2', nome: 'Bruno', sobrenome: 'Costa' },
-    ]
-    const supabase = createMockSupabase({
-      galeria_albuns: { data: albuns, error: null },
-      user_profiles: { data: profiles, error: null },
-    })
+    server.use(http.get(`${API_BASE_URL}/gallery/albums/public`, () => HttpResponse.json(albuns)))
 
-    const result = await getAlbuns(supabase)
+    const result = await getAlbuns()
 
-    expect(result).toEqual([
-      {
-        ...albuns[0],
-        user_profiles: { user_id: 'user-1', nome: 'Ana', sobrenome: 'Silva' },
-        galeria_fotos: [
-          {
-            id: 'foto-1',
-            uploaded_by: 'user-2',
-            uploader_profile: { user_id: 'user-2', nome: 'Bruno', sobrenome: 'Costa' },
-          },
-        ],
-      },
-    ])
+    expect(result).toEqual(albuns)
   })
 
-  it('não busca perfis quando não há álbuns com created_by/uploaded_by', async () => {
-    const supabase = createMockSupabase({
-      galeria_albuns: {
-        data: [{ id: 'album-1', created_by: null, galeria_fotos: [] }],
-        error: null,
-      },
-    })
+  it('propaga erro quando a API responde com falha', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/gallery/albums/public`, () =>
+        HttpResponse.json(null, { status: 500 })
+      )
+    )
 
-    const result = await getAlbuns(supabase)
-
-    expect(result).toEqual([
-      { id: 'album-1', created_by: null, galeria_fotos: [], user_profiles: null },
-    ])
-    expect(supabase.from).not.toHaveBeenCalledWith('user_profiles')
-  })
-
-  it('propaga erro do Supabase', async () => {
-    const supabase = createMockSupabase({
-      galeria_albuns: { data: null, error: new Error('falha ao buscar álbuns') },
-    })
-
-    await expect(getAlbuns(supabase)).rejects.toThrow('falha ao buscar álbuns')
+    await expect(getAlbuns()).rejects.toThrow()
   })
 })
 
 describe('normalizeAlbum', () => {
-  it('normaliza álbum com fotos ordenadas e dados de evento/comunidade/criador', () => {
+  it('normaliza álbum com fotos e dados de evento/comunidade/criador já resolvidos', () => {
     const album = {
       id: 'album-1',
-      eventos: { nome: 'Meetup React', data_evento: '10/08/2026' },
-      comunidades: { nome: 'Comunidade Tech' },
-      user_profiles: { nome: 'Ana', sobrenome: 'Silva' },
-      galeria_fotos: [
-        {
-          id: 'foto-2',
-          url: 'https://x/2.png',
-          legenda: 'Segunda',
-          ordem: 2,
-          created_at: '2026-08-10T10:00:00Z',
-          uploader_profile: { nome: 'Bruno', sobrenome: 'Costa' },
-        },
+      evento_nome: 'Meetup React',
+      evento_data: '10/08/2026',
+      comunidade_nome: 'Comunidade Tech',
+      created_by_nome: 'Ana Silva',
+      fotos: [
         {
           id: 'foto-1',
           url: 'https://x/1.png',
           legenda: '',
           ordem: 1,
           created_at: '2026-08-10T09:00:00Z',
-          uploader_profile: null,
+          uploaded_by_nome: null,
+        },
+        {
+          id: 'foto-2',
+          url: 'https://x/2.png',
+          legenda: 'Segunda',
+          ordem: 2,
+          created_at: '2026-08-10T10:00:00Z',
+          uploaded_by_nome: 'Bruno Costa',
         },
       ],
     }
@@ -115,7 +77,7 @@ describe('normalizeAlbum', () => {
   })
 
   it('usa valores default quando evento/comunidade/criador estão ausentes', () => {
-    const result = normalizeAlbum({ id: 'album-1', galeria_fotos: [] })
+    const result = normalizeAlbum({ id: 'album-1', fotos: [] })
 
     expect(result.eventName).toBe('Sem evento')
     expect(result.eventDate).toBe('')

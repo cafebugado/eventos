@@ -3,7 +3,6 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import PhotoLibraryOutlinedIcon from '@mui/icons-material/PhotoLibraryOutlined'
-import { createClient } from '../../lib/supabase/server'
 import { getAlbuns, normalizeAlbum } from '../../services/galeriaService'
 import { captureError } from '../../lib/sentry'
 import GalleryPageClient from './GalleryPageClient'
@@ -14,16 +13,18 @@ export const metadata = {
     'Galeria de fotos das comunidades e eventos presenciais do Café Bugado. Veja os melhores momentos de cada encontro.',
 }
 
+// Força renderização dinâmica — ver comentário em app/page.jsx.
+export const dynamic = 'force-dynamic'
+
 // Server Component: busca e normaliza os álbuns direto no servidor — sem
 // hook client-side (useGallery.js) nem loading state. O app antigo também
 // expunha busca por texto/comunidade via useGallery, mas a página nunca
 // renderizava nenhum controle de filtro para isso (capacidade morta) — não
 // portamos essa parte não utilizada.
 async function loadAlbums() {
-  const supabase = await createClient()
   try {
-    const albums = await getAlbuns(supabase)
-    return albums.filter((a) => (a.galeria_fotos || []).length > 0).map(normalizeAlbum)
+    const albums = await getAlbuns()
+    return albums.filter((a) => (a.fotos || []).length > 0).map(normalizeAlbum)
   } catch (error) {
     captureError(error, { context: 'GalleryPage.loadAlbums' })
     return null

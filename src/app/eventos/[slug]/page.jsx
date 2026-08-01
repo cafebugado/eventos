@@ -14,7 +14,6 @@ import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined'
 import WifiOutlinedIcon from '@mui/icons-material/WifiOutlined'
 import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined'
 import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined'
-import { createClient } from '../../../lib/supabase/server'
 import { getEventBySlugOrId } from '../../../services/eventService'
 import { getEventTags } from '../../../services/tagService'
 import { captureError } from '../../../lib/sentry'
@@ -38,18 +37,19 @@ function truncateText(text, maxLength = 160) {
   return text.slice(0, maxLength - 3) + '...'
 }
 
-// PGRST116 (single() sem resultado) e "Event not found" (fallback interno de
-// getEventBySlugOrId para slug que não é slug nem UUID válido) são os únicos
-// casos que viram 404 — qualquer outro erro (rede, servidor) propaga para o
+// Força renderização dinâmica — ver comentário em app/page.jsx.
+export const dynamic = 'force-dynamic'
+
+// HTTP 404 da API (evento não existe pra esse slug nem UUID) é o único caso
+// que vira 404 — qualquer outro erro (rede, servidor) propaga para o
 // error.jsx desta rota.
 async function loadEvent(slug) {
-  const supabase = await createClient()
   try {
-    const event = await getEventBySlugOrId(supabase, slug)
-    const eventTags = await getEventTags(supabase, event.id).catch(() => [])
+    const event = await getEventBySlugOrId(slug)
+    const eventTags = await getEventTags(event.id).catch(() => [])
     return { event, eventTags }
   } catch (error) {
-    if (error?.code === 'PGRST116') {
+    if (error?.status === 404) {
       return { event: null, eventTags: [] }
     }
     captureError(error, { context: 'EventDetails.loadEvent', slug })
@@ -243,7 +243,7 @@ export default async function EventDetailsPage({ params }) {
         </Card>
       </Container>
 
-      <EventRecommendations currentEvent={event} currentEventTags={eventTags} />
+      <EventRecommendations currentEvent={event} />
     </>
   )
 }

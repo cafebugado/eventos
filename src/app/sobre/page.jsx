@@ -1,5 +1,4 @@
 import Container from '@mui/material/Container'
-import { createClient } from '../../lib/supabase/server'
 import { getEventStats } from '../../services/eventService'
 import { getContributors } from '../../services/contributorService'
 import { captureError } from '../../lib/sentry'
@@ -12,14 +11,15 @@ export const metadata = {
     'Conheça a Comunidade Café Bugado. Um jeito mais simples de descobrir eventos de tecnologia. Reunimos meetups, workshops, hackathons e conferências em um só lugar.',
 }
 
+// Força renderização dinâmica — ver comentário em app/page.jsx.
+export const dynamic = 'force-dynamic'
+
 // Server Component: busca estatísticas de eventos e contribuintes direto no
 // servidor — cada busca falha isoladamente (uma não derruba a outra).
 async function loadAboutData() {
-  const supabase = await createClient()
-
   const [statsResult, contributorsResult] = await Promise.allSettled([
-    getEventStats(supabase),
-    getContributors(supabase),
+    getEventStats(),
+    getContributors(),
   ])
 
   if (statsResult.status === 'rejected') {
@@ -30,7 +30,7 @@ async function loadAboutData() {
   }
 
   return {
-    totalEventos: statsResult.status === 'fulfilled' ? statsResult.value.total : null,
+    totalEventos: statsResult.status === 'fulfilled' ? statsResult.value.total_publicados : null,
     contributors: contributorsResult.status === 'fulfilled' ? contributorsResult.value : [],
   }
 }

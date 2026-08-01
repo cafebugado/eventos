@@ -43,20 +43,19 @@ node --version
 
 ## Problemas ao Rodar o Projeto
 
-### Tela branca / Erro de conexao com Supabase
+### Tela branca / Erro de conexao com a API
 
-**Causa**: Arquivo `.env.local` ausente ou com credenciais erradas.
+**Causa**: `NEXT_PUBLIC_API_BASE_URL` apontando pra um backend fora do ar (ex.: `localhost:8000` sem o backend rodando).
 
 ```bash
 # Verifique se o .env.local existe
 ls .env.local
 
-# Se nao existe, crie a partir do exemplo
+# Se nao existe, crie a partir do exemplo (ja aponta pra API de producao)
 cp .env.example .env.local
 
-# Edite e preencha com as credenciais corretas
-# NEXT_PUBLIC_SUPABASE_URL=https://...
-# NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+# Se estiver sobrescrevendo com um backend local, confirme que ele esta rodando:
+# NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
 Apos editar o `.env.local`, reinicie o servidor:
@@ -251,19 +250,19 @@ git push --force-with-lease
 
 ---
 
-## Problemas com Supabase
+## Problemas com a API
 
-### Imagens nao carregam
+### Erro de CORS no console do navegador
 
-1. Verifique se o bucket `imagens` existe no Supabase Storage
-2. Verifique se o bucket esta marcado como **Public**
-3. Verifique as politicas de acesso do bucket
+1. Confirme a origem que o `pnpm dev` esta usando (`http://localhost:3000` por padrao)
+2. Verifique se essa origem esta na lista `CORS_ORIGINS` do backend (repositorio `backendEventos`, `.env`) — se nao estiver, precisa ser adicionada la, nao aqui
+3. Erros de CORS aparecem no console do navegador, nao nos logs do `pnpm dev`
 
-### Dados nao aparecem
+### Dados nao aparecem / 404 inesperado
 
-1. Verifique as credenciais no `.env.local`
-2. Verifique se as tabelas existem no Supabase (SQL Editor > ver tabelas)
-3. Verifique o console do navegador (F12) para erros de API
+1. Verifique `NEXT_PUBLIC_API_BASE_URL` no `.env.local`
+2. Confirme que a API esta no ar: `curl https://v2.backendeventoscfb.cafebugado.com.br/health`
+3. Verifique o console do navegador (F12) e os logs do `pnpm dev` para o erro exato (o `apiClient.js` reporta contexto via Sentry/`console.error`)
 
 ---
 

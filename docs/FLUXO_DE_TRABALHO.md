@@ -79,7 +79,7 @@ Edite os arquivos necessarios. Algumas dicas:
 
 - Rotas ficam em `src/app/` (App Router)
 - Componentes reutilizaveis ficam em `src/components/`
-- Servicos de leitura (Supabase) ficam em `src/services/`
+- Servicos de leitura (API dedicada) ficam em `src/services/`
 - Configuracoes ficam em `src/lib/`
 
 ### 3.3 Verifique o codigo enquanto desenvolve

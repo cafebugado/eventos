@@ -60,7 +60,7 @@ export function useEventCountdown(dataEvento, horario) {
     let interval
 
     // setState roda dentro de um callback (setTimeout), não direto no corpo
-    // do effect — mesma regra (react-hooks/refs) de useRealtimeEvents.js.
+    // do effect — mesma regra (react-hooks/refs) de EventCard.jsx.
     const tick = () => {
       const next = getState()
       setState(next)

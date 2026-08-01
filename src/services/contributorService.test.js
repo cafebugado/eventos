@@ -1,31 +1,28 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { http, HttpResponse } from 'msw'
+import { server } from '../test/mocks/server'
 import { getContributors } from './contributorService'
 
-function createMockSupabase({ data = null, error = null } = {}) {
-  const builder = {
-    select: vi.fn(() => builder),
-    order: vi.fn(() => Promise.resolve({ data, error })),
-  }
-  return { from: vi.fn(() => builder) }
-}
+const API_BASE_URL = 'https://v2.backendeventoscfb.cafebugado.com.br'
 
 describe('getContributors', () => {
-  it('busca contribuintes ordenados por nome', async () => {
+  it('busca contribuintes na API', async () => {
     const contributors = [
       { id: '1', nome: 'Ana' },
       { id: '2', nome: 'Bruno' },
     ]
-    const supabase = createMockSupabase({ data: contributors })
+    server.use(http.get(`${API_BASE_URL}/contributors`, () => HttpResponse.json(contributors)))
 
-    const result = await getContributors(supabase)
+    const result = await getContributors()
 
-    expect(supabase.from).toHaveBeenCalledWith('contribuintes')
     expect(result).toEqual(contributors)
   })
 
-  it('propaga erro do Supabase', async () => {
-    const supabase = createMockSupabase({ error: new Error('falha de conexão') })
+  it('propaga erro quando a API responde com falha', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/contributors`, () => HttpResponse.json(null, { status: 500 }))
+    )
 
-    await expect(getContributors(supabase)).rejects.toThrow('falha de conexão')
+    await expect(getContributors()).rejects.toThrow()
   })
 })

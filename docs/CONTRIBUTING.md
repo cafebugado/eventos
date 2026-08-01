@@ -220,17 +220,16 @@ eventos/
 │   ├── app/         # Rotas (App Router): page.jsx, eventos/, sobre/, contato/, galeria/
 │   │                # cada rota tem seu Server Component de dados + loading/error nativos
 │   ├── components/  # Componentes reutilizáveis (Header, Footer, EventCard, Modal/, gallery/, CalendarView/, MobileNav...)
-│   ├── services/    # Serviços de leitura (Supabase): event, tag, contributor, galeria
-│   ├── hooks/       # Custom hooks: useMediaQuery, usePagination, useEventFilters, usePwa, useRealtimeEvents
+│   ├── services/    # Serviços de leitura (API dedicada): event, tag, contributor, galeria
+│   ├── hooks/       # Custom hooks: useMediaQuery, usePagination, useEventFilters, usePwa
 │   ├── store/       # Estado global (Zustand): useFavouritesStore
-│   ├── lib/         # supabase/server.js (async) e supabase/client.js (síncrono), apiClient.js (withRetry), sentry.js, pwa.js
+│   ├── lib/         # api/eventosApi.js (fetch wrapper), apiClient.js (withRetry), sentry.js, pwa.js
 │   ├── theme/       # Tema MUI (ThemeRegistry, theme.js)
 │   ├── utils/       # Funções utilitárias
 │   ├── constants/   # Constantes da aplicação (navigation.js)
 │   └── test/        # Infraestrutura de testes: setup, mocks/
 ├── e2e/             # Testes end-to-end (Playwright)
 ├── public/          # Arquivos estáticos
-├── supabase/        # migrations/ do banco
 ├── docs/            # esta pasta
 ├── .github/         # Workflows CI/CD
 └── .husky/          # Git hooks (pre-commit, commit-msg)

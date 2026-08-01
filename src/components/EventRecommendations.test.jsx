@@ -4,9 +4,6 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'
 import EventRecommendations from './EventRecommendations'
 import { getRecommendedEvents } from '../services/eventService'
 
-vi.mock('../lib/supabase/client', () => ({
-  createClient: vi.fn(() => ({})),
-}))
 vi.mock('../services/eventService', () => ({
   getRecommendedEvents: vi.fn(),
 }))
@@ -54,7 +51,7 @@ describe('EventRecommendations', () => {
       { id: 'rec-1', nome: 'Evento Recomendado', data_evento: '21/02/2999', tags: [] },
     ])
 
-    renderWithTheme(<EventRecommendations currentEvent={currentEvent} currentEventTags={[]} />)
+    renderWithTheme(<EventRecommendations currentEvent={currentEvent} />)
 
     expect(await screen.findByText('Evento Recomendado')).toBeInTheDocument()
     expect(getRecommendedEvents).toHaveBeenCalled()

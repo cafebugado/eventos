@@ -78,32 +78,20 @@ Esse comando instala as dependencias do app **e** configura os git hooks (Husky)
 cp .env.example .env.local
 ```
 
-### 3.2 Preencher as credenciais
+### 3.2 Nao precisa preencher nada pra rodar local
 
-Abra o arquivo `.env.local` no seu editor e preencha:
+O `.env.example` ja aponta por padrao pra API de producao
+(`NEXT_PUBLIC_API_BASE_URL=https://v2.backendeventoscfb.cafebugado.com.br`) — sao
+todos endpoints GET publicos, sem credencial nenhuma. So edite `.env.local` se
+quiser apontar pra um backend rodando localmente:
 
 ```env
-# URL do seu projeto Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
-
-# Chave publica (anon key) do Supabase
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key-aqui
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
-### 3.3 Onde encontrar as credenciais
-
-Peca ao lider do projeto ou acesse o Supabase Dashboard:
-
-1. Acesse [https://supabase.com](https://supabase.com) e faca login
-2. Selecione o projeto do Cafe Bugado
-3. Va em **Settings** > **API**
-4. Copie:
-   - **Project URL** -> cole em `NEXT_PUBLIC_SUPABASE_URL`
-   - **anon public key** (em Project API keys) -> cole em `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+(o backend fica no repositorio `backendEventos`, separado deste)
 
 > **IMPORTANTE**: NUNCA commite o arquivo `.env.local`! Ele ja esta no `.gitignore`.
-
-> Se precisar configurar o Supabase do zero (criar tabelas, storage, etc.), siga o guia completo em [SUPABASE_SETUP.md](SUPABASE_SETUP.md).
 
 ---
 
@@ -197,17 +185,16 @@ eventos/
 ├── src/
 │   ├── app/           # Rotas (App Router)
 │   ├── components/    # Componentes reutilizaveis
-│   ├── services/      # Servicos de leitura (Supabase)
+│   ├── services/      # Servicos de leitura (API dedicada)
 │   ├── hooks/         # Custom hooks
 │   ├── store/         # Estado global (Zustand)
-│   ├── lib/           # Configuracoes (Supabase, Sentry)
+│   ├── lib/           # Configuracoes (API, Sentry)
 │   ├── theme/         # Tema MUI
 │   ├── utils/         # Funcoes utilitarias
 │   ├── test/          # Setup e mocks de testes
 │   └── instrumentation*.js, sentry.*.config.js
 ├── e2e/               # Testes end-to-end (Playwright)
 ├── public/            # Arquivos estaticos
-├── supabase/          # Migracoes SQL
 ├── docs/              # Documentacao do projeto (esta pasta)
 ├── .github/           # Workflows CI/CD
 ├── .husky/            # Git hooks
@@ -245,7 +232,7 @@ eventos/
 | Next.js 16         | Framework (App Router, Server Components) |
 | MUI (Material UI)  | Componentes de UI                         |
 | Zustand            | Estado global                             |
-| Supabase           | Backend (PostgreSQL + Auth + Storage)     |
+| API dedicada       | Backend (FastAPI, repositorio separado)   |
 | Vitest             | Framework de testes                       |
 | Playwright         | Testes end-to-end                         |
 | Storybook          | Catalogo de componentes                   |

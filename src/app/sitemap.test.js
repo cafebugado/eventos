@@ -1,17 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import sitemap from './sitemap'
-import { getEvents } from '../services/eventService'
+import { apiGet } from '../lib/api/eventosApi'
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({})),
-}))
-vi.mock('../services/eventService', () => ({
-  getEvents: vi.fn(),
+vi.mock('../lib/api/eventosApi', () => ({
+  apiGet: vi.fn(),
 }))
 
 describe('sitemap', () => {
   it('inclui as rotas estáticas', async () => {
-    getEvents.mockResolvedValue([])
+    apiGet.mockResolvedValue([])
     const entries = await sitemap()
     const urls = entries.map((e) => e.url)
 
@@ -27,7 +24,7 @@ describe('sitemap', () => {
   })
 
   it('inclui uma entrada por evento, usando slug quando disponível', async () => {
-    getEvents.mockResolvedValue([
+    apiGet.mockResolvedValue([
       { id: '1', slug: 'evento-um', data_evento: '20/02/2026', updated_at: '2026-02-01T00:00:00Z' },
       { id: '2', slug: null, data_evento: '21/02/2026' },
     ])
@@ -40,7 +37,7 @@ describe('sitemap', () => {
   })
 
   it('retorna só as rotas estáticas quando a busca de eventos falha', async () => {
-    getEvents.mockRejectedValue(new Error('falha'))
+    apiGet.mockRejectedValue(new Error('falha'))
     const entries = await sitemap()
     expect(entries).toHaveLength(5)
   })

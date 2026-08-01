@@ -41,7 +41,7 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  if (url.href.includes('supabase')) {
+  if (url.href.includes('backendeventoscfb.cafebugado.com.br')) {
     event.respondWith(
       fetch(request)
         .then((response) => {

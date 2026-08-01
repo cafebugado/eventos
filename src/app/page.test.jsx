@@ -5,9 +5,6 @@ import Home from './page'
 import { getUpcomingEvents } from '../services/eventService'
 import { getAllEventTags } from '../services/tagService'
 
-vi.mock('../lib/supabase/server', () => ({
-  createClient: vi.fn(async () => ({})),
-}))
 vi.mock('../services/eventService', () => ({
   getUpcomingEvents: vi.fn(),
 }))

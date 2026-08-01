@@ -47,7 +47,8 @@ O deploy e automatico via push para `main`. Toda outra branch/PR gera um deploy 
 ### Erro de CORS
 
 1. Verificar `connect-src` no CSP declarado em `next.config.mjs` (`headers()`)
-2. Verificar `NEXT_PUBLIC_SUPABASE_URL` nas env vars do projeto
+2. Verificar `NEXT_PUBLIC_API_BASE_URL` nas env vars do projeto
+3. Verificar `CORS_ORIGINS` no backend (repositorio `backendEventos`) — precisa incluir a origem deste app
 
 ### Build falha no CI
 
@@ -55,16 +56,16 @@ O deploy e automatico via push para `main`. Toda outra branch/PR gera um deploy 
 2. Rodar `pnpm build` localmente
 3. Verificar se `pnpm-lock.yaml` esta atualizado
 
-### Supabase nao responde
+### API nao responde
 
-1. Verificar status em https://status.supabase.com
-2. Verificar se a chave anon key esta correta
-3. Verificar RLS policies no dashboard
+1. Verificar `GET https://v2.backendeventoscfb.cafebugado.com.br/health`
+2. Verificar deploy/logs do backend (repositorio `backendEventos`)
+3. Verificar se `NEXT_PUBLIC_API_BASE_URL` esta correta nas env vars do projeto
 
 ## Contatos de emergencia
 
-| Papel          | Responsavel           |
-| -------------- | --------------------- |
-| **Mantenedor** | @cafebugado           |
-| **Supabase**   | suporte via dashboard |
-| **Vercel**     | suporte via dashboard |
+| Papel           | Responsavel                  |
+| --------------- | ---------------------------- |
+| **Mantenedor**  | @cafebugado                  |
+| **Backend/API** | repositorio `backendEventos` |
+| **Vercel**      | suporte via dashboard        |

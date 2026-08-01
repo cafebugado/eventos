@@ -10,16 +10,14 @@ import Button from '@mui/material/Button'
 import Skeleton from '@mui/material/Skeleton'
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined'
 import EventCard from './EventCard'
-import { createClient } from '../lib/supabase/client'
 import { getRecommendedEvents } from '../services/eventService'
-import { parseEventDate } from '../utils/eventDate'
 import { useFavouritesStore } from '../store/useFavouritesStore'
 
 // Client Component deliberadamente NÃO alimentado pelo Server Component pai
 // (app/eventos/[slug]/page.jsx): busca as recomendações no browser, e só
 // dispara a busca quando a seção entra na viewport (IntersectionObserver) —
 // mesma otimização de lazy-load do app antigo, preservada aqui.
-export default function EventRecommendations({ currentEvent, currentEventTags }) {
+export default function EventRecommendations({ currentEvent }) {
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(false)
   const [triggered, setTriggered] = useState(false)
@@ -64,15 +62,7 @@ export default function EventRecommendations({ currentEvent, currentEventTags })
     async function load() {
       setLoading(true)
       try {
-        const supabase = createClient()
-        const currentEventDate = parseEventDate(currentEvent.data_evento)
-        const results = await getRecommendedEvents(
-          supabase,
-          currentEvent.id,
-          currentEventTags,
-          currentEventDate,
-          3
-        )
+        const results = await getRecommendedEvents(currentEvent.id, 3)
         if (!cancelled) {
           setRecommendations(results)
         }
@@ -92,7 +82,7 @@ export default function EventRecommendations({ currentEvent, currentEventTags })
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- currentEventTags é um array novo a cada render do pai; usar currentEvent.id evita loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- currentEvent é um objeto novo a cada render do pai; usar currentEvent?.id evita loop
   }, [triggered, currentEvent?.id])
 
   if (!triggered && !loading) {

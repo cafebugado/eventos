@@ -1,16 +1,16 @@
-import { createClient } from '@supabase/supabase-js'
-import { getEvents } from '../services/eventService'
+import { apiGet } from '../lib/api/eventosApi'
 import { captureError } from '../lib/sentry'
 
 // Convenção nativa do Next (substitui api/sitemap.ts): qualquer objeto
 // exportado aqui vira uma entrada do sitemap.xml servido automaticamente em
 // /sitemap.xml — sem Edge Function nem reescrita no vercel.json.
 //
-// Usa o client "puro" do @supabase/supabase-js (não lib/supabase/server.js)
-// deliberadamente: o client de lib/supabase/server.js chama cookies() do
-// next/headers para propagar sessão, o que forçaria esta rota inteira a
-// virar dynamic (sem cache) mesmo sendo dado 100% público. O sitemap não
-// precisa de sessão — evitar cookies() aqui mantém a rota cacheável.
+// Chama apiGet direto (não services/eventService.js) deliberadamente: o
+// wrapper padrão usa cache: 'no-store' pra sempre refletir eventos novos nas
+// páginas normais, mas isso forçaria esta rota inteira a virar dynamic. O
+// sitemap tolera dado com até 1h de atraso — revalidate aqui mantém a rota
+// cacheável, igual ao comportamento anterior (que evitava cookies() pelo
+// mesmo motivo).
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://eventos.cafebugado.com.br'
 
 const STATIC_ROUTES = [
@@ -44,17 +44,15 @@ export default async function sitemap() {
 
   let eventEntries = []
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    )
-    // api/sitemap.ts (app antigo) lista todos os eventos, sem filtrar por
-    // status — mantemos o mesmo escopo aqui. Diferente do antigo, porém,
-    // usamos slug quando disponível: api/sitemap.ts foi escrito antes das
-    // URLs amigáveis (feat/friendly-event-urls) e ainda monta a URL só com
-    // o UUID, divergindo do canonical real da página
-    // (app/eventos/[slug]/page.jsx). Aqui corrigimos isso.
-    const events = await getEvents(supabase)
+    // Não existe endpoint público que liste todos os status — e não faria
+    // sentido indexar rascunho mesmo, então o escopo aqui é só publicados
+    // (api/sitemap.ts, do app antigo, indexava todos os status; convergimos
+    // pro mais correto). Usamos slug quando disponível: a URL final bate com
+    // o canonical real da página (app/eventos/[slug]/page.jsx).
+    const events = await apiGet('/events/published', {
+      context: 'sitemap',
+      next: { revalidate: 3600 },
+    })
     eventEntries = events.map((event) => ({
       url: `${SITE_URL}/eventos/${event.slug || event.id}`,
       lastModified: eventLastModified(event),

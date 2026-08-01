@@ -22,7 +22,7 @@ const SECURITY_HEADERS = [
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
       "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://vitals.vercel-insights.com https://*.ingest.us.sentry.io",
+      "connect-src 'self' https://v2.backendeventoscfb.cafebugado.com.br https://vitals.vercel-insights.com https://*.ingest.us.sentry.io",
       "frame-ancestors 'self'",
     ].join('; '),
   },

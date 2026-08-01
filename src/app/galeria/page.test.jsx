@@ -4,9 +4,6 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'
 import GalleryPage, { metadata } from './page'
 import { getAlbuns } from '../../services/galeriaService'
 
-vi.mock('../../lib/supabase/server', () => ({
-  createClient: vi.fn(async () => ({})),
-}))
 vi.mock('../../services/galeriaService', async (importOriginal) => {
   const actual = await importOriginal()
   return { ...actual, getAlbuns: vi.fn() }
@@ -18,10 +15,11 @@ function renderWithTheme(ui) {
 
 const rawAlbum = {
   id: 'album-1',
-  eventos: { nome: 'Meetup React', data_evento: '20/02/2026' },
-  comunidades: { nome: 'Café Bugado' },
-  user_profiles: null,
-  galeria_fotos: [
+  evento_nome: 'Meetup React',
+  evento_data: '20/02/2026',
+  comunidade_nome: 'Café Bugado',
+  created_by_nome: null,
+  fotos: [
     { id: 'p1', url: 'https://example.com/1.png', legenda: '', ordem: 0, created_at: '2026-02-20' },
   ],
 }
@@ -42,7 +40,7 @@ describe('GalleryPage', () => {
   })
 
   it('filtra álbuns sem fotos', async () => {
-    getAlbuns.mockResolvedValue([{ ...rawAlbum, galeria_fotos: [] }])
+    getAlbuns.mockResolvedValue([{ ...rawAlbum, fotos: [] }])
 
     const ui = await GalleryPage()
     renderWithTheme(ui)

@@ -11,9 +11,6 @@ const { notFoundMock } = vi.hoisted(() => ({
   }),
 }))
 
-vi.mock('../../../lib/supabase/server', () => ({
-  createClient: vi.fn(async () => ({})),
-}))
 vi.mock('../../../services/eventService', () => ({
   getEventBySlugOrId: vi.fn(),
 }))
@@ -65,9 +62,9 @@ describe('EventDetailsPage', () => {
     expect(screen.getByText('20/02/2999')).toBeInTheDocument()
   })
 
-  it('chama notFound() quando o evento não existe (PGRST116)', async () => {
+  it('chama notFound() quando o evento não existe (404)', async () => {
     const notFoundError = new Error('not found')
-    notFoundError.code = 'PGRST116'
+    notFoundError.status = 404
     getEventBySlugOrId.mockRejectedValue(notFoundError)
 
     await expect(
@@ -99,7 +96,7 @@ describe('EventDetailsPage', () => {
 
     it('retorna título de "não encontrado" quando o evento não existe', async () => {
       const notFoundError = new Error('not found')
-      notFoundError.code = 'PGRST116'
+      notFoundError.status = 404
       getEventBySlugOrId.mockRejectedValue(notFoundError)
 
       const metadata = await generateMetadata({ params: Promise.resolve({ slug: 'inexistente' }) })

@@ -5,9 +5,6 @@ import AboutPage, { metadata } from './page'
 import { getEventStats } from '../../services/eventService'
 import { getContributors } from '../../services/contributorService'
 
-vi.mock('../../lib/supabase/server', () => ({
-  createClient: vi.fn(async () => ({})),
-}))
 vi.mock('../../services/eventService', () => ({
   getEventStats: vi.fn(),
 }))
@@ -26,7 +23,7 @@ describe('AboutPage', () => {
   })
 
   it('renderiza estatísticas e contribuintes buscados no servidor', async () => {
-    getEventStats.mockResolvedValue({ total: 25 })
+    getEventStats.mockResolvedValue({ total_publicados: 25 })
     getContributors.mockResolvedValue([
       { id: '1', nome: 'Alice', avatar_url: '', github_url: 'https://github.com/alice' },
     ])

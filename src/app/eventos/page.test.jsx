@@ -5,9 +5,6 @@ import EventsPage, { metadata } from './page'
 import { getPublishedEvents } from '../../services/eventService'
 import { getAllEventTags, getTags } from '../../services/tagService'
 
-vi.mock('../../lib/supabase/server', () => ({
-  createClient: vi.fn(async () => ({})),
-}))
 vi.mock('../../services/eventService', () => ({
   getPublishedEvents: vi.fn(),
 }))

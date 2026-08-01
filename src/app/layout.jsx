@@ -9,7 +9,6 @@ import Footer from '../components/Footer'
 import MobileNav from '../components/MobileNav'
 import PwaInstallBanner from '../components/PwaInstallBanner'
 import PwaUpdateBanner from '../components/PwaUpdateBanner'
-import NewEventToastContainer from '../components/NewEventToastContainer'
 import WebVitalsReporter from '../components/WebVitalsReporter'
 import './globals.css'
 
@@ -63,7 +62,6 @@ export default function RootLayout({ children }) {
           <MobileNav />
           <PwaUpdateBanner />
           <PwaInstallBanner />
-          <NewEventToastContainer />
           <WebVitalsReporter />
         </ThemeRegistry>
         <Analytics />
