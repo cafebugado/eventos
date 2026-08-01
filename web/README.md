@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Eventos Café Bugado — web/
 
-## Getting Started
+App novo da plataforma de eventos da Comunidade Café Bugado, em migração de Vite/React para **Next.js (App Router)**.
 
-First, run the development server:
+## Stack
+
+- **Framework:** Next.js 16 (App Router, Server Components)
+- **UI:** MUI (Material UI) + Emotion
+- **Estado global:** Zustand
+- **Backend:** Supabase (PostgreSQL + Auth + Storage) via `@supabase/ssr`
+- **Erros:** Sentry (`@sentry/nextjs`)
+- **Analytics:** Vercel Analytics + Speed Insights + Web Vitals
+- **Testes:** Vitest + Testing Library + MSW + Playwright (E2E) + Storybook
+
+## Rodando localmente
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env.local   # preencher com as credenciais do Supabase
+pnpm dev                      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+| Script                               | Descrição                           |
+| ------------------------------------ | ----------------------------------- |
+| `pnpm dev`                           | Servidor de desenvolvimento         |
+| `pnpm build`                         | Build de produção                   |
+| `pnpm start`                         | Roda o build de produção localmente |
+| `pnpm lint` / `lint:fix`             | ESLint                              |
+| `pnpm format` / `format:check`       | Prettier                            |
+| `pnpm test` / `test:run`             | Vitest (watch / single run)         |
+| `pnpm test:coverage`                 | Vitest com cobertura                |
+| `pnpm test:e2e`                      | Playwright (Chromium)               |
+| `pnpm storybook` / `build-storybook` | Storybook                           |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Variáveis de ambiente
 
-## Learn More
+Ver [`.env.example`](.env.example). As obrigatórias são `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`; `NEXT_PUBLIC_SITE_URL` e `NEXT_PUBLIC_SENTRY_DSN` são opcionais (têm default/no-op).
 
-To learn more about Next.js, take a look at the following resources:
+## Padrões do projeto
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Chamadas ao Supabase sempre via `withRetry` (`lib/apiClient.js`).
+- Server Components usam `lib/supabase/server.js` (async); Client Components usam `lib/supabase/client.js` (síncrono).
+- Busca de dados acontece em Server Components (`app/**/page.jsx`), sem hooks client-side de fetch.
+- Modais usam `components/Modal/`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Ver `CLAUDE.md` na raiz do repositório para o guia completo de convenções.
 
-## Deploy on Vercel
+## Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deploy via Vercel, com o **Root Directory do projeto Vercel apontando para `web/`**.
