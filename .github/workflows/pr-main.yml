@@ -60,63 +60,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-
-      - name: Instalar dependências
-        run: pnpm install --frozen-lockfile
-
-      - name: Verificar formatação
-        run: pnpm format:check
-
-      - name: Executar lint
-        run: pnpm lint
-
-      - name: Executar testes com cobertura
-        run: pnpm test:coverage
-
-      - name: Build de produção
-        run: pnpm build
-
-      - name: Verificar tamanho do bundle
-        run: |
-          MAX_SIZE_KB=1300
-          TOTAL_SIZE_KB=$(du -sk dist/ | cut -f1)
-
-          echo "## Tamanho do Bundle" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Arquivo | Tamanho |" >> $GITHUB_STEP_SUMMARY
-          echo "|---------|---------|" >> $GITHUB_STEP_SUMMARY
-          find dist -name "*.js" -exec du -h {} \; | sort -rh | head -10 | while read size file; do
-            echo "| \`$file\` | $size |" >> $GITHUB_STEP_SUMMARY
-          done
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Total:** ${TOTAL_SIZE_KB}KB / Limite: ${MAX_SIZE_KB}KB" >> $GITHUB_STEP_SUMMARY
-
-          if [ "$TOTAL_SIZE_KB" -gt "$MAX_SIZE_KB" ]; then
-            echo "::error::Bundle excede o limite! ${TOTAL_SIZE_KB}KB > ${MAX_SIZE_KB}KB"
-            exit 1
-          else
-            echo "Bundle dentro do limite: ${TOTAL_SIZE_KB}KB <= ${MAX_SIZE_KB}KB"
-          fi
-
-  ci-checks-web:
-    name: CI Checks Completos (web/)
-    runs-on: ubuntu-latest
-    needs: validate-branch
-
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-
-      - name: Instalar pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
           cache-dependency-path: web/pnpm-lock.yaml
 
       - name: Instalar dependências
@@ -147,7 +90,7 @@ jobs:
   pr-info:
     name: Informações do PR
     runs-on: ubuntu-latest
-    needs: [ci-checks, ci-checks-web]
+    needs: [ci-checks]
 
     steps:
       - name: Resumo do PR

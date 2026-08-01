@@ -21,34 +21,6 @@ env:
   PNPM_VERSION: '9'
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-
-      - name: Instalar pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Instalar dependências
-        run: pnpm install --frozen-lockfile
-
-      - name: Verificar formatação (Prettier)
-        run: pnpm format:check
-
-      - name: Executar ESLint
-        run: pnpm lint
-
   security:
     name: Auditoria de Segurança
     runs-on: ubuntu-latest
@@ -67,11 +39,14 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
+          cache-dependency-path: web/pnpm-lock.yaml
 
-      - name: Instalar dependências
+      - name: Instalar dependências (web/)
+        working-directory: web
         run: pnpm install --frozen-lockfile
 
       - name: Auditoria de dependências (pnpm audit)
+        working-directory: web
         run: pnpm audit --prod
         continue-on-error: true
 
@@ -86,98 +61,25 @@ jobs:
             echo "Nenhuma secret encontrada."
           fi
 
-      - name: Validar security headers no nginx.conf
+      - name: Validar security headers no next.config.mjs
         run: |
-          echo "Validando security headers no nginx.conf..."
+          echo "Validando security headers no web/next.config.mjs..."
           MISSING=""
-          grep -q "X-Frame-Options" nginx.conf || MISSING="$MISSING X-Frame-Options"
-          grep -q "X-Content-Type-Options" nginx.conf || MISSING="$MISSING X-Content-Type-Options"
-          grep -q "X-XSS-Protection" nginx.conf || MISSING="$MISSING X-XSS-Protection"
-          grep -q "Referrer-Policy" nginx.conf || MISSING="$MISSING Referrer-Policy"
-          grep -q "Content-Security-Policy" nginx.conf || MISSING="$MISSING CSP"
-          grep -q "Permissions-Policy" nginx.conf || MISSING="$MISSING Permissions-Policy"
-          grep -q "server_tokens off" nginx.conf || MISSING="$MISSING server_tokens"
+          grep -q "X-Frame-Options" web/next.config.mjs || MISSING="$MISSING X-Frame-Options"
+          grep -q "X-Content-Type-Options" web/next.config.mjs || MISSING="$MISSING X-Content-Type-Options"
+          grep -q "X-XSS-Protection" web/next.config.mjs || MISSING="$MISSING X-XSS-Protection"
+          grep -q "Referrer-Policy" web/next.config.mjs || MISSING="$MISSING Referrer-Policy"
+          grep -q "Content-Security-Policy" web/next.config.mjs || MISSING="$MISSING CSP"
+          grep -q "Permissions-Policy" web/next.config.mjs || MISSING="$MISSING Permissions-Policy"
           if [ -n "$MISSING" ]; then
-            echo "::error::Security headers ausentes no nginx.conf:$MISSING"
+            echo "::error::Security headers ausentes no web/next.config.mjs:$MISSING"
             exit 1
           else
             echo "Todos os security headers presentes."
           fi
 
-  test:
-    name: Testes
-    runs-on: ubuntu-latest
-    needs: lint
-
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-
-      - name: Instalar pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Instalar dependências
-        run: pnpm install --frozen-lockfile
-
-      - name: Executar testes
-        run: pnpm test:run
-
-      - name: Gerar relatório de cobertura
-        run: pnpm test:coverage
-
-      - name: Upload cobertura para Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          files: ./coverage/coverage-final.json
-          fail_ci_if_error: false
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [test, security]
-
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-
-      - name: Instalar pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Instalar dependências
-        run: pnpm install --frozen-lockfile
-
-      - name: Build de produção
-        run: pnpm build
-
-      - name: Upload artefato de build
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-          retention-days: 7
-
-  # ── web/ (app novo Next.js) ─────────────────────────────────────────────
-  # Jobs espelhando lint/test/build acima, mas para o app em migração em
-  # web/ — que até aqui não tinha nenhuma checagem automática, só a manual
-  # rodada durante o desenvolvimento. Independentes dos jobs do app antigo.
-  lint-web:
-    name: Lint (web/)
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -208,10 +110,10 @@ jobs:
         working-directory: web
         run: pnpm lint
 
-  test-web:
-    name: Testes (web/)
+  test:
+    name: Testes
     runs-on: ubuntu-latest
-    needs: lint-web
+    needs: lint
 
     steps:
       - name: Checkout código
@@ -241,13 +143,12 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           files: ./web/coverage/coverage-final.json
-          flags: web
           fail_ci_if_error: false
 
-  build-web:
-    name: Build (web/)
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    needs: test-web
+    needs: [test, security]
 
     steps:
       - name: Checkout código

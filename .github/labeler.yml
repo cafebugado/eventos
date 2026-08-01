@@ -5,27 +5,20 @@
 frontend:
   - changed-files:
       - any-glob-to-any-file:
-          - 'src/components/**'
-          - 'src/pages/**'
-          - 'src/layout/**'
-          - 'src/styles/**'
+          - 'web/app/**'
+          - 'web/components/**'
+          - 'web/theme/**'
           - '**/*.css'
           - '**/*.jsx'
 
 backend:
   - changed-files:
       - any-glob-to-any-file:
-          - 'src/services/**'
-          - 'src/lib/**'
-          - 'src/hooks/**'
-          - 'src/context/**'
-          - 'src/contexts/**'
-          - 'src/utils/**'
-
-admin:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'src/admin/**'
+          - 'web/services/**'
+          - 'web/lib/**'
+          - 'web/hooks/**'
+          - 'web/store/**'
+          - 'web/utils/**'
 
 tests:
   - changed-files:
@@ -34,9 +27,9 @@ tests:
           - '**/*.test.js'
           - '**/*.spec.jsx'
           - '**/*.spec.js'
-          - 'e2e/**'
-          - 'playwright.config.*'
-          - 'vitest.config.*'
+          - 'web/e2e/**'
+          - 'web/playwright.config.*'
+          - 'web/vitest.config.*'
 
 ci:
   - changed-files:
@@ -47,19 +40,19 @@ docs:
   - changed-files:
       - any-glob-to-any-file:
           - '**/*.md'
-          - 'docs/**'
+          - 'web/docs/**'
 
 dependencies:
   - changed-files:
       - any-glob-to-any-file:
           - 'package.json'
-          - 'pnpm-lock.yaml'
+          - 'package-lock.json'
+          - 'web/package.json'
+          - 'web/pnpm-lock.yaml'
 
 infra:
   - changed-files:
       - any-glob-to-any-file:
-          - 'nginx.conf'
-          - 'Dockerfile'
-          - 'docker-compose*.yml'
-          - '.env.example'
-          - 'vite.config.*'
+          - 'web/next.config.mjs'
+          - 'web/vercel.json'
+          - 'web/.env.example'
