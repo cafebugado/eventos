@@ -16,10 +16,9 @@ import { NAVIGATION_ITEMS } from '../constants/navigation'
 // Next.js <Link> já faz prefetch automático das rotas visíveis/no hover —
 // substitui o PREFETCH_MAP manual (onMouseEnter + import dinâmico) do app antigo.
 //
-// No app antigo o header inteiro some no mobile (a navegação mobile é feita
-// pelo FloatingMenu, ainda não portado). Aqui mantemos logo + toggle de tema
-// visíveis no mobile e escondemos só a navegação, para não deixar o mobile
-// sem header até o FloatingMenu ser portado.
+// No mobile a navegação e o toggle de tema saem daqui e vivem no MobileNav
+// (components/MobileNav.jsx, equivalente ao FloatingMenu do app antigo) —
+// mantemos só a logo visível no header em telas pequenas.
 export default function Header() {
   const { mode, setMode } = useColorScheme()
   const pathname = usePathname()
@@ -84,7 +83,7 @@ export default function Header() {
         <IconButton
           onClick={() => setMode(isDarkMode ? 'light' : 'dark')}
           aria-label="Alternar tema"
-          sx={{ ml: { xs: 'auto', md: 0 } }}
+          sx={{ display: { xs: 'none', md: 'inline-flex' } }}
         >
           {isDarkMode ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
         </IconButton>

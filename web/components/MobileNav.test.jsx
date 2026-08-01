@@ -1,0 +1,67 @@
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { ThemeProvider } from '@mui/material/styles'
+import theme from '../theme/theme'
+import MobileNav from './MobileNav'
+
+const { usePathnameMock, pushMock } = vi.hoisted(() => ({
+  usePathnameMock: vi.fn(() => '/'),
+  pushMock: vi.fn(),
+}))
+
+vi.mock('next/navigation', () => ({
+  usePathname: usePathnameMock,
+  useRouter: () => ({ push: pushMock }),
+}))
+
+function renderWithTheme(ui) {
+  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
+}
+
+describe('MobileNav', () => {
+  beforeEach(() => {
+    usePathnameMock.mockReturnValue('/')
+    pushMock.mockClear()
+  })
+
+  it('abre o menu e mostra todos os itens de navegação mais o toggle de tema', async () => {
+    renderWithTheme(<MobileNav />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Menu de navegação' }))
+
+    expect(screen.getByRole('menuitem', { name: 'Inicio' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Eventos' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Sobre' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Galeria' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Contato' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Modo escuro' })).toBeInTheDocument()
+  })
+
+  it('navega e fecha o menu ao clicar em um item', async () => {
+    renderWithTheme(<MobileNav />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Menu de navegação' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Eventos' }), {
+      pointerEventsCheck: 0,
+    })
+
+    expect(pushMock).toHaveBeenCalledWith('/eventos')
+    expect(screen.getByRole('button', { name: 'Menu de navegação' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
+  })
+
+  it('alterna o tema ao clicar na ação de tema', async () => {
+    renderWithTheme(<MobileNav />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Menu de navegação' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Modo escuro' }), {
+      pointerEventsCheck: 0,
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Menu de navegação' }))
+    expect(screen.getByRole('menuitem', { name: 'Modo claro' })).toBeInTheDocument()
+  })
+})
