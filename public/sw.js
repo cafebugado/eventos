@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2'
 const STATIC_CACHE = `cb-static-${CACHE_VERSION}`
 const EVENTS_CACHE = `cb-events-${CACHE_VERSION}`
 
@@ -41,6 +41,14 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // RSC payloads (fetches internos do App Router pra troca de rota/dados) não
+  // são estáticos: o mesmo _rsc pode se repetir entre builds diferentes, mas o
+  // conteúdo depende da versão do app. Cachear isso serve payload de um build
+  // antigo referenciando chunks que não existem mais (404 em cascata).
+  if (url.searchParams.has('_rsc') || request.headers.get('RSC') === '1') {
+    return
+  }
+
   if (url.href.includes('backendeventoscfb.cafebugado.com.br')) {
     event.respondWith(
       fetch(request)
@@ -76,13 +84,15 @@ self.addEventListener('fetch', (event) => {
       if (cached) {
         return cached
       }
-      return fetch(request).then((response) => {
-        if (response.ok) {
-          const clone = response.clone()
-          caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone))
-        }
-        return response
-      })
+      return fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+        .catch(() => Response.error())
     })
   )
 })
