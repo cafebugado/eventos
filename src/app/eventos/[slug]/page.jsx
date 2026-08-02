@@ -17,6 +17,7 @@ import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlin
 import { getEventBySlugOrId } from '../../../services/eventService'
 import { getEventTags } from '../../../services/tagService'
 import { captureError } from '../../../lib/sentry'
+import { vivoVioleta } from '../../../theme/tokens/vivoVioleta'
 import { isEventPast } from '../../../utils/eventDate'
 import { stripRichText } from '../../../utils/richText'
 import RichText from '../../../components/RichText'
@@ -172,7 +173,7 @@ export default async function EventDetailsPage({ params }) {
                     label={tag.nome}
                     size="small"
                     sx={{
-                      bgcolor: darken(tag.cor || '#2563eb', 0.15),
+                      bgcolor: darken(tag.cor || vivoVioleta['500'], 0.15),
                       color: '#fff',
                       fontWeight: 600,
                       textTransform: 'uppercase',

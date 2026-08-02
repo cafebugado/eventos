@@ -16,6 +16,7 @@ import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlin
 import ArrowOutwardOutlinedIcon from '@mui/icons-material/ArrowOutwardOutlined'
 import { FavouriteEventButton } from '../FavouriteEventButton'
 import { isEventPast, isEventToday } from '../../utils/eventDate'
+import { vivoVioleta } from '../../theme/tokens/vivoVioleta'
 
 const FALLBACK_IMAGE = '/eventos.png'
 
@@ -98,7 +99,7 @@ export default function CalendarEventItem({
               label={tag.nome}
               size="small"
               sx={{
-                bgcolor: darken(tag.cor || '#2563eb', 0.15),
+                bgcolor: darken(tag.cor || vivoVioleta['500'], 0.15),
                 color: '#fff',
                 height: 18,
                 fontSize: '0.6rem',

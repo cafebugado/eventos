@@ -8,15 +8,17 @@ import Button from '@mui/material/Button'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import HomeIcon from '@mui/icons-material/Home'
 import { captureError } from '../lib/sentry.js'
+import { vivoVioleta } from '../theme/tokens/vivoVioleta'
 
 // Paleta fixa, independente do tema do app — o crash pode ter vindo do
-// próprio ThemeProvider, então não confiamos em tokens de tema aqui.
+// próprio ThemeProvider, então não confiamos em tokens de tema aqui (só no
+// token de cor cru, que não depende de React/MUI pra existir).
 const COLORS = {
   background: '#0f172a',
   text: '#e2e8f0',
   textMuted: '#94a3b8',
   danger: '#f87171',
-  primary: '#3b82f6',
+  primary: vivoVioleta['350'],
   surface: '#1e293b',
   border: '#334155',
 }

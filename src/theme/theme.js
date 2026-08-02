@@ -1,7 +1,11 @@
 import { createTheme } from '@mui/material/styles'
+import { vivoVioleta } from './tokens/vivoVioleta'
 
 // Tokens traduzidos de src/styles/variables.css (app antigo) para preservar
 // a identidade visual do Café Bugado na nova stack (Next.js + MUI).
+// Cor primária e "info" vêm do token vivo-violeta (src/theme/tokens/) — único
+// token de cor em uso hoje; background/text/divider seguem os valores
+// anteriores até novos tokens serem definidos.
 const theme = createTheme({
   cssVariables: {
     colorSchemeSelector: 'data-mui-color-scheme',
@@ -10,9 +14,9 @@ const theme = createTheme({
     light: {
       palette: {
         primary: {
-          main: '#2563eb', // --primary-blue
-          dark: '#1d4ed8', // --dark-blue
-          light: '#3b82f6', // --light-blue
+          main: vivoVioleta['500'],
+          dark: vivoVioleta['600'],
+          light: vivoVioleta['350'],
           contrastText: '#ffffff',
         },
         background: {
@@ -24,15 +28,15 @@ const theme = createTheme({
           secondary: '#64748b', // --text-secondary
         },
         divider: '#e2e8f0', // --border
-        info: { main: '#3b82f6' }, // --status-info
+        info: { main: vivoVioleta['350'] },
       },
     },
     dark: {
       palette: {
         primary: {
-          main: '#3b82f6',
-          dark: '#2563eb',
-          light: '#60a5fa',
+          main: vivoVioleta['350'],
+          dark: vivoVioleta['500'],
+          light: vivoVioleta['200'],
           contrastText: '#ffffff',
         },
         background: {
@@ -44,7 +48,7 @@ const theme = createTheme({
           secondary: '#94a3b8',
         },
         divider: '#334155',
-        info: { main: '#3b82f6' },
+        info: { main: vivoVioleta['200'] },
       },
     },
   },

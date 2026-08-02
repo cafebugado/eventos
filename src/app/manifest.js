@@ -2,6 +2,8 @@
 // /manifest.webmanifest e linkado no <head> — substitui o public/manifest.json
 // estático do app antigo. Ver https://nextjs.org/docs/app/api-reference/file-conventions/metadata/manifest
 
+import { vivoVioleta } from '../theme/tokens/vivoVioleta'
+
 export default function manifest() {
   return {
     name: 'Eventos - Cafe Bugado',
@@ -10,7 +12,7 @@ export default function manifest() {
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
-    theme_color: '#2563eb',
+    theme_color: vivoVioleta['500'],
     orientation: 'portrait-primary',
     lang: 'pt-BR',
     categories: ['events', 'social', 'education'],

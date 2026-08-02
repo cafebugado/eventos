@@ -10,6 +10,7 @@ import MobileNav from '../components/MobileNav'
 import PwaInstallBanner from '../components/PwaInstallBanner'
 import PwaUpdateBanner from '../components/PwaUpdateBanner'
 import WebVitalsReporter from '../components/WebVitalsReporter'
+import { vivoVioleta } from '../theme/tokens/vivoVioleta'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -39,7 +40,7 @@ export const metadata = {
 }
 
 export const viewport = {
-  themeColor: '#2563eb',
+  themeColor: vivoVioleta['500'],
 }
 
 export default function RootLayout({ children }) {

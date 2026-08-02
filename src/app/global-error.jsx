@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import { captureError } from '../lib/sentry.js'
+import { vivoVioleta } from '../theme/tokens/vivoVioleta'
 
 // Convenção do Next.js App Router: substitui o layout inteiro (inclusive
 // <html>/<body>) quando um erro escapa até a raiz — a última rede de
@@ -14,13 +15,14 @@ import { captureError } from '../lib/sentry.js'
 // https://nextjs.org/docs/app/api-reference/file-conventions/error#global-error
 
 // Paleta fixa, independente do tema do app — o crash pode ter vindo do
-// próprio ThemeProvider, então não confiamos em tokens de tema aqui.
+// próprio ThemeProvider, então não confiamos em tokens de tema aqui (só no
+// token de cor cru, que não depende de React/MUI pra existir).
 const COLORS = {
   background: '#0f172a',
   text: '#e2e8f0',
   textMuted: '#94a3b8',
   danger: '#f87171',
-  primary: '#3b82f6',
+  primary: vivoVioleta['350'],
 }
 
 export default function GlobalError({ error, reset }) {
