@@ -2,10 +2,6 @@ import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import CodeOutlinedIcon from '@mui/icons-material/CodeOutlined'
-import DataObjectOutlinedIcon from '@mui/icons-material/DataObjectOutlined'
-import TagOutlinedIcon from '@mui/icons-material/TagOutlined'
 import { getUpcomingEvents } from '../services/eventService'
 import { getAllEventTags } from '../services/tagService'
 import { captureError } from '../lib/sentry'
@@ -48,60 +44,34 @@ export default async function Home() {
       <Box component="section" sx={{ py: { xs: 8, md: 12 } }}>
         <Container maxWidth="md">
           <Stack spacing={4}>
-            <Typography variant="h2" component="h1" sx={{ fontWeight: 700 }}>
-              Eventos de{' '}
+            <Typography variant="h2" component="h1" sx={{ fontWeight: 700, textAlign: 'center' }}>
+              Encontre eventos de{' '}
               <Box component="span" sx={{ color: 'primary.main' }}>
                 tecnologia
               </Box>{' '}
               em um só lugar
             </Typography>
 
-            <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
-              Este é um espaço feito por e para a comunidade. Reunimos eventos de tecnologia criados
-              por comunidades e empresas para facilitar o acesso de quem quer aprender, trocar ideia
-              e conhecer pessoas da área. Aqui você encontra oportunidades para participar,
-              contribuir e crescer junto com outras pessoas que vivem tecnologia no dia a dia.
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ fontSize: '1.1rem', textAlign: 'justify' }}
+            >
+              Descubra meetups, workshops, hackathons e conferências organizados por comunidades e
+              empresas. Encontre eventos para aprender, conhecer pessoas da área, compartilhar
+              experiências e acompanhar o que está acontecendo no mercado de tecnologia.
             </Typography>
 
-            <Stack direction="row" spacing={3} sx={{ flexWrap: 'wrap' }} useFlexGap>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <CodeOutlinedIcon color="primary" fontSize="small" />
-                <Typography variant="body2">Meetups e Workshops</Typography>
-              </Stack>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <DataObjectOutlinedIcon color="primary" fontSize="small" />
-                <Typography variant="body2">Hackathons</Typography>
-              </Stack>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <TagOutlinedIcon color="primary" fontSize="small" />
-                <Typography variant="body2">Conferências</Typography>
-              </Stack>
-            </Stack>
-
-            <Stack
-              direction="row"
-              spacing={2}
-              sx={{
-                p: 2.5,
-                bgcolor: 'background.paper',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                alignItems: 'flex-start',
-              }}
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ fontSize: '1.1rem', textAlign: 'justify' }}
             >
-              <InfoOutlinedIcon color="primary" />
-              <Box>
-                <Typography variant="subtitle2" component="p">
-                  Como funciona
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  A comunidade indica eventos e nós reunimos tudo em um só lugar. Os eventos são
-                  organizados por terceiros. Nosso papel é ajudar na divulgação e facilitar a
-                  descoberta para que ninguém fique de fora.
-                </Typography>
-              </Box>
-            </Stack>
+              Comunidades e empresas indicam seus eventos, e nós organizamos as principais
+              informações para facilitar sua busca. Assim, você encontra diferentes eventos em um só
+              lugar e escolhe aqueles que mais combinam com seus interesses. A organização e a
+              realização de cada evento são de responsabilidade de seus respectivos organizadores.
+            </Typography>
           </Stack>
         </Container>
       </Box>
