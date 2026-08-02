@@ -21,10 +21,19 @@ export const dynamic = 'force-dynamic'
 // filtro/página inteiramente client-side (Partial Rendering).
 async function loadEvents() {
   try {
+    // getAllEventTags/getTags degradam pra vazio em vez de derrubar a página
+    // inteira — tags são complementares (chips, filtro), a listagem de
+    // eventos em si não depende delas.
     const [events, tagsMap, tags] = await Promise.all([
       getPublishedEvents(),
-      getAllEventTags(),
-      getTags(),
+      getAllEventTags().catch((error) => {
+        captureError(error, { context: 'EventsPage.loadEvents.tagsMap' })
+        return {}
+      }),
+      getTags().catch((error) => {
+        captureError(error, { context: 'EventsPage.loadEvents.tags' })
+        return []
+      }),
     ])
     return { events, tagsMap, tags, error: null }
   } catch (error) {

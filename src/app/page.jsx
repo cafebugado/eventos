@@ -24,7 +24,15 @@ export const dynamic = 'force-dynamic'
 async function loadUpcomingEvents() {
   try {
     const events = await getUpcomingEvents(3)
-    const tagsMap = events.length > 0 ? await getAllEventTags() : {}
+    // getAllEventTags degrada pra vazio em vez de derrubar a página inteira
+    // — tags são complementares (chips), a listagem de eventos não depende.
+    const tagsMap =
+      events.length > 0
+        ? await getAllEventTags().catch((error) => {
+            captureError(error, { context: 'Home.loadUpcomingEvents.tagsMap' })
+            return {}
+          })
+        : {}
     return { events, tagsMap }
   } catch (error) {
     captureError(error, { context: 'Home.loadUpcomingEvents' })
