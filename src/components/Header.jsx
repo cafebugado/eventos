@@ -32,6 +32,12 @@ export default function Header() {
       color="transparent"
       elevation={0}
       sx={(theme) => {
+        // Não dá pra usar theme.palette.background.default aqui: com
+        // cssVariables ativado, esse acesso direto (fora de um path tipo
+        // "background.default") fica travado no scheme padrão (light) e não
+        // reage à troca de tema — alpha() também não entende var(...), só
+        // cor literal. Por isso o valor vem direto do token, escolhido pelo
+        // isDarkMode (estado real do React), igual o resto do Header.
         const bg = isDarkMode ? vivoVioleta['950'] : vivoVioleta['50']
         return {
           backdropFilter: 'blur(20px)',
