@@ -45,7 +45,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR" className={dmSans.variable} suppressHydrationWarning>
-      <body>
+      <body suppressHydrationWarning>
         <InitColorSchemeScript attribute="data-mui-color-scheme" />
         <ThemeRegistry>
           {/* Header é fixed (ver Header.jsx) — o Box de main abre espaço com
