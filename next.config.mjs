@@ -18,11 +18,11 @@ const SECURITY_HEADERS = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
       "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://v2.backendeventoscfb.cafebugado.com.br https://vitals.vercel-insights.com https://*.ingest.us.sentry.io",
+      "connect-src 'self' https://v2.backendeventoscfb.cafebugado.com.br https://vitals.vercel-insights.com https://*.ingest.us.sentry.io https://va.vercel-scripts.com",
       "frame-ancestors 'self'",
     ].join('; '),
   },
