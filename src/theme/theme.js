@@ -3,12 +3,13 @@ import { vivoVioleta } from './tokens/vivoVioleta'
 
 // Tokens traduzidos de src/styles/variables.css (app antigo) para preservar
 // a identidade visual do Café Bugado na nova stack (Next.js + MUI).
-// Cor primária, "info" e o fundo geral da página (background.default) vêm do
-// token vivo-violeta (src/theme/tokens/) — mesma cor usada no Header (que
+// Cor primária, "info", background.default e (no modo escuro) background.paper
+// vêm do token vivo-violeta (src/theme/tokens/) — mesma cor usada no Header (que
 // referencia o token direto, não theme.palette.background.default: com
 // cssVariables ativado esse acesso via JS não reage à troca de tema, ver
-// comentário em Header.jsx). background.paper (cards/modais) e text/divider
-// seguem os valores anteriores até novos tokens serem definidos.
+// comentário em Header.jsx). text/divider e background.paper do modo claro
+// continuam neutros (não fazem parte da escala vivo-violeta) — texto de evento
+// longo perde legibilidade com tom de marca saturado nessas cores.
 const theme = createTheme({
   cssVariables: {
     colorSchemeSelector: 'data-mui-color-scheme',
@@ -44,7 +45,7 @@ const theme = createTheme({
         },
         background: {
           default: vivoVioleta['950'],
-          paper: '#1e293b',
+          paper: vivoVioleta['950'],
         },
         text: {
           primary: '#f1f5f9',
