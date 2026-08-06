@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
@@ -41,6 +42,14 @@ export default function CalendarEventItem({
   const isPast = isEventPast(event?.data_evento)
   const isToday = isEventToday(event?.data_evento)
 
+  // Estado em vez de mutar e.target.src direto no onError — ver comentário
+  // equivalente em EventCard.jsx.
+  const [imageFailed, setImageFailed] = useState(false)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => setImageFailed(false), 0)
+    return () => clearTimeout(timeoutId)
+  }, [event?.imagem])
+
   function handleClick() {
     onNavigate?.()
     router.push(`/eventos/${event?.slug || event?.id}`)
@@ -70,12 +79,10 @@ export default function CalendarEventItem({
       <Box sx={{ position: 'relative', flexShrink: 0 }}>
         <Box
           component="img"
-          src={event?.imagem || FALLBACK_IMAGE}
+          src={imageFailed || !event?.imagem ? FALLBACK_IMAGE : event.imagem}
           alt={event?.nome ?? ''}
           loading="lazy"
-          onError={(e) => {
-            e.target.src = FALLBACK_IMAGE
-          }}
+          onError={() => setImageFailed(true)}
           sx={{ width: 88, height: 64, borderRadius: 1.5, objectFit: 'cover' }}
         />
         {badgeText && (

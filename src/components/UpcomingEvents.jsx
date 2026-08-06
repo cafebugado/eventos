@@ -68,6 +68,9 @@ export default function UpcomingEvents({ events = [], tagsMap = {}, loading = fa
                   variant="compact"
                   showDescription
                   showActionButton
+                  showInfoRows={false}
+                  showDateBadge
+                  actionInternal
                   actionLabel="Ver evento"
                   favouriteIds={favouriteIds}
                   toggleFavourite={(eventId) => toggleFavourite(eventId, events)}

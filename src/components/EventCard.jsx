@@ -25,6 +25,7 @@ import RichText from './RichText'
 import { FavouriteEventButton } from './FavouriteEventButton'
 import { useEventCountdown } from '../hooks/useEventCountdown'
 import { vivoVioleta } from '../theme/tokens/vivoVioleta'
+import { formatDateToDayMonth } from '../utils/eventDate'
 
 const FALLBACK_IMAGE = '/eventos.png'
 
@@ -58,6 +59,9 @@ export default function EventCard({
   showDescription = false,
   showLocation = false,
   showActionButton = false,
+  showInfoRows = true,
+  showDateBadge = false,
+  actionInternal = false,
   actionLabel,
   onClick,
   style,
@@ -91,13 +95,25 @@ export default function EventCard({
     return () => clearTimeout(timeoutId)
   }, [event.created_at])
 
+  // Estado em vez de mutar e.target.src direto no onError: se a imagem
+  // falhasse uma vez (request abortada, hiccup passageiro do CDN), o fallback
+  // ficava colado pra sempre — o React nunca reaplicaria o src original
+  // porque a prop event.imagem não muda. Com estado, reseta se o evento mudar.
+  const [imageFailed, setImageFailed] = useState(false)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => setImageFailed(false), 0)
+    return () => clearTimeout(timeoutId)
+  }, [event.imagem])
+
   const badgeText = isPast
     ? 'Encerrado'
     : isHappening
       ? 'Acontecendo agora'
       : isToday
         ? 'Hoje'
-        : event.periodo
+        : showDateBadge
+          ? formatDateToDayMonth(event.data_evento)
+          : event.periodo
   const badgeColor = isPast ? 'default' : isHappening ? 'success' : 'primary'
 
   const defaultActionLabel = isPast ? 'Ver detalhes do evento' : 'Saber mais sobre o evento'
@@ -129,12 +145,10 @@ export default function EventCard({
       <Box sx={{ position: 'relative' }}>
         <CardMedia
           component="img"
-          image={event.imagem || FALLBACK_IMAGE}
+          image={imageFailed || !event.imagem ? FALLBACK_IMAGE : event.imagem}
           alt={event.nome}
           loading="lazy"
-          onError={(e) => {
-            e.target.src = FALLBACK_IMAGE
-          }}
+          onError={() => setImageFailed(true)}
           sx={{ height: isFull ? 200 : 160, objectFit: 'cover' }}
         />
 
@@ -226,45 +240,54 @@ export default function EventCard({
                 WebkitLineClamp: 3,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
+                fontSize: '0.875rem',
+                opacity: 0.7,
               }}
             />
           )}
         </Box>
 
-        <Stack spacing={0.5} sx={{ mt: isFull ? 0 : 'auto' }}>
-          <InfoRow icon={<CalendarMonthOutlinedIcon fontSize={iconFontSize} />}>
-            {event.data_evento}
-          </InfoRow>
-          <InfoRow icon={<AccessTimeOutlinedIcon fontSize={iconFontSize} />}>
-            {event.horario}
-          </InfoRow>
-          <InfoRow icon={<DateRangeOutlinedIcon fontSize={iconFontSize} />}>
-            {event.dia_semana}
-          </InfoRow>
-          {event.modalidade && (
-            <InfoRow
-              icon={<ModalidadeIcon modalidade={event.modalidade} fontSize={iconFontSize} />}
-            >
-              {event.modalidade}
+        {showInfoRows && (
+          <Stack spacing={0.5} sx={{ mt: isFull ? 0 : 'auto' }}>
+            <InfoRow icon={<CalendarMonthOutlinedIcon fontSize={iconFontSize} />}>
+              {event.data_evento}
             </InfoRow>
-          )}
-          {showLegacyLocation && (
-            <InfoRow icon={<LocationOnOutlinedIcon fontSize={iconFontSize} />}>
-              {[event.cidade, event.estado].filter(Boolean).join(' - ')}
+            <InfoRow icon={<AccessTimeOutlinedIcon fontSize={iconFontSize} />}>
+              {event.horario}
             </InfoRow>
-          )}
-        </Stack>
+            <InfoRow icon={<DateRangeOutlinedIcon fontSize={iconFontSize} />}>
+              {event.dia_semana}
+            </InfoRow>
+            {event.modalidade && (
+              <InfoRow
+                icon={<ModalidadeIcon modalidade={event.modalidade} fontSize={iconFontSize} />}
+              >
+                {event.modalidade}
+              </InfoRow>
+            )}
+            {showLegacyLocation && (
+              <InfoRow icon={<LocationOnOutlinedIcon fontSize={iconFontSize} />}>
+                {[event.cidade, event.estado].filter(Boolean).join(' - ')}
+              </InfoRow>
+            )}
+          </Stack>
+        )}
 
         {showActionButton && (
           <Stack
             direction="row"
             spacing={2.5}
             useFlexGap
-            sx={{ justifyContent: 'space-between', flexWrap: 'wrap' }}
+            sx={{
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              mt: !showInfoRows && !isFull ? 'auto' : undefined,
+            }}
           >
-            {isFull ? (
+            {isFull || actionInternal ? (
               <Button
                 variant="contained"
+                size={isFull ? undefined : 'small'}
                 onClick={(e) => {
                   e.stopPropagation()
                   handleClick()
