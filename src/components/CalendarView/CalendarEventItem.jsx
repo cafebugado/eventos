@@ -100,7 +100,7 @@ export default function CalendarEventItem({
               size="small"
               sx={{
                 bgcolor: darken(tag.cor || vivoVioleta['500'], 0.15),
-                color: '#fff',
+                color: 'common.white',
                 height: 18,
                 fontSize: '0.6rem',
               }}

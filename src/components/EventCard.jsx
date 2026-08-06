@@ -170,7 +170,7 @@ export default function EventCard({
                 size="small"
                 sx={{
                   bgcolor: darken(tag.cor || vivoVioleta['500'], 0.15),
-                  color: '#fff',
+                  color: 'common.white',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   fontSize: '0.65rem',

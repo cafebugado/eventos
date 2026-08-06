@@ -41,7 +41,7 @@ export default function ThemeToggleSwitch({ checked, onChange, 'aria-label': ari
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#ffffff',
+          color: 'common.white',
         }}
       >
         {checked ? (
@@ -60,7 +60,7 @@ export default function ThemeToggleSwitch({ checked, onChange, 'aria-label': ari
           width: THUMB_SIZE,
           height: THUMB_SIZE,
           borderRadius: '50%',
-          bgcolor: '#ffffff',
+          bgcolor: 'common.white',
         }}
       />
     </ButtonBase>

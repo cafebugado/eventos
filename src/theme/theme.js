@@ -56,7 +56,7 @@ const theme = createTheme({
     },
   },
   shape: {
-    borderRadius: 8, // --radius-md: 0.5rem
+    borderRadius: 4, // DESIGN.md rounded.md — botão/input/dialog; cards usam 12 (ver components.MuiCard abaixo)
   },
   typography: {
     fontFamily: [
@@ -67,6 +67,58 @@ const theme = createTheme({
       'system-ui',
       'sans-serif',
     ].join(','),
+    // Escala tipográfica do DESIGN.md (tamanho/peso/line-height/letter-spacing);
+    // fontFamily continua DM Sans — identidade de marca já fixada neste rebrand,
+    // não uma lacuna a preencher com o system-ui detectado no site de referência.
+    h1: {
+      fontSize: '3rem',
+      fontWeight: 500,
+      lineHeight: 0.9,
+      letterSpacing: '-1.4px',
+    },
+    h2: {
+      fontSize: '3rem',
+      fontWeight: 600,
+      lineHeight: 0.94,
+      letterSpacing: '-1.4px',
+    },
+    h3: {
+      fontSize: '2.25rem',
+      fontWeight: 600,
+      lineHeight: 1,
+      letterSpacing: '-1.2px',
+    },
+    h4: {
+      fontSize: '2.25rem',
+      fontWeight: 600,
+      lineHeight: 0.94,
+      letterSpacing: '-1.2px',
+    },
+    body1: {
+      fontSize: '1rem',
+      fontWeight: 400,
+      lineHeight: 1.5,
+    },
+    caption: {
+      fontSize: '0.75rem',
+      fontWeight: 500,
+      lineHeight: 1.35,
+    },
+    button: {
+      fontSize: '1rem',
+      fontWeight: 600,
+      lineHeight: 1.2,
+      textTransform: 'none',
+    },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12, // DESIGN.md rounded.lg — surface-card/feature-card
+        },
+      },
+    },
   },
 })
 

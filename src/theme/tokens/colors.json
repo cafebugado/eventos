@@ -1,31 +1,31 @@
 {
   "vivo-violeta": {
     "50": {
-      "value": "#F7F2FC",
+      "value": "#F6ECFD",
       "type": "color"
     },
     "200": {
-      "value": "#DECAF8",
+      "value": "#D6B9FE",
       "type": "color"
     },
     "350": {
-      "value": "#B077F8",
+      "value": "#A040E0",
       "type": "color"
     },
     "500": {
-      "value": "#7000FA",
+      "value": "#8D0DE3",
       "type": "color"
     },
     "600": {
-      "value": "#580DB3",
+      "value": "#5A0894",
       "type": "color"
     },
     "750": {
-      "value": "#3A106A",
+      "value": "#3A0564",
       "type": "color"
     },
     "950": {
-      "value": "#180A29",
+      "value": "#1E002F",
       "type": "color"
     }
   }

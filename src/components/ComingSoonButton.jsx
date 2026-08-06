@@ -46,7 +46,7 @@ export default function ComingSoonButton({ children, variant = 'text', ...props 
         disabled
         sx={{
           '&.Mui-disabled': {
-            color: variant === 'contained' ? '#ffffff' : 'text.primary',
+            color: variant === 'contained' ? 'primary.contrastText' : 'text.primary',
             bgcolor: variant === 'contained' ? 'primary.main' : 'transparent',
             opacity: 0.75,
           },
