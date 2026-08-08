@@ -4,12 +4,23 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import UpcomingEvents from '../components/UpcomingEvents'
 import Testimonials from '../components/Testimonials'
+import { getFeaturedEvents } from '../services/eventService'
+import { captureError } from '../lib/sentry'
 
 export const dynamic = 'force-dynamic'
 
-// Sem fonte de dados: integração com a API removida — eventos em destaque
-// voltam quando a nova API for plugada (ver SPRINT.md).
-export default function Home() {
+async function loadFeaturedEvents() {
+  try {
+    return await getFeaturedEvents()
+  } catch (error) {
+    captureError(error, { context: 'Home.loadFeaturedEvents' })
+    return []
+  }
+}
+
+export default async function Home() {
+  const events = await loadFeaturedEvents()
+
   return (
     <>
       <Box component="section" sx={{ py: { xs: 8, md: 12 } }}>
@@ -47,7 +58,7 @@ export default function Home() {
         </Container>
       </Box>
 
-      <UpcomingEvents events={[]} tagsMap={{}} />
+      <UpcomingEvents events={events} tagsMap={{}} />
       <Testimonials />
     </>
   )

@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom'
-import { vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, vi } from 'vitest'
+import { server } from './mocks/server'
 
 window.matchMedia =
   window.matchMedia ||
@@ -20,3 +21,7 @@ class IntersectionObserverMock {
   disconnect = vi.fn()
 }
 window.IntersectionObserver = IntersectionObserverMock
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
