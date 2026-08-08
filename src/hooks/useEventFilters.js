@@ -24,6 +24,7 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
   const showOnlyFavourites = searchParams.get('fav') === '1'
   const dateFrom = searchParams.get('from') || ''
   const dateTo = searchParams.get('to') || ''
+  const selectedLocation = searchParams.get('local') || ''
 
   const updateFilter = useCallback(
     (patch) => {
@@ -55,6 +56,8 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
   const setDateFrom = useCallback((value) => updateFilter({ from: value }), [updateFilter])
   const setDateTo = useCallback((value) => updateFilter({ to: value }), [updateFilter])
 
+  const setSelectedLocation = useCallback((value) => updateFilter({ local: value }), [updateFilter])
+
   const filteredEvents = useMemo(() => {
     return agenda.filter((event) => {
       const searchLower = searchTerm.toLowerCase()
@@ -71,6 +74,12 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
 
       const matchesFavourite = !showOnlyFavourites || favouriteIds.has(event.id)
 
+      const matchesLocation =
+        !selectedLocation ||
+        (selectedLocation === 'Online'
+          ? event.modalidade === 'Online'
+          : event.cidade === selectedLocation)
+
       let matchesDate = true
       if (dateFrom || dateTo) {
         const [d, m, y] = (event.data_evento || '').split('/')
@@ -86,7 +95,14 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
         }
       }
 
-      return matchesSearch && matchesTag && matchesPastFilter && matchesFavourite && matchesDate
+      return (
+        matchesSearch &&
+        matchesTag &&
+        matchesPastFilter &&
+        matchesFavourite &&
+        matchesLocation &&
+        matchesDate
+      )
     })
   }, [
     agenda,
@@ -96,12 +112,17 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
     showPastEvents,
     showOnlyFavourites,
     favouriteIds,
+    selectedLocation,
     dateFrom,
     dateTo,
   ])
 
   const filterActiveCount =
-    (selectedTagId ? 1 : 0) + (showPastEvents ? 1 : 0) + (dateFrom ? 1 : 0) + (dateTo ? 1 : 0)
+    (selectedTagId ? 1 : 0) +
+    (showPastEvents ? 1 : 0) +
+    (selectedLocation ? 1 : 0) +
+    (dateFrom ? 1 : 0) +
+    (dateTo ? 1 : 0)
 
   return {
     searchTerm,
@@ -112,6 +133,8 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
     setShowPastEvents,
     showOnlyFavourites,
     setShowOnlyFavourites,
+    selectedLocation,
+    setSelectedLocation,
     dateFrom,
     setDateFrom,
     dateTo,

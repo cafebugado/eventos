@@ -6,6 +6,7 @@ import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { sortEventsByDate } from '../../utils/eventDate'
+import { getLocationOptions } from '../../utils/eventLocationOptions'
 import { useFavouritesStore } from '../../store/useFavouritesStore'
 import { useEventFilters } from '../../hooks/useEventFilters'
 import { usePagination } from '../../hooks/usePagination'
@@ -24,6 +25,7 @@ import Pagination from '../../components/Pagination'
 export default function EventsPageClient({ events, tagsMap, tags, error }) {
   const router = useRouter()
   const agenda = useMemo(() => sortEventsByDate(events), [events])
+  const locationOptions = useMemo(() => getLocationOptions(agenda), [agenda])
 
   const favouriteIds = useFavouritesStore((state) => state.favouriteIds)
   const toggleFavouriteInStore = useFavouritesStore((state) => state.toggleFavourite)
@@ -38,6 +40,8 @@ export default function EventsPageClient({ events, tagsMap, tags, error }) {
     setShowPastEvents,
     showOnlyFavourites,
     setShowOnlyFavourites,
+    selectedLocation,
+    setSelectedLocation,
     dateFrom,
     setDateFrom,
     dateTo,
@@ -75,6 +79,9 @@ export default function EventsPageClient({ events, tagsMap, tags, error }) {
         dateTo={dateTo}
         onDateFrom={setDateFrom}
         onDateTo={setDateTo}
+        locationOptions={locationOptions}
+        selectedLocation={selectedLocation}
+        onSelectLocation={setSelectedLocation}
         filterActiveCount={filterActiveCount}
         showOnlyFavourites={showOnlyFavourites}
         onToggleFavourites={() => setShowOnlyFavourites((v) => !v)}

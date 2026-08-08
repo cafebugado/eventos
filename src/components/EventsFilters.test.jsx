@@ -27,6 +27,9 @@ const baseProps = {
   onChangeViewMode: vi.fn(),
   tags: [],
   isMobile: false,
+  locationOptions: [],
+  selectedLocation: '',
+  onSelectLocation: vi.fn(),
 }
 
 describe('EventsFilters', () => {
@@ -55,5 +58,25 @@ describe('EventsFilters', () => {
   it('renderiza o ViewToggle', () => {
     renderWithTheme(<EventsFilters {...baseProps} />)
     expect(screen.getByRole('group', { name: /modo de visualização/i })).toBeInTheDocument()
+  })
+
+  it('repassa locationOptions pro FilterModal', async () => {
+    renderWithTheme(<EventsFilters {...baseProps} locationOptions={['São Paulo']} />)
+    await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
+    expect(screen.getByText('São Paulo')).toBeInTheDocument()
+  })
+
+  it('chama onSelectLocation ao selecionar um local dentro do FilterModal', async () => {
+    const onSelectLocation = vi.fn()
+    renderWithTheme(
+      <EventsFilters
+        {...baseProps}
+        locationOptions={['São Paulo']}
+        onSelectLocation={onSelectLocation}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
+    await userEvent.click(screen.getByText('São Paulo'))
+    expect(onSelectLocation).toHaveBeenCalledWith('São Paulo')
   })
 })

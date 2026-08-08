@@ -35,6 +35,9 @@ export default function EventsFilters({
   onChangeViewMode,
   tags,
   isMobile,
+  locationOptions,
+  selectedLocation,
+  onSelectLocation,
 }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [filterModalOpen, setFilterModalOpen] = useState(false)
@@ -174,6 +177,9 @@ export default function EventsFilters({
         dateTo={dateTo}
         onDateFrom={onDateFrom}
         onDateTo={onDateTo}
+        locationOptions={locationOptions}
+        selectedLocation={selectedLocation}
+        onSelectLocation={onSelectLocation}
       />
     </Stack>
   )

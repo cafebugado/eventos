@@ -23,9 +23,16 @@ export default function FilterModal({
   dateTo,
   onDateFrom,
   onDateTo,
+  locationOptions,
+  selectedLocation,
+  onSelectLocation,
 }) {
   const activeCount =
-    (selectedTagId ? 1 : 0) + (showPastEvents ? 1 : 0) + (dateFrom ? 1 : 0) + (dateTo ? 1 : 0)
+    (selectedTagId ? 1 : 0) +
+    (showPastEvents ? 1 : 0) +
+    (selectedLocation ? 1 : 0) +
+    (dateFrom ? 1 : 0) +
+    (dateTo ? 1 : 0)
 
   const footer = (
     <>
@@ -37,6 +44,7 @@ export default function FilterModal({
             if (showPastEvents) {
               onTogglePast()
             }
+            onSelectLocation('')
             onDateFrom('')
             onDateTo('')
           }}
@@ -77,6 +85,33 @@ export default function FilterModal({
             ))}
           </Stack>
         </Box>
+
+        {locationOptions.length > 0 && (
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              Local
+            </Typography>
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+              <Chip
+                label="Todas"
+                size="small"
+                color={!selectedLocation ? 'primary' : 'default'}
+                variant={!selectedLocation ? 'filled' : 'outlined'}
+                onClick={() => onSelectLocation('')}
+              />
+              {locationOptions.map((location) => (
+                <Chip
+                  key={location}
+                  label={location}
+                  size="small"
+                  color={location === selectedLocation ? 'primary' : 'default'}
+                  variant={location === selectedLocation ? 'filled' : 'outlined'}
+                  onClick={() => onSelectLocation(location === selectedLocation ? '' : location)}
+                />
+              ))}
+            </Stack>
+          </Box>
+        )}
 
         <Box>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
