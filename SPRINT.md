@@ -1,121 +1,219 @@
-# SPRINT: `GET /events/featured` — Eventos em Destaque na Home
+# SPRINT.md — Listagem de eventos em `/eventos` via `GET /events/published`
 
 > Documento de planejamento. Nenhum código foi alterado ainda — ver seção "Status" no final.
 
 ## Contexto
 
-O commit `9e78c7c` removeu toda a integração deste frontend com a API antiga (`v2.backendeventoscfb...`) — ver histórico dessa limpeza no `git log` (sprint anterior, já implementada). Hoje `HEAD` da home (`src/app/page.jsx`) não busca nada: renderiza `<UpcomingEvents events={[]} tagsMap={{}} />`, e a seção "Eventos em Destaque" fica sempre vazia (`UpcomingEvents` retorna `null` quando `events.length === 0`).
+O commit `9e78c7c` removeu toda a integração deste frontend com a API antiga. O commit seguinte
+(`136f986`, HEAD atual) religou a home ao backend novo (`D:\backendeventos-public-api`, NestJS +
+Prisma, somente-leitura, produção em `https://v3.api.eventoscafebugado.cafebugado.com.br`) via
+`GET /events/featured`. A página `/eventos` continua desligada: `src/app/eventos/page.jsx` não
+busca dado nenhum, sempre renderiza o estado de erro (`EventsPageClient` recebe `events={[]}` +
+um `Error` fixo).
 
-Está entrando em produção um **novo backend**, `D:\backendeventos-public-api` (NestJS + Prisma, somente-leitura, lê do mesmo Postgres/Supabase do backend FastAPI legado `D:\backendeventos`, mas com role dedicada `public_api_readonly`). Produção: `https://v3.api.eventoscafebugado.cafebugado.com.br`. Hoje esse projeto só tem 1 endpoint implementado: `GET /events/published` (Sprint 1 do roadmap dele, ver `D:\backendeventos-public-api\SPRINT.md`).
+O backend novo já implementa `GET /events/published` (Sprint 1 do roadmap dele): filtra
+`status='publicado'`, ordena por `created_at DESC`, aceita `limit`/`offset` opcionais (omitidos =
+retorna tudo), devolve o DTO público de 16 campos (`id, slug, nome, descricao, data_evento,
+horario, dia_semana, periodo, modalidade, endereco, cidade, estado, link, imagem, created_at,
+updated_at` — nunca `status`/`created_by`/`motivo_recusa`), com cache HTTP
+(`Cache-Control: public, max-age=30, stale-while-revalidate=120`). Hoje esse endpoint não tem
+nenhum consumidor.
 
-A primeira funcionalidade a religar no frontend é a seção de destaques da home. Requisito explícito: **endpoint dedicado no backend**, criado especificamente para isso — não reaproveitar `/events/published?limit=3`, que devolve o DTO completo (16 campos). O objetivo é performance: o card da home não deve pagar o custo de buscar/serializar campos que não usa.
+**Decisão de escopo (confirmada com o usuário):**
 
-**Definição de "destaque":** os **3 últimos eventos cadastrados**, ordenados por `created_at DESC` — não pela data do evento. Isso é diferente do antigo `/events/upcoming` (que ordenava por data/hora futura); esse endpoint não existe no backend novo e não é o que esta sprint implementa.
+- O endpoint ganha filtros `cidade`/`modalidade` (server-side, além do `limit`/`offset` que já
+  existe) — capability pronta e testada, para dar suporte a filtragem otimizada no servidor.
+- O **frontend, nesta fase, não usa esses filtros no fetch do servidor**. `/eventos` continua
+  buscando a lista completa (sem parâmetros) e mantém 100% do comportamento atual de busca, tag,
+  local/modalidade, data, favoritos e paginação **no cliente** — arquitetura já implementada,
+  testada, e documentada como decisão deliberada em `usePagination.js`/`useEventFilters.js`
+  (evita round-trip ao servidor a cada troca de filtro/página). Mudar isso é uma decisão de
+  arquitetura separada, não incluída aqui.
+- Página de detalhe (`/eventos/[slug]`) fica fora de escopo — depende de
+  `GET /events/slug/{slugOrId}`, que não existe no backend ainda (Sprint 3 do roadmap dele).
 
-**Por que esta é a próxima funcionalidade certa (impacto × complexidade):** é a tela mais visível do site (home), a estrutura de apresentação (`EventCard`, `UpcomingEvents`, `useFavouritesStore`) já existe intacta e só precisa voltar a receber dados, e o backend novo já validou o esqueleto ponta-a-ponta (Controller → Service → Repository → DTO → cache HTTP → Swagger → testes) em `/events/published` — o endpoint novo é uma repetição direta desse padrão, com baixo risco de regressão.
+## Por que esta funcionalidade agora (impacto × complexidade)
 
-**Decisão de escopo do DTO (validada com o usuário):** o payload será **estritamente mínimo** — só os campos que o card da home realmente lê. Consequência aceita conscientemente: `useFavouritesStore` persiste o objeto do evento inteiro no `localStorage` ao favoritar; um evento favoritado a partir do card de destaque da home terá exibição incompleta em `/favoritos` (badge sem texto, sem local/modalidade, botão "Ver evento" sem link) até o usuário revisitar `/eventos` e favoritar por lá (fonte com o DTO completo de `/events/published`). **Não é um bug a corrigir nesta sprint** — é a consequência explícita da escolha de payload mínimo.
-
-**Fora de escopo:** os outros 4 services antigos (`getPublishedEvents`, `getEventBySlugOrId`, `getEventStats`, `getRecommendedEvents`, tags, galeria, contribuidores) — voltam quando os respectivos endpoints existirem no backend novo, mesmo espírito incremental do roadmap dele. Cache do service worker (`public/sw.js`) para o domínio da API nova. Documentação geral (`README.md`, `docs/*`) além do `.env.example`.
+| Candidato                              | Impacto                                                                                                             | Complexidade                                                                                                                                                                                                                                | Motivo                                                                  |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **`/eventos` via `/events/published`** | **Alto** — reconecta a página inteira, hoje 100% quebrada (só estado de erro); segunda página mais visitada do site | **Baixa** — endpoint já existe (Sprint 1 do backend); frontend só repete o padrão já validado e testado na home (`/events/featured`, commit `136f986`); zero mudança nos hooks/componentes de listagem, já prontos para receber dados reais | **Escolhido**                                                           |
+| `/eventos/[slug]` (detalhe)            | Alto (SEO, conversão)                                                                                               | Média/Alta — endpoint `/events/slug/{slugOrId}` não existe no backend, precisa lookup + 404 + metadata                                                                                                                                      | Fora de escopo por pedido explícito do usuário — próxima sprint natural |
+| Tags (`/tags`, `/events/tags-map`)     | Médio — só melhora o filtro de tags dentro de `/eventos`                                                            | Média — endpoint novo, join `evento_tags`+`tags`                                                                                                                                                                                            | Backlog do backend (Sprint 2 dele)                                      |
+| `/sobre` (stats, contributors)         | Baixo/Médio (páginas secundárias)                                                                                   | Baixa/Média                                                                                                                                                                                                                                 | Backlog do backend (Sprint 4 dele)                                      |
+| `/galeria`                             | Médio                                                                                                               | Alta — join de 4 tabelas + resolução de nomes                                                                                                                                                                                               | Backlog do backend (Sprint 5 dele)                                      |
+| `EventRecommendations`                 | Baixo (componente secundário)                                                                                       | Alta — algoritmo de ranking                                                                                                                                                                                                                 | Backlog do backend (Sprint 6 dele)                                      |
 
 ## Desenho da solução
 
-### Backend (`D:\backendeventos-public-api`) — novo endpoint `GET /events/featured`
+### Backend (`D:\backendeventos-public-api`) — estender `GET /events/published`, não criar rota nova
 
-Replica a arquitetura já usada em `/events/published`, no mesmo módulo (`src/modules/events/`), sem criar módulo novo:
+Reaproveita 100% do módulo `events` já existente (Controller → Service → Repository interface +
+impl Prisma → DTO), evitando duplicar uma query quase idêntica em uma rota paralela (DRY). A
+assinatura do repositório evolui de parâmetros posicionais para um objeto de filtros — mais limpo
+já que estamos adicionando 2 parâmetros novos a uma função que já tinha 2 posicionais opcionais:
 
-- **Query Prisma:** `where: { status: 'publicado' }, orderBy: { created_at: 'desc' }, take: limit`, com **`select`** trazendo só as colunas necessárias (otimização real — menos bytes trafegados do Postgres, não só um DTO mais magro na saída).
-- **Campos do DTO (`EventFeaturedResponseDto`):** `id, slug, nome, descricao, data_evento, horario, imagem, created_at`. Confirmado lendo `EventCard.jsx` linha a linha para o modo exato como a home renderiza o card (`variant="compact"`, `showDescription`, `showActionButton`, `showInfoRows={false}`, `showDateBadge`, `actionInternal`, ver `src/components/UpcomingEvents.jsx`):
-  - `showInfoRows={false}` → `horario`/`dia_semana`/`modalidade`/`cidade`/`estado` não aparecem nas linhas de info (só `data_evento`+`horario` alimentam `useEventCountdown` para o badge de "acontecendo agora"/contagem regressiva).
-  - `showDateBadge={true}` → o badge usa `formatDateToDayMonth(data_evento)`, então `periodo` nunca é lido.
-  - `actionInternal={true}` → o botão "Ver evento" navega internamente via `slug`/`id`, então `link` não é lido.
-  - `created_at` é lido para o badge "Novo" (< 48h).
-- **Rota:** `GET events/featured`, adicionada ao `EventsController` já existente (`@Controller('events')`) — herda automaticamente `@UseInterceptors(CacheControlInterceptor)` de nível de controller (`Cache-Control: public, max-age=30, stale-while-revalidate=120`), sem código extra de cache.
-- **Query params:** `limit` opcional, `1–10` (não `1–100` como `/published` — é um endpoint de "top N fixo", não uma listagem paginada), default `3` via `ListFeaturedQueryDto` (`limit?: number = 3`, mesmo padrão de `offset?: number = 0` em `ListPublishedQueryDto`).
-- **Interface:** `IEventoRepository` ganha `findFeatured(limit?: number): Promise<EventoFeaturedFields[]>`, onde `EventoFeaturedFields = Pick<Evento, 'id'|'slug'|'nome'|'descricao'|'data_evento'|'horario'|'imagem'|'created_at'>`.
+```ts
+// evento.repository.interface.ts
+export interface FindPublishedFilters {
+  cidade?: string
+  modalidade?: string
+  limit?: number
+  offset?: number
+}
 
-### Frontend (`e:\agendas_eventos`) — reintrodução mínima da camada de API
+export interface IEventoRepository {
+  findPublished(filters?: FindPublishedFilters): Promise<Evento[]>
+  findFeatured(limit: number): Promise<EventoFeaturedFields[]>
+}
+```
 
-- Restaurar `src/lib/apiClient.js` (`withRetry`: timeout 15s, até 2 retries com backoff exponencial só em erro de rede/timeout, reporta ao Sentry) e `src/lib/api/eventosApi.js` (`apiGet`: monta querystring de `params`, `cache: 'no-store'` por padrão, anexa `error.status` em respostas não-2xx) — recuperáveis do histórico do git (commit `a08e2f3`, antes da remoção), só trocando `DEFAULT_BASE_URL` para `https://v3.api.eventoscafebugado.cafebugado.com.br`.
-- Novo `src/services/eventService.js` com **uma função só**:
-  ```js
-  import { apiGet } from '../lib/api/eventosApi'
+```ts
+// prisma-evento.repository.ts
+findPublished(filters: FindPublishedFilters = {}): Promise<Evento[]> {
+  const { cidade, modalidade, limit, offset } = filters
+  return this.prisma.evento.findMany({
+    where: {
+      status: 'publicado',
+      ...(cidade && { cidade: { equals: cidade, mode: 'insensitive' } }),
+      ...(modalidade && { modalidade: { equals: modalidade, mode: 'insensitive' } }),
+    },
+    orderBy: { created_at: 'desc' },
+    take: limit,
+    skip: offset,
+  })
+}
+```
 
-  export async function getFeaturedEvents(limit = 3) {
-    return apiGet('/events/featured', { params: { limit }, context: 'getFeaturedEvents' })
+`EventsService.getPublished(filters)` e `EventsController.findPublished(query)` viram passthrough
+do objeto inteiro (`ListPublishedQueryDto` já tem exatamente esse formato, então passa direto sem
+mapeamento manual). `ListPublishedQueryDto` ganha:
+
+```ts
+@ApiPropertyOptional({ description: 'Filtra por cidade exata (case-insensitive).', maxLength: 120 })
+@IsOptional() @IsString() @MaxLength(120)
+cidade?: string
+
+@ApiPropertyOptional({ description: 'Filtra por modalidade exata (ex.: "Online", "Presencial").', maxLength: 60 })
+@IsOptional() @IsString() @MaxLength(60)
+modalidade?: string
+```
+
+Sem filtros informados, o comportamento é **idêntico ao de hoje** (mesma query, mesmo cache, mesmo
+DTO) — extensão aditiva, não é breaking change no contrato existente. `EventPublicResponseDto`,
+`contract.spec.ts` e o cache do controller não mudam.
+
+**Fora de escopo no backend:** índice de banco em `cidade`/`modalidade` — o schema Prisma é
+introspectado do Postgres gerenciado pelo outro repositório (`D:\backendeventos`, dono das
+migrations via Alembic); adicionar índice é mudança de schema, pertence lá, não aqui. Não é
+necessário para o volume atual de eventos; fica anotado como possível melhoria futura se o filtro
+passar a ser muito usado.
+
+### Frontend (`e:\agendas_eventos`) — reconectar `/eventos` no mesmo padrão já usado na home
+
+`src/services/eventService.js` ganha uma segunda função, mesmo padrão de `getFeaturedEvents`:
+
+```js
+export async function getPublishedEvents({ cidade, modalidade, limit, offset } = {}) {
+  return apiGet('/events/published', {
+    params: { cidade, modalidade, limit, offset },
+    context: 'getPublishedEvents',
+  })
+}
+```
+
+`src/app/eventos/page.jsx` vira Server Component assíncrono, mesmo padrão de `src/app/page.jsx`
+(commit `136f986`): busca **sem parâmetros** (lista completa), `try/catch` com `captureError`
+(Sentry) e fallback vazio — a página nunca quebra por falha da API:
+
+```jsx
+import EventsPageClient from './EventsPageClient'
+import { getPublishedEvents } from '../../services/eventService'
+import { captureError } from '../../lib/sentry'
+
+export const metadata = {/* mantém como está */}
+export const dynamic = 'force-dynamic'
+
+async function loadEvents() {
+  try {
+    return { events: await getPublishedEvents(), error: null }
+  } catch (error) {
+    captureError(error, { context: 'EventsPage.loadEvents' })
+    return { events: [], error }
   }
-  ```
-- `src/app/page.jsx` volta a ser Server Component assíncrono, buscando os destaques num `try/catch` (mesmo padrão do antigo `loadUpcomingEvents`: reporta erro via `captureError` de `src/lib/sentry.js`, cai em `[]` — a home nunca quebra por falha da API):
-  ```jsx
-  async function loadFeaturedEvents() {
-    try {
-      return await getFeaturedEvents()
-    } catch (error) {
-      captureError(error, { context: 'Home.loadFeaturedEvents' })
-      return []
-    }
-  }
+}
 
-  export default async function Home() {
-    const events = await loadFeaturedEvents()
-    return (
-      <>
-        {/* hero, sem alteração */}
-        <UpcomingEvents events={events} tagsMap={{}} />
-        <Testimonials />
-      </>
-    )
-  }
-  ```
-  `tagsMap` fica `{}` fixo por enquanto — endpoint de tags ainda não existe no backend novo; `EventCard` já tolera `tags=[]` sem quebrar.
-- `.env.example`: restaurar o bloco `NEXT_PUBLIC_API_BASE_URL` (comentado, com o novo default de produção).
-- `next.config.mjs`: adicionar `https://v3.api.eventoscafebugado.cafebugado.com.br` ao `connect-src` do CSP — sem isso o `fetch` é bloqueado no browser em produção.
+export default async function EventsPage() {
+  const { events, error } = await loadEvents()
+  return <EventsPageClient events={events} tagsMap={{}} tags={[]} error={error} />
+}
+```
 
-`UpcomingEvents.jsx` **não precisa de nenhuma alteração** — já aceita `events`/`tagsMap` via props e já renderiza `EventCard` exatamente do jeito certo (`variant="compact"`, `showDescription`, `showActionButton`, `showInfoRows={false}`, `showDateBadge`, `actionInternal`, `favouriteIds`/`toggleFavourite` do Zustand).
+`tagsMap`/`tags` continuam vazios — endpoint de tags ainda não existe no backend (Sprint 2 dele);
+`EventsPageClient`/`FilterModal` já toleram isso.
+
+**Nada muda** em `EventsPageClient.jsx`, `useEventFilters.js`, `usePagination.js`,
+`useViewMode.js`, `EventsGrid.jsx`, `EventsFilters.jsx`, `FilterModal.jsx`, `Pagination.jsx`,
+`EventCard.jsx`, `eventLocationOptions.js` — já recebem `events` via prop e já filtram/paginam
+100% no cliente; só passam a receber dados reais em vez de `[]`. `.env.example`
+(`NEXT_PUBLIC_API_BASE_URL`) e `next.config.mjs` (CSP `connect-src`) já apontam para
+`v3.api.eventoscafebugado.cafebugado.com.br` desde a sprint anterior — sem alteração.
 
 ## Tarefas
 
-1. **Backend T1** — `IEventoRepository.findFeatured` (interface) + `PrismaEventoRepository.findFeatured` (query com `select` dos 8 campos, `where: { status: 'publicado' }`, `orderBy: { created_at: 'desc' }`, `take: limit`).
-2. **Backend T2** — `dto/event-featured-response.dto.ts` (`EventFeaturedResponseDto`, 8 `@ApiProperty`, `static fromEntity()`) + `dto/list-featured-query.dto.ts` (`ListFeaturedQueryDto`, `limit?: number = 3`, `@Min(1) @Max(10)`).
-3. **Backend T3** — rota `@Get('featured')` em `EventsController` (`@ApiOkResponse`, `@ApiQuery` para `limit`) + `EventsService.getFeatured(limit?)` (chama repositório, mapeia entidade → DTO).
-4. **Backend T4 — Testes:**
-   - Estender `prisma-evento.repository.spec.ts`: `findFeatured` sem argumento usa `take: 3` (default aplicado pelo DTO antes de chegar aqui — ou testar que o repositório aceita `limit` explícito e usa no `take`), `select` contém exatamente os 8 campos.
-   - Estender `events.service.spec.ts`: `getFeatured()` mapeia entidade → DTO com só os 8 campos, retorna `[]` sem erro quando não há eventos.
-   - Estender `events.controller.spec.ts`: rota chama `eventsService.getFeatured` com o `limit` da query.
-   - Novo `test/events-featured.e2e-spec.ts` (mirror de `events-published.e2e-spec.ts`): `GET /events/featured` → 200, `Content-Type: application/json`, array; documentado em `/docs-json`; header `Cache-Control: public, max-age=30, stale-while-revalidate=120`; `?limit=2` respeitado (`take: 2` na chamada ao Prisma); `?limit=0` e `?limit=11` → 400; payload de cada item contém **exatamente** `id, slug, nome, descricao, data_evento, horario, imagem, created_at` (nada de `status`, `created_by`, `motivo_recusa`, mas também nada de `dia_semana`, `periodo`, `modalidade`, `link`, `cidade`, `estado`, `endereco`, `updated_at` — o contrato é mínimo por design).
-   - Estender `test/contract.spec.ts` com um novo `describe('Contrato de resposta — GET /events/featured')`: compara `Object.keys(firstEvent).sort()` com os 8 campos esperados (trava regressão se alguém adicionar campo sem decisão deliberada).
-5. **Backend T5** — atualizar `README.md` (tabela de endpoints implementados) e `SPRINT.md` do backend (nova entrada no roadmap — "featured" não estava nos 10 endpoints originalmente mapeados na Sprint 1).
-6. **Frontend T1** — restaurar `src/lib/apiClient.js` e `src/lib/api/eventosApi.js` (`DEFAULT_BASE_URL = 'https://v3.api.eventoscafebugado.cafebugado.com.br'`).
-7. **Frontend T2** — criar `src/services/eventService.js` com `getFeaturedEvents(limit = 3)`.
-8. **Frontend T3** — reescrever `src/app/page.jsx` (Server Component assíncrono, `loadFeaturedEvents` com try/catch + Sentry, passa `events` real pro `UpcomingEvents`).
-9. **Frontend T4** — `.env.example` (restaurar `NEXT_PUBLIC_API_BASE_URL`) e `next.config.mjs` (CSP `connect-src`).
-10. **Frontend T5 — Testes:**
-    - Novo `src/test/mocks/handlers.js` (só o handler de `GET /events/featured`, retornando `[]` por padrão) e `src/test/mocks/server.js` (`setupServer(...handlers)`, padrão MSW).
-    - Restaurar lifecycle MSW em `src/test/setup.js` (`beforeAll(() => server.listen(...))`, `afterEach(() => server.resetHandlers())`, `afterAll(() => server.close())`), mantendo os polyfills de `matchMedia`/`IntersectionObserver` já existentes.
-    - Novo `src/services/eventService.test.js`: busca eventos em destaque via MSW, confirma que `limit` vai como query param.
-    - Reescrever `src/app/page.test.jsx`: mock de `getFeaturedEvents` (via `vi.mock('../services/eventService', ...)`, mesmo padrão do commit `a08e2f3`) — caminho feliz (evento mockado aparece) + resiliência a erro (`mockRejectedValue`, página não quebra, heading continua visível).
-11. **Verificação final:**
-    - Backend: `npm run lint && npm run test && npm run test:e2e` em `D:\backendeventos-public-api`.
-    - Frontend: `pnpm lint && pnpm test:run && pnpm build` em `e:\agendas_eventos`.
-    - Manual: dev server do frontend apontando pro backend novo local (`NEXT_PUBLIC_API_BASE_URL=http://localhost:3000` do Nest, se as portas não colidirem, ajustar), depois apontando pra produção v3 — confirmar 3 cards reais na home, sem erro de CSP no console, sem erro no Sentry.
+### Backend
+
+1. **T1 — `IEventoRepository`**: adicionar `FindPublishedFilters` e mudar `findPublished` para
+   aceitar o objeto de filtros (`evento.repository.interface.ts`).
+2. **T2 — `PrismaEventoRepository.findPublished`**: aplicar `cidade`/`modalidade` no `where`
+   (case-insensitive), manter `take`/`skip` como já é.
+3. **T3 — `ListPublishedQueryDto`**: adicionar `cidade?`/`modalidade?` com validação
+   (`@IsString`, `@MaxLength`).
+4. **T4 — `EventsService.getPublished` / `EventsController.findPublished`**: repassar o objeto de
+   filtros inteiro (não mais `limit`/`offset` posicionais).
+5. **T5 — Testes** (ver seção própria abaixo).
+6. **T6 — Docs**: nova entrada no `SPRINT.md` do backend (`D:\backendeventos-public-api\SPRINT.md`,
+   "Sprint 1.6" — mesmo padrão da entrada 1.5 de `/events/featured`) e atualização da tabela de
+   endpoints no `README.md` dele.
+
+### Frontend
+
+7. **T7 — `eventService.js`**: adicionar `getPublishedEvents({ cidade, modalidade, limit, offset })`.
+8. **T8 — `app/eventos/page.jsx`**: virar Server Component assíncrono (padrão de `app/page.jsx`).
+9. **T9 — `app/eventos/page.test.jsx`**: reescrever para mockar `getPublishedEvents` (mesmo padrão
+   de `app/page.test.jsx`) — caminho feliz (eventos mockados chegam ao `EventsPageClient`) +
+   resiliência (API falha, página não quebra, sem crash).
+10. **T10 — `src/test/mocks/handlers.js`**: novo handler `GET /events/published` → `[]` por
+    padrão (mesmo padrão do handler de `/events/featured`).
+11. **T11 — `src/services/eventService.test.js`**: estender com testes de `getPublishedEvents`
+    (busca ok, `cidade`/`modalidade`/`limit`/`offset` viram query params quando informados,
+    ausentes quando omitidos, erro não-2xx anexa `.status`).
+12. **T12 (opcional, baixo custo)** — corrigir a seção "Backend" do `CLAUDE.md` da raiz, hoje
+    desatualizada (ainda descreve o backend como FastAPI/v2 — a API em uso é a nova, NestJS+Prisma
+    v3). Não bloqueia a feature; é acerto de documentação.
 
 ## Critérios de conclusão
 
-- `GET /events/featured` responde 200 com array de até 3 objetos, exatamente os 8 campos (`id, slug, nome, descricao, data_evento, horario, imagem, created_at`), ordenados por `created_at DESC`.
-- Header `Cache-Control: public, max-age=30, stale-while-revalidate=120` presente na resposta.
-- `?limit=` funciona no intervalo 1–10; fora disso retorna 400.
-- Rota documentada em `/docs` (Swagger) do backend.
-- Grep no payload por `status`, `created_by`, `motivo_recusa`, `dia_semana`, `periodo`, `modalidade`, `link`, `cidade`, `estado`, `endereco`, `updated_at` retorna zero — contrato deliberadamente mínimo.
-- Home (`/`) do frontend renderiza até 3 cards reais de "Eventos em Destaque" (sem tags, por enquanto), sem crash quando a API falha ou está fora do ar (cai no estado vazio atual, com erro reportado ao Sentry).
-- `pnpm build`, `pnpm lint`, `pnpm test:run` (frontend) e `npm run test`, `npm run test:e2e`, `npm run lint` (backend) verdes.
-- Cobertura do backend mantém o gate de 80% em `modules/events/**`; cobertura do frontend mantém os thresholds de `vitest.config.js` (55% linhas / 50% funções / 48% branches).
-- Nenhuma origem além de `CORS_ORIGINS` consegue chamar o endpoint (mesma proteção já existente em `/events/published`).
+- [ ] `GET /events/published` sem parâmetros mantém exatamente o comportamento de hoje (mesmo
+      payload, mesmo cache) — nenhuma regressão nos testes já existentes (`contract.spec.ts`,
+      `events-published.e2e-spec.ts` originais).
+- [ ] `GET /events/published?cidade=São Paulo` retorna só eventos dessa cidade (case-insensitive).
+- [ ] `GET /events/published?modalidade=Online` retorna só eventos dessa modalidade.
+- [ ] Filtros combináveis entre si e com `limit`/`offset`.
+- [ ] `/eventos` (frontend) renderiza eventos reais vindos da API, com busca, tag (sem dado real
+      ainda, mas sem quebrar), local/modalidade, intervalo de data, favoritos e paginação
+      funcionando exatamente como hoje (client-side).
+- [ ] Falha da API em `/eventos` não derruba a página — cai no `ErrorState` já existente
+      (`EventsGrid`), erro reportado ao Sentry.
+- [ ] `npm run lint && npm run test && npm run test:e2e` verdes em `D:\backendeventos-public-api`,
+      cobertura ≥ 80% mantida em `modules/events/**`.
+- [ ] `pnpm lint && pnpm test:run && pnpm build` verdes em `e:\agendas_eventos`, thresholds do
+      `vitest.config.js` mantidos (55%/50%/48%).
+- [ ] Verificação manual: dev server do frontend contra o backend local e contra produção v3 —
+      `/eventos` mostra eventos reais, filtros/paginação funcionam, sem erro de CSP no console.
 
 ## Arquivos afetados
 
-**Backend `D:\backendeventos-public-api`:**
-
-Modificados:
+**Backend `D:\backendeventos-public-api` (modificados):**
 
 - `src/modules/events/repositories/evento.repository.interface.ts`
 - `src/modules/events/repositories/prisma-evento.repository.ts`
@@ -124,61 +222,74 @@ Modificados:
 - `src/modules/events/events.service.spec.ts`
 - `src/modules/events/events.controller.ts`
 - `src/modules/events/events.controller.spec.ts`
-- `test/contract.spec.ts`
+- `src/modules/events/dto/list-published-query.dto.ts`
+- `src/modules/events/dto/list-published-query.dto.spec.ts`
+- `test/events-published.e2e-spec.ts`
 - `README.md`, `SPRINT.md`
 
-Novos:
+**Sem alteração (confirmado por leitura direta):** `dto/event-public-response.dto.ts` (e seu
+spec), `test/contract.spec.ts`, `common/interceptors/cache-control.interceptor.ts`.
 
-- `src/modules/events/dto/event-featured-response.dto.ts`
-- `src/modules/events/dto/list-featured-query.dto.ts`
-- `test/events-featured.e2e-spec.ts`
+**Frontend `e:\agendas_eventos` (modificados):**
 
-**Frontend `e:\agendas_eventos`:**
-
-Restaurados (existiam antes do commit `9e78c7c`, recuperáveis do git):
-
-- `src/lib/apiClient.js`
-- `src/lib/api/eventosApi.js`
-
-Novos:
-
-- `src/services/eventService.js` (só `getFeaturedEvents`, não os outros 4 métodos antigos)
+- `src/services/eventService.js`
 - `src/services/eventService.test.js`
+- `src/app/eventos/page.jsx`
+- `src/app/eventos/page.test.jsx`
 - `src/test/mocks/handlers.js`
-- `src/test/mocks/server.js`
+- `CLAUDE.md` (opcional, T12)
 
-Modificados:
-
-- `src/app/page.jsx`
-- `src/app/page.test.jsx`
-- `src/test/setup.js` (lifecycle MSW de volta)
-- `.env.example`
-- `next.config.mjs`
-
-Intocados (confirmado por leitura direta do código atual — já prontos para receber dados reais sem qualquer alteração):
-
-- `src/components/EventCard.jsx`
-- `src/components/UpcomingEvents.jsx`
-- `src/store/useFavouritesStore.js`
-- `src/components/FavouriteEventButton.jsx`
-- `src/utils/eventDate.js`
-
-**Fora de escopo (deliberado, não faz parte desta sprint):**
-
-- Os outros 4 services antigos (`getPublishedEvents`, `getEventBySlugOrId`, `getEventStats`, `getRecommendedEvents`) e os services de tags/galeria/contribuidores — voltam quando os respectivos endpoints existirem no backend novo.
-- `public/sw.js` (cache do service worker para o domínio da API nova) — débito técnico anotado, não bloqueia a feature.
-- `docs/OPERATIONS.md`, `docs/TROUBLESHOOTING.md`, `docs/SETUP_INICIAL.md`, `README.md` do frontend.
-- `e2e/favoritos.spec.js` continua pulado (`test.skip`) — depende de `/eventos`, que não faz parte desta sprint.
+**Sem alteração:** `src/app/eventos/EventsPageClient.jsx`, `src/hooks/useEventFilters.js`,
+`src/hooks/usePagination.js`, `src/hooks/useViewMode.js`, `src/components/EventsGrid.jsx`,
+`src/components/EventsFilters.jsx`, `src/components/FilterModal.jsx`,
+`src/components/Pagination.jsx`, `src/components/EventCard.jsx`,
+`src/utils/eventLocationOptions.js`, `.env.example`, `next.config.mjs`.
 
 ## Testes necessários
 
-- **Backend:** unitário de repositório (query com `select`/`where`/`orderBy`/`take` corretos), unitário de service (mapeamento entidade → DTO, omissão implícita dos campos não incluídos no DTO, default `limit=3`), e2e (contrato de payload, header de cache, validação de `limit` fora do intervalo), contrato cross-repo (`contract.spec.ts` — chaves exatas comparadas com o que `EventCard`/`UpcomingEvents` realmente leem).
-- **Frontend:** unitário de `getFeaturedEvents` via MSW (happy path + `limit` como query param), teste de `page.jsx` (caminho feliz renderiza evento mockado + resiliência: API falha e a home não quebra), verificação manual no browser (dev server local e contra produção v3) incluindo checagem de CSP/console.
+**Backend:**
 
-## Observação para a revisão
+- Unitário de repositório: `where` inclui `cidade`/`modalidade` quando informados (com
+  `mode: 'insensitive'`), omite quando não informados; `findPublished({ limit, offset })` continua
+  repassando `take`/`skip` corretamente (call signature migrada de posicional para objeto).
+- Unitário de service/controller: repassam o objeto de filtros inteiro sem transformação.
+- Unitário de DTO (`list-published-query.dto.spec.ts`): aceita `cidade`/`modalidade` como string,
+  rejeita acima do `maxLength`.
+- E2E: `?cidade=`/`?modalidade=` chegam corretos no `where` da chamada ao Prisma (mock);
+  combinação com `limit`/`offset`; regressão dos testes já existentes (cache header, CORS, campos
+  proibidos, 400 em `limit` fora do intervalo).
+- Contrato (`contract.spec.ts`): sem alteração — mesma garantia de 16 campos exatos.
 
-Documentado como limitação conhecida (não como bug): favoritar um evento a partir do card de destaque da home persiste no `localStorage` só os 8 campos do endpoint enxuto, então esse evento aparece incompleto em `/favoritos` (badge sem texto, sem local/modalidade, botão "Ver evento" sem link) até o usuário favoritar novamente a partir de `/eventos` — quando esse endpoint existir no backend novo e a listagem completa voltar ao frontend, o card lá usa o DTO completo de `/events/published` e substitui a entrada incompleta. Essa é a consequência explícita da escolha de payload "estritamente mínimo" confirmada com o usuário nesta sessão.
+**Frontend:**
+
+- Unitário de `getPublishedEvents` via MSW: happy path, cada filtro vira query param só quando
+  informado, erro não-2xx anexa `.status`.
+- `app/eventos/page.test.jsx`: caminho feliz (evento mockado chega ao `EventsPageClient`,
+  renderizado na tela) + resiliência (API rejeita, página mostra estado de erro em vez de crashar).
+- Regressão: suíte existente de `EventsPageClient.test.jsx` (filtros, paginação, view mode) não
+  deve precisar de nenhuma mudança — continua operando sobre a prop `events`, agora populada com
+  dados reais em produção.
+
+## Fora de escopo (deliberado, não faz parte desta sprint)
+
+- Página de detalhe `/eventos/[slug]` — depende de `GET /events/slug/{slugOrId}`, que não existe
+  no backend (Sprint 3 do roadmap dele). Fica para quando o usuário pedir.
+- Mover o filtro de local (`?local=`) para o servidor (usar `cidade`/`modalidade` no fetch) —
+  capability pronta no backend, mas não usada nesta fase por decisão explícita do usuário. Mudaria
+  a arquitetura deliberadamente client-side documentada em `usePagination.js`/`useEventFilters.js`
+  (introduziria round-trip ao servidor a cada troca de local). Próximo passo natural, não incluído
+  aqui.
+- Paginação e contagem total no servidor (`total`/envelope de resposta) — segue com paginação
+  100% client-side sobre a lista completa, como hoje.
+- Tags (`/tags`, `/events/tags-map`) — `tagsMap` continua `{}`; filtro de tag na UI fica sem dado
+  real até o backend implementar (Sprint 2 do roadmap dele).
+- `/galeria`, `/sobre`, `EventRecommendations` — dependem de endpoints que não existem ainda no
+  backend (Sprints 4-6 do roadmap dele).
 
 ## Status
 
-Planejado. Nenhum código foi alterado — implementação (backend e frontend) fica para quando o usuário pedir explicitamente.
+Implementado (T1–T11; T12 também aplicado). Backend: `npm run lint && npm run test && npm run
+test:e2e` verdes (55 unitários + 27 e2e/contrato), cobertura ≥ 80% mantida em `modules/events/**`.
+Frontend: `pnpm lint && pnpm test:run && pnpm build` verdes (272/272 testes, 72 arquivos), `/eventos`
+compila como rota dinâmica (`ƒ`). Verificação manual contra o backend real (local/produção v3)
+ainda não foi feita nesta sessão — recomendada antes do deploy.

@@ -1,4 +1,6 @@
 import EventsPageClient from './EventsPageClient'
+import { getPublishedEvents } from '../../services/eventService'
+import { captureError } from '../../lib/sentry'
 
 export const metadata = {
   title: 'Próximos Eventos | Eventos Café Bugado',
@@ -8,15 +10,17 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
-// Sem fonte de dados: integração com a API removida — a listagem volta a
-// carregar eventos quando a nova API for plugada (ver SPRINT.md).
-export default function EventsPage() {
-  return (
-    <EventsPageClient
-      events={[]}
-      tagsMap={{}}
-      tags={[]}
-      error={new Error('Busca de eventos indisponível: integração com a API removida.')}
-    />
-  )
+async function loadEvents() {
+  try {
+    return { events: await getPublishedEvents(), error: null }
+  } catch (error) {
+    captureError(error, { context: 'EventsPage.loadEvents' })
+    return { events: [], error }
+  }
+}
+
+export default async function EventsPage() {
+  const { events, error } = await loadEvents()
+
+  return <EventsPageClient events={events} tagsMap={{}} tags={[]} error={error} />
 }
