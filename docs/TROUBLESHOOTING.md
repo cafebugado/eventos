@@ -43,19 +43,16 @@ node --version
 
 ## Problemas ao Rodar o Projeto
 
-### Tela branca / Erro de conexao com a API
+### Tela branca / Erro ao carregar dados
 
-**Causa**: `NEXT_PUBLIC_API_BASE_URL` apontando pra um backend fora do ar (ex.: `localhost:8000` sem o backend rodando).
+**Causa**: a integração com a API dedicada foi removida (ver [SPRINT.md](../SPRINT.md), em processo de troca de backend) — as páginas mostram estado vazio/erro por padrão até a nova API ser plugada. Isso é esperado no momento, não é um problema de ambiente local.
 
 ```bash
 # Verifique se o .env.local existe
 ls .env.local
 
-# Se nao existe, crie a partir do exemplo (ja aponta pra API de producao)
+# Se nao existe, crie a partir do exemplo
 cp .env.example .env.local
-
-# Se estiver sobrescrevendo com um backend local, confirme que ele esta rodando:
-# NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
 Apos editar o `.env.local`, reinicie o servidor:
@@ -252,17 +249,11 @@ git push --force-with-lease
 
 ## Problemas com a API
 
-### Erro de CORS no console do navegador
+> A integração com a API dedicada foi removida (ver [SPRINT.md](../SPRINT.md)) — as seções abaixo voltam a se aplicar quando a nova API for plugada.
 
-1. Confirme a origem que o `pnpm dev` esta usando (`http://localhost:3000` por padrao)
-2. Verifique se essa origem esta na lista `CORS_ORIGINS` do backend (repositorio `backendEventos`, `.env`) — se nao estiver, precisa ser adicionada la, nao aqui
-3. Erros de CORS aparecem no console do navegador, nao nos logs do `pnpm dev`
+### Dados nao aparecem
 
-### Dados nao aparecem / 404 inesperado
-
-1. Verifique `NEXT_PUBLIC_API_BASE_URL` no `.env.local`
-2. Confirme que a API esta no ar: `curl https://v2.backendeventoscfb.cafebugado.com.br/health`
-3. Verifique o console do navegador (F12) e os logs do `pnpm dev` para o erro exato (o `apiClient.js` reporta contexto via Sentry/`console.error`)
+Esperado no momento: sem integração com API, todas as páginas de listagem renderizam o estado vazio/erro por padrão.
 
 ---
 

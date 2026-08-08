@@ -9,7 +9,7 @@ Plataforma da Comunidade Café Bugado para descobrir e participar dos melhores e
 - **Framework:** Next.js 16 (App Router, Server Components)
 - **UI:** MUI (Material UI) + Emotion
 - **Estado global:** Zustand
-- **Backend:** API dedicada (FastAPI) em `v2.backendeventoscfb.cafebugado.com.br` — consumida via `fetch`, só GET público
+- **Backend:** integração com a API dedicada (FastAPI) removida — em processo de troca de API, ver [SPRINT.md](SPRINT.md)
 - **Erros:** Sentry (`@sentry/nextjs`)
 - **Analytics:** Vercel Analytics + Speed Insights + Web Vitals
 - **Testes:** Vitest + Testing Library + MSW + Playwright (E2E) + Storybook
@@ -24,7 +24,7 @@ Não existe painel administrativo — foi uma decisão de negócio definitiva. G
 git clone https://github.com/cafebugado/eventos.git
 cd eventos
 pnpm install
-cp .env.example .env.local   # já aponta pra API de produção por padrão
+cp .env.example .env.local
 pnpm dev                      # http://localhost:3000
 ```
 
@@ -44,14 +44,12 @@ pnpm dev                      # http://localhost:3000
 
 ## Variáveis de ambiente
 
-Ver [`.env.example`](.env.example). Todas são opcionais (têm default): `NEXT_PUBLIC_API_BASE_URL` (default: API de produção), `NEXT_PUBLIC_SITE_URL` e `NEXT_PUBLIC_SENTRY_DSN`.
+Ver [`.env.example`](.env.example). Todas são opcionais (têm default): `NEXT_PUBLIC_SITE_URL` e `NEXT_PUBLIC_SENTRY_DSN`.
 
 ## Padrões do projeto
 
 - Código do app em `src/` (convenção do Next.js); `public/`, `e2e/` e `docs/` ficam na raiz.
-- Chamadas à API sempre via `withRetry` (`src/lib/apiClient.js`), pelo wrapper `apiGet` (`src/lib/api/eventosApi.js`).
-- Services não recebem client nem sessão — são GETs públicos, chamáveis igual em Server e Client Components.
-- Busca de dados acontece em Server Components (`src/app/**/page.jsx`), sem hooks client-side de fetch.
+- Integração com a API dedicada removida (em processo de troca de backend, ver [SPRINT.md](SPRINT.md)) — páginas em `src/app/**/page.jsx` renderizam estado vazio/erro até a nova API ser plugada.
 - Modais usam `src/components/Modal/`.
 
 Ver [CLAUDE.md](CLAUDE.md) para o guia completo de convenções.

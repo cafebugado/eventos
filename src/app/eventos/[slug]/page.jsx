@@ -1,4 +1,3 @@
-import { notFound } from 'next/navigation'
 import Container from '@mui/material/Container'
 import Card from '@mui/material/Card'
 import CardMedia from '@mui/material/CardMedia'
@@ -14,8 +13,6 @@ import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined'
 import WifiOutlinedIcon from '@mui/icons-material/WifiOutlined'
 import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined'
 import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined'
-import { getEventBySlugOrId } from '../../../services/eventService'
-import { getEventTags } from '../../../services/tagService'
 import { captureError } from '../../../lib/sentry'
 import { vivoVioleta } from '../../../theme/tokens/vivoVioleta'
 import { isEventPast } from '../../../utils/eventDate'
@@ -38,33 +35,19 @@ function truncateText(text, maxLength = 160) {
   return text.slice(0, maxLength - 3) + '...'
 }
 
-// Força renderização dinâmica — ver comentário em app/page.jsx.
 export const dynamic = 'force-dynamic'
 
-// HTTP 404 da API (evento não existe pra esse slug nem UUID) é o único caso
-// que vira 404 — qualquer outro erro (rede, servidor) propaga para o
-// error.jsx desta rota.
-async function loadEvent(slug) {
-  try {
-    const event = await getEventBySlugOrId(slug)
-    const eventTags = await getEventTags(event.id).catch(() => [])
-    return { event, eventTags }
-  } catch (error) {
-    if (error?.status === 404) {
-      return { event: null, eventTags: [] }
-    }
-    captureError(error, { context: 'EventDetails.loadEvent', slug })
-    throw error
-  }
+// Sem fonte de dados: integração com a API removida — todo acesso a um
+// evento propaga erro para o error.jsx desta rota até a nova API ser
+// plugada (ver SPRINT.md).
+async function loadEvent() {
+  const error = new Error('Busca de evento indisponível: integração com a API removida.')
+  captureError(error, { context: 'EventDetails.loadEvent' })
+  throw error
 }
 
-export async function generateMetadata({ params }) {
-  const { slug } = await params
-  const { event } = await loadEvent(slug)
-
-  if (!event) {
-    return { title: `Evento não encontrado | ${SITE_NAME}` }
-  }
+export async function generateMetadata() {
+  const { event } = await loadEvent()
 
   const description = truncateText(stripRichText(event.descricao)) || DEFAULT_DESCRIPTION
   const image = event.imagem || FALLBACK_IMAGE
@@ -131,13 +114,8 @@ function InfoCard({ icon, label, value }) {
   )
 }
 
-export default async function EventDetailsPage({ params }) {
-  const { slug } = await params
-  const { event, eventTags } = await loadEvent(slug)
-
-  if (!event) {
-    notFound()
-  }
+export default async function EventDetailsPage() {
+  const { event, eventTags } = await loadEvent()
 
   const isPast = isEventPast(event.data_evento)
   const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://eventos.cafebugado.com.br'}/eventos/${event.slug || event.id}`

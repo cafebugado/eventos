@@ -1,6 +1,5 @@
 const CACHE_VERSION = 'v2'
 const STATIC_CACHE = `cb-static-${CACHE_VERSION}`
-const EVENTS_CACHE = `cb-events-${CACHE_VERSION}`
 
 const STATIC_ASSETS = ['/', '/eventos', '/sobre', '/manifest.webmanifest', '/icon.svg']
 
@@ -14,11 +13,7 @@ self.addEventListener('activate', (event) => {
     caches
       .keys()
       .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => key !== STATIC_CACHE && key !== EVENTS_CACHE)
-            .map((key) => caches.delete(key))
-        )
+        Promise.all(keys.filter((key) => key !== STATIC_CACHE).map((key) => caches.delete(key)))
       )
   )
   self.clients.claim()
@@ -46,21 +41,6 @@ self.addEventListener('fetch', (event) => {
   // conteúdo depende da versão do app. Cachear isso serve payload de um build
   // antigo referenciando chunks que não existem mais (404 em cascata).
   if (url.searchParams.has('_rsc') || request.headers.get('RSC') === '1') {
-    return
-  }
-
-  if (url.href.includes('backendeventoscfb.cafebugado.com.br')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone()
-            caches.open(EVENTS_CACHE).then((cache) => cache.put(request, clone))
-          }
-          return response
-        })
-        .catch(() => caches.match(request))
-    )
     return
   }
 

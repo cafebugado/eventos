@@ -3,9 +3,6 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import PhotoLibraryOutlinedIcon from '@mui/icons-material/PhotoLibraryOutlined'
-import { getAlbuns, normalizeAlbum } from '../../services/galeriaService'
-import { captureError } from '../../lib/sentry'
-import GalleryPageClient from './GalleryPageClient'
 
 export const metadata = {
   title: 'Galeria | Eventos Café Bugado',
@@ -13,29 +10,11 @@ export const metadata = {
     'Galeria de fotos das comunidades e eventos presenciais do Café Bugado. Veja os melhores momentos de cada encontro.',
 }
 
-// Força renderização dinâmica — ver comentário em app/page.jsx.
 export const dynamic = 'force-dynamic'
 
-// Server Component: busca e normaliza os álbuns direto no servidor — sem
-// hook client-side (useGallery.js) nem loading state. O app antigo também
-// expunha busca por texto/comunidade via useGallery, mas a página nunca
-// renderizava nenhum controle de filtro para isso (capacidade morta) — não
-// portamos essa parte não utilizada.
-async function loadAlbums() {
-  try {
-    const albums = await getAlbuns()
-    return albums.filter((a) => (a.fotos || []).length > 0).map(normalizeAlbum)
-  } catch (error) {
-    captureError(error, { context: 'GalleryPage.loadAlbums' })
-    return null
-  }
-}
-
-export default async function GalleryPage() {
-  const events = await loadAlbums()
-  const hasError = events === null
-  const items = events ?? []
-
+// Sem fonte de dados: integração com a API removida — a galeria volta a
+// carregar álbuns quando a nova API for plugada (ver SPRINT.md).
+export default function GalleryPage() {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
       <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 5 }}>
@@ -57,25 +36,12 @@ export default async function GalleryPage() {
         </Typography>
       </Stack>
 
-      {hasError && (
-        <Stack spacing={1.5} sx={{ alignItems: 'center', textAlign: 'center', py: 8 }}>
-          <PhotoLibraryOutlinedIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
-          <Typography variant="body1" color="text.secondary">
-            Erro ao carregar a galeria. Tente novamente mais tarde.
-          </Typography>
-        </Stack>
-      )}
-
-      {!hasError && items.length === 0 && (
-        <Stack spacing={1.5} sx={{ alignItems: 'center', textAlign: 'center', py: 8 }}>
-          <PhotoLibraryOutlinedIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
-          <Typography variant="body1" color="text.secondary">
-            Nenhum evento encontrado na galeria ainda.
-          </Typography>
-        </Stack>
-      )}
-
-      {!hasError && items.length > 0 && <GalleryPageClient events={items} />}
+      <Stack spacing={1.5} sx={{ alignItems: 'center', textAlign: 'center', py: 8 }}>
+        <PhotoLibraryOutlinedIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
+        <Typography variant="body1" color="text.secondary">
+          Erro ao carregar a galeria. Tente novamente mais tarde.
+        </Typography>
+      </Stack>
     </Container>
   )
 }

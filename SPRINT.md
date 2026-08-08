@@ -1,98 +1,105 @@
-# SPRINT: Página de Favoritos (`/favoritos`)
+# SPRINT: Remoção da integração com a API atual
 
 > Documento de planejamento. Ver seção "Status" no final.
 
 ## Contexto
 
-O app já tem toda a infraestrutura de favoritos (persistência em `localStorage` via `useFavouritesStore`, botão de favoritar em `EventCard`/`EventActions`, filtro "só favoritos" _dentro_ de `/eventos`), mas **não existe uma página dedicada** para o usuário ver só os eventos que favoritou. Hoje, pra revisitar favoritos, o usuário precisa ir em `/eventos` e ativar um filtro — não há link de navegação, não há uma visão própria.
+O projeto vai trocar de API dedicada (a atual, `https://v2.backendeventoscfb.cafebugado.com.br`, será substituída — a nova ainda não está definida e está fora de escopo aqui). Antes de plugar a nova API, este sprint cobre só a **limpeza**: remover completamente o código que fala com a API atual (camada de fetch, services, chamadas nas páginas), deixando cada ponto que hoje mostra dados da API mostrando **apenas o estado de erro/vazio que a página já sabe tratar** — sem nenhum fetch de rede acontecendo.
 
-Isso foi identificado como o gap de **maior impacto / menor complexidade** do momento, depois de mapear o repo inteiro (páginas, componentes, services, endpoints da API dedicada e testes):
+**Objetivo:** eliminar todo o código que fala com `v2.backendeventoscfb.cafebugado.com.br`, deixando cada página no estado de erro/vazio que ela já trata hoje. Prepara o terreno para plugar uma nova API depois (fora de escopo deste sprint).
 
-- **Alto impacto**: fecha o ciclo de uma feature que o usuário já usa (favoritar) mas não tem onde "colher" o resultado — item de navegação novo, visível, sem necessidade de conta/login.
-- **Baixa complexidade**: zero mudança de backend (favoritos são só locais), zero endpoint novo, e quase todos os blocos de construção já existem e são reaproveitáveis: `useFavouritesStore`, `EventsGrid` (que já sabe renderizar grid + estado vazio + calcula `isPast`/`isToday` por evento), `EventCard`/`FavouriteEventButton`, `sortEventsByDate`, `getAllEventTags()`, e o padrão de página Server+Client já usado em `/eventos`.
+**Fora de escopo:** definir/integrar a nova API; mudar o shape de dados em componentes de apresentação (`EventCard`, `CalendarView`, etc.) — eles só recebem props, continuam como estão até a nova API existir.
 
-Outros candidatos considerados e descartados por menor payoff/relação impacto-esforço:
+## Mapa da integração atual
 
-- Filtro por período (diurno/noturno) em `/eventos` — incremento marginal sobre filtros que já existem.
-- Breakdown diurno/noturno na página `/sobre` — trivial mas é só um dado estatístico a mais, baixo impacto de produto.
-- Página de "Comunidades" (endpoint `GET /communities` não usado) — maior esforço (novo service + página do zero) e não há sinal de demanda hoje (nome da comunidade só aparece embutido na galeria).
-
-## Comportamento esperado
-
-Nova rota `/favoritos`, acessível pelo menu principal (desktop `Header` e FAB mobile `MobileNav`, ambos já leem de `NAVIGATION_ITEMS`):
-
-- Lista os eventos favoritados (via `useFavouritesStore`), ordenados cronologicamente com `sortEventsByDate`, reaproveitando o mesmo grid/card de `/eventos` (`EventsGrid` em `viewMode="grid"`, sem toggle de view nem paginação — lista tende a ser pequena).
-- Cada card mantém o botão de desfavoritar funcionando (remove da lista imediatamente, já que a UI é 100% reativa ao store).
-- Estado vazio dedicado (não reaproveitar o `EmptyState` genérico do `EventsGrid`, que fala de "nenhum evento no momento"): mensagem tipo "Você ainda não favoritou nenhum evento" + botão/link para `/eventos`.
-- Tags dos eventos favoritados vêm de `getAllEventTags()` (buscado no Server Component da página, mesmo padrão de `/eventos/page.jsx`), passado como `tagsMap` para o client — sem chamada nova à API.
-- Página **não** entra no `sitemap.js` (conteúdo por usuário, sem valor de SEO) e ganha `robots: { index: false }` no metadata.
+- **Camada de fetch:** `src/lib/api/eventosApi.js` (função `apiGet`, única que faz fetch de verdade) e `src/lib/apiClient.js` (`withRetry`, retry/timeout — importa `captureError` de `src/lib/sentry.js`, que **não é da API e deve ficar**, é usado em toda a app).
+- **4 services**, todos finas camadas sobre `apiGet`: `src/services/eventService.js` (5 funções), `contributorService.js`, `galeriaService.js` (+ `normalizeAlbum`, função pura), `tagService.js` (3 funções).
+- **8 consumidores diretos:** 6 `page.jsx` (`/`, `/eventos`, `/eventos/[slug]`, `/sobre`, `/galeria`, `/favoritos`), `src/app/sitemap.js` (chama `apiGet` direto, não via service) e `src/components/EventRecommendations.jsx` (client-side, via `IntersectionObserver`).
+- **Infra de teste MSW:** `src/test/mocks/handlers.js` + `server.js` + lifecycle em `src/test/setup.js`; 4 testes de service usam MSW; 6 testes de página + `EventRecommendations.test.jsx` mockam os services direto (sem MSW); `sitemap.test.js` mocka `eventosApi` via `vi.mock`.
+- **E2E:** só `e2e/favoritos.spec.js` depende de dado real vindo da API (já tem `test.skip` condicional se não houver evento publicado). Os outros 3 specs não dependem de dado dinâmico.
+- **Config/infra fora de `src/`:** `public/sw.js` tem o domínio da API hardcoded (estratégia de cache), `next.config.mjs` tem o domínio hardcoded no CSP `connect-src`, `.env.example`/docs documentam `NEXT_PUBLIC_API_BASE_URL`.
+- **Acoplado ao shape de dados, mas sem import de código de API** (não muda neste sprint, só documentado): `useFavouritesStore.js` (persiste objetos de evento inteiros no localStorage), `EventCard.jsx` e outros componentes de apresentação, `utils/eventDate.js`, `calendarExport.js`, `eventLocationOptions.js`.
 
 ## Tarefas
 
-1. **Constante de navegação** — `src/constants/navigation.js`: adicionar `ROUTES.FAVOURITES = '/favoritos'` e um item em `NAVIGATION_ITEMS` (ícone sugerido: `FavoriteBorderOutlined`, label "Favoritos"). Como `Header.jsx` e `MobileNav.jsx` já iteram `NAVIGATION_ITEMS`, nenhuma mudança extra é necessária nesses dois arquivos além de conferir visualmente que o item novo cabe no layout (desktop tem espaço horizontal limitado — avaliar se cabe ao lado de Início/Eventos/Sobre/Galeria/Contato ou se precisa de ajuste de espaçamento).
+1. **Remover a camada de fetch** (`src/lib/api/eventosApi.js` + `src/lib/apiClient.js`) — deletar os dois arquivos (e a pasta `src/lib/api/` se ficar vazia). Manter `src/lib/sentry.js` intacto.
 
-2. **Página `/favoritos`** — criar `src/app/favoritos/page.jsx` (Server Component), seguindo o padrão de `src/app/eventos/page.jsx`:
-   - `export const metadata` (title "Favoritos | Eventos Café Bugado" + description) e `metadata.robots = { index: false, follow: true }`.
-   - **Não** precisa de `export const dynamic = 'force-dynamic'` do mesmo jeito que as outras — avaliar: como só busca `getAllEventTags()` (tolera cache), pode ficar estático/ISR; mas por consistência e simplicidade, replicar o padrão existente (`force-dynamic`) a menos que se decida otimizar depois.
-   - `loadTags()`: chama só `getAllEventTags()` com fallback pra `{}` em caso de erro (igual ao tratamento em `EventsPage.loadEvents.tagsMap`), reportando via `captureError`.
-   - Renderiza `<FavoritosPageClient tagsMap={tagsMap} />`.
+2. **Remover os 4 services** — deletar `src/services/eventService.js`, `contributorService.js`, `galeriaService.js` (inclui `normalizeAlbum`), `tagService.js`.
 
-3. **Client Component** — criar `src/app/favoritos/FavoritosPageClient.jsx`, inspirado em `EventsPageClient.jsx`:
-   - Lê `favourites` e `favouriteIds`/`toggleFavourite` de `useFavouritesStore`.
-   - `const agenda = useMemo(() => sortEventsByDate(favourites), [favourites])`.
-   - Se `agenda.length === 0`: renderiza estado vazio custom (ícone + texto + `Button`/`Link` pra `/eventos`, usando `next/link`).
-   - Caso contrário: heading ("Meus favoritos") + `<EventsGrid loading={false} error={null} filteredEvents={agenda} totalEvents={agenda.length} viewMode="grid" pageSize={agenda.length} eventTagsMap={tagsMap} favouriteIds={favouriteIds} toggleFavourite={(id) => toggleFavourite(id, agenda)} />`.
-   - Não precisa de `EventsFilters`, `ViewToggle` nem `Pagination` no MVP — manter simples.
+3. **Adaptar as 6 páginas + `sitemap.js`** para não buscar dados, renderizando direto o estado de erro/vazio que cada uma já usa hoje quando o fetch falha:
+   - `src/app/page.jsx` — sem `getUpcomingEvents`/`getAllEventTags`; seção de próximos eventos cai no estado vazio.
+   - `src/app/eventos/page.jsx` — sem `getPublishedEvents`/`getAllEventTags`/`getTags`; lista cai no estado de erro.
+   - `src/app/eventos/[slug]/page.jsx` — sem `getEventBySlugOrId`/`getEventTags`. **Decisão de UX a confirmar:** recomendado _não_ usar `notFound()` (significa "evento não existe", diferente de "fonte de dados indisponível") — usar o branch de erro genérico que a página já tem para erros não-404. Remove também o `if (error?.status === 404)`.
+   - `src/app/sobre/page.jsx` — sem `getEventStats`/`getContributors` (hoje já usa `Promise.allSettled` com fallback isolado — reaproveitar direto).
+   - `src/app/galeria/page.jsx` — sem `getAlbuns`; cai no estado de erro/vazio de álbuns.
+   - `src/app/favoritos/page.jsx` — sem `getAllEventTags`; `tagsMap` vazio (favoritos continuam vindo do Zustand/localStorage).
+   - `src/app/sitemap.js` — remover a chamada `apiGet('/events/published')`; usar o fallback que já existe (só rotas estáticas).
 
-4. **Verificação visual do item de navegação** — rodar a app localmente e conferir que o novo item de menu não quebra o layout do `Header` (desktop) nem do `MobileNav` (FAB mobile), em ambos os temas (light/dark).
+4. **Adaptar `EventRecommendations`** — remover import/chamada de `getRecommendedEvents` em `src/components/EventRecommendations.jsx`; o componente deixa de buscar recomendações.
+
+5. **Limpar infraestrutura MSW** — remover `src/test/mocks/handlers.js` e `src/test/mocks/server.js`; em `src/test/setup.js`, remover o lifecycle do MSW, mantendo os polyfills de `matchMedia`/`IntersectionObserver`.
+
+6. **Remover referências ao domínio da API atual em config/infra**:
+   - `public/sw.js` — remover o bloco condicional para `backendeventoscfb.cafebugado.com.br` e a lógica `EVENTS_CACHE` associada.
+   - `next.config.mjs` — remover o domínio do CSP `connect-src`.
+   - `.env.example` — remover/comentar `NEXT_PUBLIC_API_BASE_URL`.
+
+7. **Atualizar documentação** — `README.md`, `docs/OPERATIONS.md`, `docs/TROUBLESHOOTING.md`, `docs/SETUP_INICIAL.md`: remover/sinalizar menções a `NEXT_PUBLIC_API_BASE_URL` e ao backend atual como integração ativa.
+
+8. **Ajustar E2E** — `e2e/favoritos.spec.js` depende de evento real publicado; depois do cleanup, `/eventos` sempre mostra estado vazio/erro. Marcar `test.skip` com comentário explicando que está pendente da nova API. Confirmar que `e2e/app.spec.js`, `e2e/mobile-nav.spec.js`, `e2e/pwa.spec.js` continuam passando (não dependem de dado dinâmico).
+
+9. **Verificação final** — grep geral por resíduos (`apiGet`, `eventosApi`, `withRetry`, `NEXT_PUBLIC_API_BASE_URL`, `backendeventoscfb`, imports de `services/`); rodar `pnpm lint`, `pnpm test`, `pnpm build`.
 
 ## Critérios de conclusão
 
-- Rota `/favoritos` acessível pelo menu (desktop e mobile), navegando corretamente via `next/link`.
-- Favoritar um evento em qualquer página (`/`, `/eventos`, `/eventos/[slug]`) e depois abrir `/favoritos` mostra esse evento na lista.
-- Desfavoritar em `/favoritos` remove o card imediatamente da própria página (sem reload).
-- Sem favoritos: mostra estado vazio com CTA pra `/eventos`, não o `EmptyState` genérico do `EventsGrid`.
-- Tags aparecem corretamente nos cards (mesmo `tagsMap` de `/eventos`).
-- `/favoritos` não aparece em `sitemap.xml` e tem `noindex`.
-- `pnpm lint`, `pnpm test:run` e `pnpm build` passam limpos; cobertura não cai abaixo dos thresholds atuais (`vitest.config.js`: 55% linhas / 50% funções / 48% branches).
-- Sem uso de `console.log` (usar `console.warn`/`console.error` se necessário, seguindo `captureError` do Sentry como já é padrão nas outras páginas).
+- Grep por `apiGet`, `withRetry`, `eventosApi`, `apiClient`, imports de `services/` em `src/` retorna zero resultados.
+- `src/services/` e `src/lib/api/` vazios ou removidos.
+- `pnpm build` passa; todas as páginas renderizam no dev server mostrando o estado vazio/erro correspondente, sem crash.
+- Grep por `backendeventoscfb` em `public/`, `next.config.mjs`, `.env.example` retorna zero.
+- Service worker não quebra (DevTools > Application > Service Workers); sem erro de CSP no console do browser.
+- `pnpm test:e2e` roda com `favoritos.spec.js` explicitamente pulado (`test.skip` com comentário) e os outros 3 specs passando.
+- `pnpm lint`, `pnpm test`, `pnpm build` verdes; cobertura ainda atinge os thresholds de `vitest.config.js` (55% linhas / 50% funções / 48% branches) — ajustar os thresholds só se necessário, e sinalizar isso na revisão.
 
 ## Arquivos afetados
 
-**Novos:**
+**Removidos:**
 
-- `src/app/favoritos/page.jsx`
-- `src/app/favoritos/FavoritosPageClient.jsx`
-- `src/app/favoritos/page.test.jsx`
-- `src/app/favoritos/FavoritosPageClient.test.jsx`
-- `e2e/favoritos.spec.js`
+- `src/lib/api/eventosApi.js`, `src/lib/apiClient.js`
+- `src/services/eventService.js`, `contributorService.js`, `galeriaService.js`, `tagService.js`
+- `src/services/eventService.test.js`, `contributorService.test.js`, `galeriaService.test.js`, `tagService.test.js`
+- `src/test/mocks/handlers.js`, `src/test/mocks/server.js`
 
 **Modificados:**
 
-- `src/constants/navigation.js` (novo `ROUTES.FAVOURITES` + item em `NAVIGATION_ITEMS`)
+- `src/app/page.jsx`, `src/app/eventos/page.jsx`, `src/app/eventos/[slug]/page.jsx`, `src/app/sobre/page.jsx`, `src/app/galeria/page.jsx`, `src/app/favoritos/page.jsx`, `src/app/sitemap.js`
+- `src/components/EventRecommendations.jsx`
+- `src/test/setup.js`
+- `public/sw.js`, `next.config.mjs`, `.env.example`
+- `README.md`, `docs/OPERATIONS.md`, `docs/TROUBLESHOOTING.md`, `docs/SETUP_INICIAL.md`
+- `e2e/favoritos.spec.js`
+- Testes de página: `src/app/page.test.jsx`, `eventos/page.test.jsx`, `eventos/[slug]/page.test.jsx`, `sobre/page.test.jsx`, `galeria/page.test.jsx`, `favoritos/page.test.jsx`, `sitemap.test.js`, `EventRecommendations.test.jsx`
 
-**Reaproveitados sem alteração** (referência, não precisam mudar):
+**Intocados (deliberado, referência):**
 
 - `src/store/useFavouritesStore.js`
-- `src/components/EventsGrid.jsx`, `src/components/EventCard.jsx`, `src/components/FavouriteEventButton.jsx`
-- `src/utils/eventDate.js` (`sortEventsByDate`)
-- `src/services/tagService.js` (`getAllEventTags`)
-- `src/components/Header.jsx`, `src/components/MobileNav.jsx` (consomem `NAVIGATION_ITEMS` automaticamente)
+- `src/components/EventCard.jsx`, `EventRowCompact.jsx`, `CalendarView/*`, `ContributorsGrid.jsx`, `gallery/GalleryEventCard.jsx`, `gallery/GalleryPhotoModal.jsx`
+- `src/utils/eventDate.js`, `calendarExport.js`, `eventLocationOptions.js`
+- `src/lib/sentry.js`
 
 ## Testes necessários
 
-- **Unit — `FavoritosPageClient.test.jsx`** (padrão de `EventsPageClient.test.jsx`): mock de `useFavouritesStore` (zustand) com lista vazia → assert estado vazio + link pra `/eventos`; com favoritos → assert cards renderizados via `EventCard`/`EventsGrid`, ordenados por data; clicar em desfavoritar → assert que o card some da lista.
-- **Unit — `page.test.jsx`**: mock de `tagService.getAllEventTags` (sucesso e erro/fallback `{}`, com `captureError` chamado no caso de erro), seguindo o padrão de `src/app/eventos/[slug]/page.test.jsx` (chamar o Server Component como função async).
-- **E2E — `e2e/favoritos.spec.js`** (Playwright): fluxo completo — abrir `/eventos`, favoritar um evento, navegar para `/favoritos` pelo menu, confirmar que o evento aparece; desfavoritar na própria página `/favoritos`, confirmar estado vazio.
-- **Verificação manual de navegação**: conferir item novo no `Header` (desktop) e no `MobileNav` (FAB mobile), luz e escuro.
-- Rodar suíte completa (`pnpm test:run`) pra garantir que os thresholds de cobertura do `vitest.config.js` continuam sendo atingidos com os arquivos novos.
+- Reescrever os 6 `page.test.jsx` + `sitemap.test.js`: remover cenários de sucesso (não fazem mais sentido sem fetch), manter/adaptar o cenário de estado de erro/vazio como único caminho de renderização.
+- Simplificar `EventRecommendations.test.jsx` (sem mock de service, só verificar que não renderiza/renderiza vazio).
+- Rodar a suíte inteira após remover a infraestrutura MSW, para confirmar que nada dependia implicitamente do `onUnhandledRequest: 'error'`.
+- Rodar suíte Playwright completa (`pnpm test:e2e`) com `favoritos.spec.js` pulado.
+- Verificação manual: dev server (todas as páginas em estado vazio/erro), DevTools (service worker, console sem erro de CSP).
 
-## Fora de escopo (deliberado, para manter baixa complexidade)
+## Observações para a revisão
 
-- Sincronizar favoritos entre dispositivos/servidor (exigiria conta de usuário + endpoints de escrita na API — fora do escopo deste app, que é só-leitura).
-- `ViewToggle`/paginação/filtros dentro de `/favoritos` — pode ser adicionado depois se a lista de favoritos crescer muito, mas não é necessário para o MVP.
-- Badge de contagem de favoritos no ícone do menu — cosmético, pode ser uma iteração futura.
+1. **Decisão de UX pendente** (`/eventos/[slug]`): recomendado estado de erro genérico em vez de `notFound()` — ajustar se a preferência for outra.
+2. **`normalizeAlbum`** some junto com `galeriaService.js` — é função pura, mas só é usada para o payload que deixa de existir.
+3. **`useFavouritesStore.js`** e componentes de apresentação ficam intocados neste sprint — só processam props, sem import de código de API. Revisão de shape fica para quando a nova API for definida.
 
 ## Status
 
-Implementado. Todas as tarefas concluídas: rota `/favoritos` + item de navegação, testes unitários (`FavoritosPageClient.test.jsx`, `page.test.jsx`) e E2E (`e2e/favoritos.spec.js`), verificação visual (desktop/mobile, claro/escuro) via dev server. `pnpm lint`, `pnpm test:run` (288 testes), `pnpm test:coverage` (thresholds ok) e `pnpm build` passando limpos.
+Implementado. Todas as 9 tarefas concluídas: camada de fetch e os 4 services removidos, 6 páginas + `sitemap.js` + `EventRecommendations` adaptados para estado de erro/vazio, infraestrutura MSW limpa, domínio da API removido de `sw.js`/CSP/`.env.example`, documentação (README, OPERATIONS, TROUBLESHOOTING, SETUP_INICIAL) atualizada, `e2e/favoritos.spec.js` pulado explicitamente. `pnpm lint`, `pnpm test:run` (229 testes), `pnpm test:coverage` (thresholds ok, cobertura ~79% linhas), `pnpm test:e2e` (7 passando, 1 pulado) e `pnpm build` passando limpos.

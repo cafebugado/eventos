@@ -80,16 +80,10 @@ cp .env.example .env.local
 
 ### 3.2 Nao precisa preencher nada pra rodar local
 
-O `.env.example` ja aponta por padrao pra API de producao
-(`NEXT_PUBLIC_API_BASE_URL=https://v2.backendeventoscfb.cafebugado.com.br`) — sao
-todos endpoints GET publicos, sem credencial nenhuma. So edite `.env.local` se
-quiser apontar pra um backend rodando localmente:
-
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-```
-
-(o backend fica no repositorio `backendEventos`, separado deste)
+A integração com a API dedicada foi removida (troca de backend em andamento,
+ver [SPRINT.md](../SPRINT.md)) — nenhuma variavel de API e necessaria no
+momento. As paginas de listagem renderizam estado vazio/erro ate a nova API
+ser plugada.
 
 > **IMPORTANTE**: NUNCA commite o arquivo `.env.local`! Ele ja esta no `.gitignore`.
 
@@ -185,7 +179,7 @@ eventos/
 ├── src/
 │   ├── app/           # Rotas (App Router)
 │   ├── components/    # Componentes reutilizaveis
-│   ├── services/      # Servicos de leitura (API dedicada)
+│   ├── services/      # (removido — integracao com API dedicada em troca, ver SPRINT.md)
 │   ├── hooks/         # Custom hooks
 │   ├── store/         # Estado global (Zustand)
 │   ├── lib/           # Configuracoes (API, Sentry)
@@ -227,17 +221,17 @@ eventos/
 
 ## Tecnologias Principais
 
-| Tecnologia         | Uso                                       |
-| ------------------ | ----------------------------------------- |
-| Next.js 16         | Framework (App Router, Server Components) |
-| MUI (Material UI)  | Componentes de UI                         |
-| Zustand            | Estado global                             |
-| API dedicada       | Backend (FastAPI, repositorio separado)   |
-| Vitest             | Framework de testes                       |
-| Playwright         | Testes end-to-end                         |
-| Storybook          | Catalogo de componentes                   |
-| ESLint + Prettier  | Qualidade e formatacao de codigo          |
-| Husky + Commitlint | Git hooks e padrao de commits             |
+| Tecnologia         | Uso                                                     |
+| ------------------ | ------------------------------------------------------- |
+| Next.js 16         | Framework (App Router, Server Components)               |
+| MUI (Material UI)  | Componentes de UI                                       |
+| Zustand            | Estado global                                           |
+| API dedicada       | Removida (troca de backend em andamento, ver SPRINT.md) |
+| Vitest             | Framework de testes                                     |
+| Playwright         | Testes end-to-end                                       |
+| Storybook          | Catalogo de componentes                                 |
+| ESLint + Prettier  | Qualidade e formatacao de codigo                        |
+| Husky + Commitlint | Git hooks e padrao de commits                           |
 
 ---
 

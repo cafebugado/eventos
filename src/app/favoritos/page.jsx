@@ -1,5 +1,3 @@
-import { getAllEventTags } from '../../services/tagService'
-import { captureError } from '../../lib/sentry'
 import FavoritosPageClient from './FavoritosPageClient'
 
 export const metadata = {
@@ -8,23 +6,10 @@ export const metadata = {
   robots: { index: false, follow: true },
 }
 
-// Força renderização dinâmica — ver comentário em app/page.jsx.
 export const dynamic = 'force-dynamic'
 
-// Server Component: os favoritos em si vivem no localStorage do usuário
-// (useFavouritesStore), então a única coisa que faz sentido buscar aqui é o
-// tagsMap pros chips dos cards — degrada pra {} sem derrubar a página.
-async function loadTags() {
-  try {
-    return await getAllEventTags()
-  } catch (error) {
-    captureError(error, { context: 'FavoritosPage.loadTags' })
-    return {}
-  }
-}
-
-export default async function FavoritosPage() {
-  const tagsMap = await loadTags()
-
-  return <FavoritosPageClient tagsMap={tagsMap} />
+// Sem fonte de dados: integração com a API removida — tagsMap fica vazio até
+// a nova API ser plugada (favoritos em si vêm do localStorage, ver SPRINT.md).
+export default function FavoritosPage() {
+  return <FavoritosPageClient tagsMap={{}} />
 }

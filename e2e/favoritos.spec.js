@@ -1,20 +1,22 @@
 import { test, expect } from '@playwright/test'
 
 // Este fluxo depende de haver pelo menos um evento publicado na API no
-// momento do teste (não há mock aqui, é E2E de verdade) — se não houver
-// nenhum evento disponível pra favoritar, o teste é pulado em vez de falhar
-// por falta de dado, não por regressão de código.
+// momento do teste (não há mock aqui, é E2E de verdade). A integração com a
+// API dedicada foi removida (troca de backend em andamento, ver SPRINT.md) —
+// /eventos sempre renderiza estado de erro/vazio agora, então este fluxo não
+// tem como rodar. Pulado explicitamente até a nova API ser plugada, em vez
+// de depender do skip condicional por falta de dado (que mascararia o motivo
+// real).
 test.describe('Favoritos', () => {
   test('favoritar em /eventos aparece em /favoritos, e desfavoritar limpa a lista', async ({
     page,
   }) => {
+    test.skip(true, 'pendente da nova API — integração atual removida, ver SPRINT.md')
+
     await page.goto('/eventos')
     await page.getByRole('heading', { name: 'Próximos eventos' }).waitFor()
 
     const favouriteButtons = page.getByRole('button', { name: 'Favoritar' })
-    const cardCount = await favouriteButtons.count()
-    test.skip(cardCount === 0, 'nenhum evento disponível pra favoritar no momento')
-
     const eventName = await page.getByRole('heading', { level: 3 }).first().textContent()
     await favouriteButtons.first().click()
 

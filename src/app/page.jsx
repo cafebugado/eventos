@@ -2,43 +2,14 @@ import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { getUpcomingEvents } from '../services/eventService'
-import { getAllEventTags } from '../services/tagService'
-import { captureError } from '../lib/sentry'
 import UpcomingEvents from '../components/UpcomingEvents'
 import Testimonials from '../components/Testimonials'
 
-// Força renderização dinâmica: a API é chamada com cache: 'no-store' (dado
-// sempre atual) em toda página. Sem isso, o `next build` tenta pré-renderizar
-// estaticamente, detecta o fetch não-cacheável e aborta via uma exceção
-// interna do Next — que cairia no catch abaixo e seria reportada ao Sentry
-// como erro real, poluindo o build. Declarar aqui evita a tentativa.
 export const dynamic = 'force-dynamic'
 
-// Server Component: busca eventos + tags direto no servidor (sem estado de
-// loading client-side) — substitui o useUpcomingEvents/useEffect do app antigo.
-async function loadUpcomingEvents() {
-  try {
-    const events = await getUpcomingEvents(3)
-    // getAllEventTags degrada pra vazio em vez de derrubar a página inteira
-    // — tags são complementares (chips), a listagem de eventos não depende.
-    const tagsMap =
-      events.length > 0
-        ? await getAllEventTags().catch((error) => {
-            captureError(error, { context: 'Home.loadUpcomingEvents.tagsMap' })
-            return {}
-          })
-        : {}
-    return { events, tagsMap }
-  } catch (error) {
-    captureError(error, { context: 'Home.loadUpcomingEvents' })
-    return { events: [], tagsMap: {} }
-  }
-}
-
-export default async function Home() {
-  const { events, tagsMap } = await loadUpcomingEvents()
-
+// Sem fonte de dados: integração com a API removida — eventos em destaque
+// voltam quando a nova API for plugada (ver SPRINT.md).
+export default function Home() {
   return (
     <>
       <Box component="section" sx={{ py: { xs: 8, md: 12 } }}>
@@ -76,7 +47,7 @@ export default async function Home() {
         </Container>
       </Box>
 
-      <UpcomingEvents events={events} tagsMap={tagsMap} />
+      <UpcomingEvents events={[]} tagsMap={{}} />
       <Testimonials />
     </>
   )
