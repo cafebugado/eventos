@@ -222,9 +222,10 @@ export default function EventCard({
             component="h3"
             sx={{
               display: '-webkit-box',
-              WebkitLineClamp: isFull ? 3 : 2,
+              WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
+              minHeight: '3.2em',
             }}
           >
             {event.nome}
@@ -281,7 +282,7 @@ export default function EventCard({
             sx={{
               justifyContent: 'space-between',
               flexWrap: 'wrap',
-              mt: !showInfoRows && !isFull ? 'auto' : undefined,
+              mt: 'auto',
             }}
           >
             {isFull || actionInternal ? (
