@@ -1,11 +1,13 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import EventsPage, { metadata } from './page'
-import { getPublishedEvents } from '../../services/eventService'
+import { getEventsTagsMap, getPublishedEvents, getTags } from '../../services/eventService'
 
 vi.mock('../../services/eventService', () => ({
   getPublishedEvents: vi.fn(),
+  getTags: vi.fn(),
+  getEventsTagsMap: vi.fn(),
 }))
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
@@ -35,6 +37,11 @@ const event = {
 }
 
 describe('EventsPage', () => {
+  beforeEach(() => {
+    getTags.mockReset().mockResolvedValue([])
+    getEventsTagsMap.mockReset().mockResolvedValue({})
+  })
+
   it('define metadata de título e descrição', () => {
     expect(metadata.title).toMatch(/próximos eventos/i)
     expect(metadata.description).toBeTruthy()
@@ -64,5 +71,38 @@ describe('EventsPage', () => {
     renderWithTheme(ui)
 
     expect(screen.getByText('Erro ao carregar eventos')).toBeInTheDocument()
+  })
+
+  it('busca tags e o mapa de tags em paralelo com os eventos', async () => {
+    getPublishedEvents.mockResolvedValue([])
+    getTags.mockResolvedValue([{ id: 't1', nome: 'Backend', cor: '#2563eb' }])
+    getEventsTagsMap.mockResolvedValue({ 1: [{ id: 't1', nome: 'Backend', cor: '#2563eb' }] })
+
+    await EventsPage()
+
+    expect(getTags).toHaveBeenCalled()
+    expect(getEventsTagsMap).toHaveBeenCalled()
+  })
+
+  it('continua renderizando a lista de eventos quando a busca de tags falha (degradação graciosa)', async () => {
+    getPublishedEvents.mockResolvedValue([event])
+    getTags.mockRejectedValue(new Error('falha ao buscar tags'))
+
+    const ui = await EventsPage()
+    renderWithTheme(ui)
+
+    expect(screen.getByText('Evento Publicado')).toBeInTheDocument()
+    expect(screen.queryByText('Erro ao carregar eventos')).not.toBeInTheDocument()
+  })
+
+  it('continua renderizando a lista de eventos quando o mapa de tags falha (degradação graciosa)', async () => {
+    getPublishedEvents.mockResolvedValue([event])
+    getEventsTagsMap.mockRejectedValue(new Error('falha ao buscar tags-map'))
+
+    const ui = await EventsPage()
+    renderWithTheme(ui)
+
+    expect(screen.getByText('Evento Publicado')).toBeInTheDocument()
+    expect(screen.queryByText('Erro ao carregar eventos')).not.toBeInTheDocument()
   })
 })

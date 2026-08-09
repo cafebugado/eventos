@@ -17,3 +17,22 @@ export async function getEventBySlug(slugOrId) {
     next: { revalidate: 30 },
   })
 }
+
+export async function getTags() {
+  return apiGet('/tags', { context: 'getTags' })
+}
+
+export async function getEventsTagsMap() {
+  return apiGet('/events/tags-map', { context: 'getEventsTagsMap' })
+}
+
+export async function getEventTags(eventoId) {
+  return apiGet(`/events/${eventoId}/tags`, { context: 'getEventTags' })
+}
+
+export async function getRecommendedEvents(eventId, limit = 3) {
+  return apiGet(`/events/${eventId}/recommended`, {
+    params: { limit },
+    context: 'getRecommendedEvents',
+  })
+}

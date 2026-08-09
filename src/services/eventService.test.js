@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '../test/mocks/server'
-import { getEventBySlug, getFeaturedEvents, getPublishedEvents } from './eventService'
+import {
+  getEventBySlug,
+  getEventTags,
+  getEventsTagsMap,
+  getFeaturedEvents,
+  getPublishedEvents,
+  getRecommendedEvents,
+  getTags,
+} from './eventService'
 
 const API_BASE_URL = 'https://v3.api.eventoscafebugado.cafebugado.com.br'
 
@@ -123,5 +131,107 @@ describe('getEventBySlug', () => {
     )
 
     await expect(getEventBySlug('inexistente')).rejects.toMatchObject({ status: 404 })
+  })
+})
+
+describe('getTags', () => {
+  it('busca a lista de tags na API', async () => {
+    const tags = [{ id: '1', nome: 'Backend', cor: '#2563eb' }]
+    server.use(http.get(`${API_BASE_URL}/tags`, () => HttpResponse.json(tags)))
+
+    await expect(getTags()).resolves.toEqual(tags)
+  })
+
+  it('anexa status no erro quando a API responde não-2xx', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/tags`, () =>
+        HttpResponse.json({ detail: 'erro interno' }, { status: 500 })
+      )
+    )
+
+    await expect(getTags()).rejects.toMatchObject({ status: 500 })
+  })
+})
+
+describe('getEventsTagsMap', () => {
+  it('busca o mapa de tags por evento na API', async () => {
+    const map = { 'evento-1': [{ id: '1', nome: 'Backend', cor: '#2563eb' }] }
+    server.use(http.get(`${API_BASE_URL}/events/tags-map`, () => HttpResponse.json(map)))
+
+    await expect(getEventsTagsMap()).resolves.toEqual(map)
+  })
+
+  it('anexa status no erro quando a API responde não-2xx', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/tags-map`, () =>
+        HttpResponse.json({ detail: 'erro interno' }, { status: 500 })
+      )
+    )
+
+    await expect(getEventsTagsMap()).rejects.toMatchObject({ status: 500 })
+  })
+})
+
+describe('getEventTags', () => {
+  it('busca as tags de um evento específico na API', async () => {
+    const tags = [{ id: '1', nome: 'Backend', cor: '#2563eb' }]
+    server.use(http.get(`${API_BASE_URL}/events/evento-1/tags`, () => HttpResponse.json(tags)))
+
+    await expect(getEventTags('evento-1')).resolves.toEqual(tags)
+  })
+
+  it('anexa status 404 no erro quando o evento não existe', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/inexistente/tags`, () =>
+        HttpResponse.json({ message: 'Evento não encontrado' }, { status: 404 })
+      )
+    )
+
+    await expect(getEventTags('inexistente')).rejects.toMatchObject({ status: 404 })
+  })
+})
+
+describe('getRecommendedEvents', () => {
+  it('busca os eventos recomendados na API', async () => {
+    const events = [{ id: '1', nome: 'Evento Relacionado' }]
+    server.use(
+      http.get(`${API_BASE_URL}/events/evento-1/recommended`, () => HttpResponse.json(events))
+    )
+
+    await expect(getRecommendedEvents('evento-1')).resolves.toEqual(events)
+  })
+
+  it('passa o limit como query param, com default 3', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/evento-1/recommended`, ({ request }) => {
+        const url = new URL(request.url)
+        expect(url.searchParams.get('limit')).toBe('3')
+        return HttpResponse.json([])
+      })
+    )
+
+    await getRecommendedEvents('evento-1')
+  })
+
+  it('repassa um limit explícito como query param', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/evento-1/recommended`, ({ request }) => {
+        const url = new URL(request.url)
+        expect(url.searchParams.get('limit')).toBe('5')
+        return HttpResponse.json([])
+      })
+    )
+
+    await getRecommendedEvents('evento-1', 5)
+  })
+
+  it('anexa status 404 no erro quando o evento não existe', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/inexistente/recommended`, () =>
+        HttpResponse.json({ message: 'Evento não encontrado' }, { status: 404 })
+      )
+    )
+
+    await expect(getRecommendedEvents('inexistente')).rejects.toMatchObject({ status: 404 })
   })
 })

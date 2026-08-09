@@ -4,7 +4,7 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import UpcomingEvents from '../components/UpcomingEvents'
 import Testimonials from '../components/Testimonials'
-import { getFeaturedEvents } from '../services/eventService'
+import { getEventsTagsMap, getFeaturedEvents } from '../services/eventService'
 import { captureError } from '../lib/sentry'
 
 export const dynamic = 'force-dynamic'
@@ -18,8 +18,19 @@ async function loadFeaturedEvents() {
   }
 }
 
+// getEventsTagsMap falhando não deve derrubar os destaques da home — só os
+// chips de tag ficam indisponíveis (degradação graciosa).
+async function loadEventsTagsMap() {
+  try {
+    return await getEventsTagsMap()
+  } catch (error) {
+    captureError(error, { context: 'Home.loadEventsTagsMap' })
+    return {}
+  }
+}
+
 export default async function Home() {
-  const events = await loadFeaturedEvents()
+  const [events, tagsMap] = await Promise.all([loadFeaturedEvents(), loadEventsTagsMap()])
 
   return (
     <>
@@ -58,7 +69,7 @@ export default async function Home() {
         </Container>
       </Box>
 
-      <UpcomingEvents events={events} tagsMap={{}} />
+      <UpcomingEvents events={events} tagsMap={tagsMap} />
       <Testimonials />
     </>
   )

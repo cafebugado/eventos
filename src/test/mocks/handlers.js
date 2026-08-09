@@ -7,14 +7,15 @@ const API_BASE_URL = 'https://v3.api.eventoscafebugado.cafebugado.com.br'
 
 // Handlers MSW para a API dedicada de eventos. Cobrem só o caminho feliz com
 // um payload vazio — cada teste sobrescreve o handler relevante via
-// server.use(...) quando precisa de um payload ou erro específico. Só os
-// endpoints de destaques e listagem publicada estão implementados no
-// frontend por enquanto; os demais voltam quando os services
-// correspondentes forem reintroduzidos.
+// server.use(...) quando precisa de um payload ou erro específico.
 export const handlers = [
   http.get(`${API_BASE_URL}/events/featured`, () => HttpResponse.json([])),
   http.get(`${API_BASE_URL}/events/published`, () => HttpResponse.json([])),
   http.get(`${API_BASE_URL}/events/slug/:slugOrId`, () =>
     HttpResponse.json({ message: 'Evento não encontrado' }, { status: 404 })
   ),
+  http.get(`${API_BASE_URL}/tags`, () => HttpResponse.json([])),
+  http.get(`${API_BASE_URL}/events/tags-map`, () => HttpResponse.json({})),
+  http.get(`${API_BASE_URL}/events/:eventoId/tags`, () => HttpResponse.json([])),
+  http.get(`${API_BASE_URL}/events/:eventId/recommended`, () => HttpResponse.json([])),
 ]

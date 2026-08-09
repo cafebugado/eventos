@@ -122,4 +122,23 @@ describe('EventsPageClient', () => {
     )
     expect(screen.getByText('Erro ao carregar eventos')).toBeInTheDocument()
   })
+
+  it('filtra pela tag vinda da URL (?tag=), usando o tagsMap real', () => {
+    const eventsWithTags = [
+      { id: '1', nome: 'Meetup Backend', data_evento: '20/02/2999', horario: '19:00' },
+      { id: '2', nome: 'Workshop Frontend', data_evento: '20/02/2999', horario: '19:00' },
+    ]
+    const tagsMap = {
+      1: [{ id: 'tag-backend', nome: 'Backend', cor: '#2563eb' }],
+      2: [{ id: 'tag-frontend', nome: 'Frontend', cor: '#16a34a' }],
+    }
+    useSearchParamsMock.mockReturnValue(new URLSearchParams('tag=tag-backend'))
+
+    renderWithTheme(
+      <EventsPageClient events={eventsWithTags} tagsMap={tagsMap} tags={[]} error={null} />
+    )
+
+    expect(screen.getByText('Meetup Backend')).toBeInTheDocument()
+    expect(screen.queryByText('Workshop Frontend')).not.toBeInTheDocument()
+  })
 })

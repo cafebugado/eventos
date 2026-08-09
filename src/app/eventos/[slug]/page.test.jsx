@@ -2,11 +2,12 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import EventDetailsPage, { generateMetadata } from './page'
-import { getEventBySlug } from '../../../services/eventService'
+import { getEventBySlug, getEventTags } from '../../../services/eventService'
 import { captureError } from '../../../lib/sentry'
 
 vi.mock('../../../services/eventService', () => ({
   getEventBySlug: vi.fn(),
+  getEventTags: vi.fn(),
 }))
 vi.mock('../../../lib/sentry', () => ({
   captureError: vi.fn(),
@@ -50,6 +51,7 @@ function buildParams(slug = 'meetup-cafe-bugado') {
 describe('EventDetailsPage', () => {
   beforeEach(() => {
     getEventBySlug.mockReset()
+    getEventTags.mockReset().mockResolvedValue([])
     captureError.mockReset()
     notFoundMock.mockClear()
   })
@@ -87,6 +89,47 @@ describe('EventDetailsPage', () => {
     expect(notFoundMock).not.toHaveBeenCalled()
     expect(captureError).toHaveBeenCalledWith(error, {
       context: 'EventDetailsPage.loadEvent',
+    })
+  })
+
+  it('busca as tags do evento e renderiza os chips reais', async () => {
+    getEventBySlug.mockResolvedValue(event)
+    getEventTags.mockResolvedValue([
+      { id: 'tag-1', nome: 'Backend', cor: '#2563eb' },
+      { id: 'tag-2', nome: 'Nodejs', cor: '#16a34a' },
+    ])
+
+    const ui = await EventDetailsPage(buildParams())
+    renderWithTheme(ui)
+
+    expect(getEventTags).toHaveBeenCalledWith(event.id)
+    expect(screen.getByText('Backend')).toBeInTheDocument()
+    expect(screen.getByText('Nodejs')).toBeInTheDocument()
+  })
+
+  it('não renderiza nenhum chip quando o evento não tem tags', async () => {
+    getEventBySlug.mockResolvedValue(event)
+    getEventTags.mockResolvedValue([])
+
+    const ui = await EventDetailsPage(buildParams())
+    renderWithTheme(ui)
+
+    expect(screen.getByRole('heading', { name: 'Meetup Café Bugado' })).toBeInTheDocument()
+    expect(screen.queryByText('Backend')).not.toBeInTheDocument()
+  })
+
+  it('não quebra a página quando a busca de tags falha (degradação graciosa)', async () => {
+    getEventBySlug.mockResolvedValue(event)
+    const tagsError = new Error('falha ao buscar tags')
+    getEventTags.mockRejectedValue(tagsError)
+
+    const ui = await EventDetailsPage(buildParams())
+    renderWithTheme(ui)
+
+    expect(screen.getByRole('heading', { name: 'Meetup Café Bugado' })).toBeInTheDocument()
+    expect(notFoundMock).not.toHaveBeenCalled()
+    expect(captureError).toHaveBeenCalledWith(tagsError, {
+      context: 'EventDetailsPage.loadEventTags',
     })
   })
 
