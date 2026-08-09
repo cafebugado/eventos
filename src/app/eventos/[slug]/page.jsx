@@ -13,10 +13,13 @@ import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined'
 import WifiOutlinedIcon from '@mui/icons-material/WifiOutlined'
 import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined'
 import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined'
+import { cache } from 'react'
+import { notFound } from 'next/navigation'
 import { captureError } from '../../../lib/sentry'
 import { vivoVioleta } from '../../../theme/tokens/vivoVioleta'
 import { isEventPast } from '../../../utils/eventDate'
 import { stripRichText } from '../../../utils/richText'
+import { getEventBySlug } from '../../../services/eventService'
 import RichText from '../../../components/RichText'
 import EventLocation from '../../../components/EventLocation'
 import EventRecommendations from '../../../components/EventRecommendations'
@@ -37,17 +40,25 @@ function truncateText(text, maxLength = 160) {
 
 export const dynamic = 'force-dynamic'
 
-// Sem fonte de dados: integração com a API removida — todo acesso a um
-// evento propaga erro para o error.jsx desta rota até a nova API ser
-// plugada (ver SPRINT.md).
-async function loadEvent() {
-  const error = new Error('Busca de evento indisponível: integração com a API removida.')
-  captureError(error, { context: 'EventDetails.loadEvent' })
-  throw error
-}
+// cache() do React dedupe a busca entre generateMetadata e a página — sem
+// isso, cada visita dispararia 2 chamadas de rede idênticas nesse mesmo
+// request (uma para SEO, outra para o corpo da página).
+const loadEvent = cache(async (slug) => {
+  try {
+    const event = await getEventBySlug(slug)
+    return { event, eventTags: [] } // tags reais ficam para quando /tags existir no backend
+  } catch (error) {
+    if (error.status === 404) {
+      notFound()
+    }
+    captureError(error, { context: 'EventDetailsPage.loadEvent' })
+    throw error
+  }
+})
 
-export async function generateMetadata() {
-  const { event } = await loadEvent()
+export async function generateMetadata({ params }) {
+  const { slug } = await params
+  const { event } = await loadEvent(slug)
 
   const description = truncateText(stripRichText(event.descricao)) || DEFAULT_DESCRIPTION
   const image = event.imagem || FALLBACK_IMAGE
@@ -114,8 +125,9 @@ function InfoCard({ icon, label, value }) {
   )
 }
 
-export default async function EventDetailsPage() {
-  const { event, eventTags } = await loadEvent()
+export default async function EventDetailsPage({ params }) {
+  const { slug } = await params
+  const { event, eventTags } = await loadEvent(slug)
 
   const isPast = isEventPast(event.data_evento)
   const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://eventos.cafebugado.com.br'}/eventos/${event.slug || event.id}`

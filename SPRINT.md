@@ -1,295 +1,326 @@
-# SPRINT.md — Listagem de eventos em `/eventos` via `GET /events/published`
+# SPRINT.md — Detalhe do evento (`/eventos/[slug]`) via novo `GET /events/slug/{slugOrId}`
 
-> Documento de planejamento. Nenhum código foi alterado ainda — ver seção "Status" no final.
+> Documento de planejamento. Ver seção "Status" no final para o estado real da implementação.
 
 ## Contexto
 
-O commit `9e78c7c` removeu toda a integração deste frontend com a API antiga. O commit seguinte
-(`136f986`, HEAD atual) religou a home ao backend novo (`D:\backendeventos-public-api`, NestJS +
-Prisma, somente-leitura, produção em `https://v3.api.eventoscafebugado.cafebugado.com.br`) via
-`GET /events/featured`. A página `/eventos` continua desligada: `src/app/eventos/page.jsx` não
-busca dado nenhum, sempre renderiza o estado de erro (`EventsPageClient` recebe `events={[]}` +
-um `Error` fixo).
+A sprint anterior (reconexão de `/eventos` via `GET /events/published`, commit `f1aa70b` e
+adjacentes) deixou explicitamente registrado em "Fora de escopo": _"Página de detalhe
+(`/eventos/[slug]`) fica fora de escopo — depende de `GET /events/slug/{slugOrId}`, que não existe
+no backend ainda (Sprint 3 do roadmap dele). Fica para quando o usuário pedir."_ O usuário pediu.
 
-O backend novo já implementa `GET /events/published` (Sprint 1 do roadmap dele): filtra
-`status='publicado'`, ordena por `created_at DESC`, aceita `limit`/`offset` opcionais (omitidos =
-retorna tudo), devolve o DTO público de 16 campos (`id, slug, nome, descricao, data_evento,
-horario, dia_semana, periodo, modalidade, endereco, cidade, estado, link, imagem, created_at,
-updated_at` — nunca `status`/`created_by`/`motivo_recusa`), com cache HTTP
-(`Cache-Control: public, max-age=30, stale-while-revalidate=120`). Hoje esse endpoint não tem
-nenhum consumidor.
+A rota `/eventos/[slug]` já existe neste repositório, com toda a UI pronta (imagem, badges de
+tag, descrição rica, grid de info, localização, ações — favoritar, adicionar ao calendário,
+compartilhar, CTA externo, `generateMetadata` para SEO/Open Graph), mas está deliberadamente
+travada:
 
-**Decisão de escopo (confirmada com o usuário):**
+```js
+// src/app/eventos/[slug]/page.jsx
+async function loadEvent() {
+  const error = new Error('Busca de evento indisponível: integração com a API removida.')
+  throw error
+}
+```
 
-- O endpoint ganha filtros `cidade`/`modalidade` (server-side, além do `limit`/`offset` que já
-  existe) — capability pronta e testada, para dar suporte a filtragem otimizada no servidor.
-- O **frontend, nesta fase, não usa esses filtros no fetch do servidor**. `/eventos` continua
-  buscando a lista completa (sem parâmetros) e mantém 100% do comportamento atual de busca, tag,
-  local/modalidade, data, favoritos e paginação **no cliente** — arquitetura já implementada,
-  testada, e documentada como decisão deliberada em `usePagination.js`/`useEventFilters.js`
-  (evita round-trip ao servidor a cada troca de filtro/página). Mudar isso é uma decisão de
-  arquitetura separada, não incluída aqui.
-- Página de detalhe (`/eventos/[slug]`) fica fora de escopo — depende de
-  `GET /events/slug/{slugOrId}`, que não existe no backend ainda (Sprint 3 do roadmap dele).
+Toda visita a `/eventos/[slug]` cai direto no `error.jsx` da rota. Os cliques em "Saber mais sobre
+o evento" / "Ver evento" (home, `/eventos`, calendário) **já navegam corretamente** para lá via
+`router.push('/eventos/${event.slug || event.id}')` — lógica do `EventCard.jsx` que já existe e
+não precisa mudar (confirmado por leitura direta: `UpcomingEvents.jsx` já usa `actionInternal` +
+`actionLabel="Ver evento"`, que cai no mesmo `router.push` interno). O único elo faltando é a fonte
+de dados: o backend dedicado (`D:\backendeventos-public-api`) ainda não tem um endpoint de evento
+único — só `GET /events/published` (lista) e `GET /events/featured` (lista enxuta, 8 campos). O
+próprio roadmap desse backend já reserva esse endpoint como `GET /events/slug/{slugOrId}`
+(Sprint 3 dele).
+
+**Por que buscar no servidor por slug/id em vez de reaproveitar a lista já carregada no cliente:**
+o objeto completo do evento já está disponível em memória quando o usuário navega a partir de
+`/eventos` (a listagem busca todos os 16 campos), mas **não** está disponível quando a navegação
+parte da home (`/events/featured` só traz 8 campos, sem `endereco/cidade/estado/link`) nem em
+acesso direto via URL/compartilhamento/SEO (bots, links de redes sociais, favoritos salvos). Um
+lookup dedicado por slug (`slug` já é `@unique` no schema Prisma — busca indexada, O(1), não scan
+de lista) é a estrutura de dados correta aqui: rápida, funciona em qualquer ponto de entrada, e é a
+única forma de dar suporte real a `generateMetadata` (SEO) e a compartilhamento direto do link do
+evento.
 
 ## Por que esta funcionalidade agora (impacto × complexidade)
 
-| Candidato                              | Impacto                                                                                                             | Complexidade                                                                                                                                                                                                                                | Motivo                                                                  |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| **`/eventos` via `/events/published`** | **Alto** — reconecta a página inteira, hoje 100% quebrada (só estado de erro); segunda página mais visitada do site | **Baixa** — endpoint já existe (Sprint 1 do backend); frontend só repete o padrão já validado e testado na home (`/events/featured`, commit `136f986`); zero mudança nos hooks/componentes de listagem, já prontos para receber dados reais | **Escolhido**                                                           |
-| `/eventos/[slug]` (detalhe)            | Alto (SEO, conversão)                                                                                               | Média/Alta — endpoint `/events/slug/{slugOrId}` não existe no backend, precisa lookup + 404 + metadata                                                                                                                                      | Fora de escopo por pedido explícito do usuário — próxima sprint natural |
-| Tags (`/tags`, `/events/tags-map`)     | Médio — só melhora o filtro de tags dentro de `/eventos`                                                            | Média — endpoint novo, join `evento_tags`+`tags`                                                                                                                                                                                            | Backlog do backend (Sprint 2 dele)                                      |
-| `/sobre` (stats, contributors)         | Baixo/Médio (páginas secundárias)                                                                                   | Baixa/Média                                                                                                                                                                                                                                 | Backlog do backend (Sprint 4 dele)                                      |
-| `/galeria`                             | Médio                                                                                                               | Alta — join de 4 tabelas + resolução de nomes                                                                                                                                                                                               | Backlog do backend (Sprint 5 dele)                                      |
-| `EventRecommendations`                 | Baixo (componente secundário)                                                                                       | Alta — algoritmo de ranking                                                                                                                                                                                                                 | Backlog do backend (Sprint 6 dele)                                      |
+| Candidato                                 | Impacto                                                                                                                                                                               | Complexidade                                                                                                                                                                                       | Motivo                                                                                                                                      |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Detalhe do evento (`/eventos/[slug]`)** | **Alto** — desbloqueia uma página inteira já construída (UI, SEO, favoritos, compartilhamento, calendário) hoje 100% quebrada; toda a navegação "saber mais" do site já aponta pra cá | **Baixa** — reaproveita 100% do módulo `events` do backend (mesmo padrão de `findFeatured`); frontend só implementa a função `loadEvent` já esboçada na página, sem tocar em `EventCard`/navegação | **Escolhido**                                                                                                                               |
+| Tags (`/tags`, `/events/tags-map`)        | Médio — melhora filtro e badges                                                                                                                                                       | Média — endpoint novo, join `evento_tags`+`tags`                                                                                                                                                   | Backlog do backend (Sprint 2 dele); página de detalhe funciona sem isso (`eventTags=[]`, mesmo padrão já usado em `tagsMap={}` na listagem) |
+| `EventRecommendations` (recomendados)     | Baixo (componente secundário, já stub)                                                                                                                                                | Alta — algoritmo de ranking                                                                                                                                                                        | Backlog do backend (Sprint 6 dele)                                                                                                          |
+| `/galeria`, `/sobre`                      | Médio/Baixo                                                                                                                                                                           | Alta / Média                                                                                                                                                                                       | Backlog do backend (Sprints 4-5 dele)                                                                                                       |
 
 ## Desenho da solução
 
-### Backend (`D:\backendeventos-public-api`) — estender `GET /events/published`, não criar rota nova
+### Backend (`D:\backendeventos-public-api`) — novo endpoint no módulo `events` já existente
 
-Reaproveita 100% do módulo `events` já existente (Controller → Service → Repository interface +
-impl Prisma → DTO), evitando duplicar uma query quase idêntica em uma rota paralela (DRY). A
-assinatura do repositório evolui de parâmetros posicionais para um objeto de filtros — mais limpo
-já que estamos adicionando 2 parâmetros novos a uma função que já tinha 2 posicionais opcionais:
+Mesmo padrão de `findFeatured`/`findPublished` (Controller → Service → Repository → DTO já
+existente, sem DTO novo — `EventPublicResponseDto` já tem os 16 campos necessários).
 
 ```ts
-// evento.repository.interface.ts
-export interface FindPublishedFilters {
-  cidade?: string
-  modalidade?: string
-  limit?: number
-  offset?: number
-}
-
-export interface IEventoRepository {
-  findPublished(filters?: FindPublishedFilters): Promise<Evento[]>
-  findFeatured(limit: number): Promise<EventoFeaturedFields[]>
-}
+// evento.repository.interface.ts — novo método na interface
+findBySlugOrId(slugOrId: string): Promise<Evento | null>
 ```
 
 ```ts
 // prisma-evento.repository.ts
-findPublished(filters: FindPublishedFilters = {}): Promise<Evento[]> {
-  const { cidade, modalidade, limit, offset } = filters
-  return this.prisma.evento.findMany({
+private readonly UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+findBySlugOrId(slugOrId: string): Promise<Evento | null> {
+  const isUuid = this.UUID_REGEX.test(slugOrId)
+  return this.prisma.evento.findFirst({
     where: {
       status: 'publicado',
-      ...(cidade && { cidade: { equals: cidade, mode: 'insensitive' } }),
-      ...(modalidade && { modalidade: { equals: modalidade, mode: 'insensitive' } }),
+      OR: [{ slug: slugOrId }, ...(isUuid ? [{ id: slugOrId }] : [])],
     },
-    orderBy: { created_at: 'desc' },
-    take: limit,
-    skip: offset,
   })
 }
 ```
 
-`EventsService.getPublished(filters)` e `EventsController.findPublished(query)` viram passthrough
-do objeto inteiro (`ListPublishedQueryDto` já tem exatamente esse formato, então passa direto sem
-mapeamento manual). `ListPublishedQueryDto` ganha:
+Validar o formato UUID antes de incluir `{ id: slugOrId }` no `OR` é obrigatório: a coluna `id` é
+`@db.Uuid` no Prisma, e passar uma string não-UUID (ex.: um slug) nesse filtro faz o Prisma
+rejeitar a query com erro de validação antes mesmo de chegar no Postgres.
 
 ```ts
-@ApiPropertyOptional({ description: 'Filtra por cidade exata (case-insensitive).', maxLength: 120 })
-@IsOptional() @IsString() @MaxLength(120)
-cidade?: string
-
-@ApiPropertyOptional({ description: 'Filtra por modalidade exata (ex.: "Online", "Presencial").', maxLength: 60 })
-@IsOptional() @IsString() @MaxLength(60)
-modalidade?: string
+// events.service.ts
+async getBySlugOrId(slugOrId: string): Promise<EventPublicResponseDto> {
+  const evento = await this.eventoRepository.findBySlugOrId(slugOrId)
+  if (!evento) {
+    throw new NotFoundException(`Evento '${slugOrId}' não encontrado`)
+  }
+  return EventPublicResponseDto.fromEntity(evento)
+}
 ```
 
-Sem filtros informados, o comportamento é **idêntico ao de hoje** (mesma query, mesmo cache, mesmo
-DTO) — extensão aditiva, não é breaking change no contrato existente. `EventPublicResponseDto`,
-`contract.spec.ts` e o cache do controller não mudam.
+```ts
+// events.controller.ts — mesmo controller, herda o CacheControlInterceptor de classe
+@Get('slug/:slugOrId')
+@ApiOkResponse({ type: EventPublicResponseDto })
+@ApiNotFoundResponse({ description: 'Evento não encontrado ou não publicado' })
+findBySlugOrId(@Param('slugOrId') slugOrId: string): Promise<EventPublicResponseDto> {
+  return this.eventsService.getBySlugOrId(slugOrId)
+}
+```
 
-**Fora de escopo no backend:** índice de banco em `cidade`/`modalidade` — o schema Prisma é
-introspectado do Postgres gerenciado pelo outro repositório (`D:\backendeventos`, dono das
-migrations via Alembic); adicionar índice é mudança de schema, pertence lá, não aqui. Não é
-necessário para o volume atual de eventos; fica anotado como possível melhoria futura se o filtro
-passar a ser muito usado.
+Sem conflito de rota com `/events/published` ou `/events/featured` (segmentos diferentes). Cache
+HTTP (`Cache-Control: public, max-age=30, stale-while-revalidate=120`) já vem de graça, aplicado na
+classe inteira do controller. `status: 'publicado'` no filtro garante que evento não-publicado (ou
+id/slug inexistente) responde 404, nunca vaza rascunho.
 
-### Frontend (`e:\agendas_eventos`) — reconectar `/eventos` no mesmo padrão já usado na home
+**Fora de escopo no backend:** índice extra em `slug` (já é `@unique`, portanto já indexado);
+qualquer mudança de schema pertence ao repositório `D:\backendeventos`, dono das migrations.
 
-`src/services/eventService.js` ganha uma segunda função, mesmo padrão de `getFeaturedEvents`:
+### Frontend (`e:\agendas_eventos`) — implementar `loadEvent` de verdade na página já existente
 
 ```js
-export async function getPublishedEvents({ cidade, modalidade, limit, offset } = {}) {
-  return apiGet('/events/published', {
-    params: { cidade, modalidade, limit, offset },
-    context: 'getPublishedEvents',
+// src/services/eventService.js — nova função, mesmo padrão de getFeaturedEvents
+export async function getEventBySlug(slugOrId) {
+  return apiGet(`/events/slug/${encodeURIComponent(slugOrId)}`, {
+    context: 'getEventBySlug',
+    next: { revalidate: 30 }, // mesma janela do Cache-Control do backend (max-age=30)
   })
 }
 ```
 
-`src/app/eventos/page.jsx` vira Server Component assíncrono, mesmo padrão de `src/app/page.jsx`
-(commit `136f986`): busca **sem parâmetros** (lista completa), `try/catch` com `captureError`
-(Sentry) e fallback vazio — a página nunca quebra por falha da API:
+`src/app/eventos/[slug]/page.jsx` — trocar o stub por busca real, usando `notFound()` do Next para
+404 de verdade (distinto de falha de rede/servidor, que continua caindo no `error.jsx` existente).
+`params` é assíncrono no App Router atual — a página e o `generateMetadata` hoje nem recebem esse
+argumento (por isso nunca usam o slug da URL); os dois passam a receber e usar:
 
 ```jsx
-import EventsPageClient from './EventsPageClient'
-import { getPublishedEvents } from '../../services/eventService'
-import { captureError } from '../../lib/sentry'
+import { cache } from 'react'
+import { notFound } from 'next/navigation'
+import { getEventBySlug } from '../../../services/eventService'
 
-export const metadata = {/* mantém como está */}
-export const dynamic = 'force-dynamic'
-
-async function loadEvents() {
+const loadEvent = cache(async (slug) => {
   try {
-    return { events: await getPublishedEvents(), error: null }
+    const event = await getEventBySlug(slug)
+    return { event, eventTags: [] } // tags reais ficam para quando /tags existir (backend Sprint 2)
   } catch (error) {
-    captureError(error, { context: 'EventsPage.loadEvents' })
-    return { events: [], error }
+    if (error.status === 404) {
+      notFound()
+    }
+    captureError(error, { context: 'EventDetailsPage.loadEvent' })
+    throw error // erro de rede/servidor → error.jsx (já existe, sem mudança)
   }
+})
+
+export async function generateMetadata({ params }) {
+  const { slug } = await params
+  const { event } = await loadEvent(slug)
+  // ...resto do generateMetadata já existente, sem mudança
 }
 
-export default async function EventsPage() {
-  const { events, error } = await loadEvents()
-  return <EventsPageClient events={events} tagsMap={{}} tags={[]} error={error} />
+export default async function EventDetailsPage({ params }) {
+  const { slug } = await params
+  const { event, eventTags } = await loadEvent(slug)
+  // ...resto da página já existente, sem mudança
 }
 ```
 
-`tagsMap`/`tags` continuam vazios — endpoint de tags ainda não existe no backend (Sprint 2 dele);
-`EventsPageClient`/`FilterModal` já toleram isso.
+Envolver `loadEvent` com `cache()` do React é o padrão oficial do App Router para deduplicar
+fetches entre `generateMetadata` e a página — sem isso, toda visita dispara 2 chamadas de rede
+idênticas (uma para SEO, outra para renderizar); com `cache()`, vira 1 só. Ganho direto de
+performance, mudança de uma linha.
 
-**Nada muda** em `EventsPageClient.jsx`, `useEventFilters.js`, `usePagination.js`,
-`useViewMode.js`, `EventsGrid.jsx`, `EventsFilters.jsx`, `FilterModal.jsx`, `Pagination.jsx`,
-`EventCard.jsx`, `eventLocationOptions.js` — já recebem `events` via prop e já filtram/paginam
-100% no cliente; só passam a receber dados reais em vez de `[]`. `.env.example`
-(`NEXT_PUBLIC_API_BASE_URL`) e `next.config.mjs` (CSP `connect-src`) já apontam para
-`v3.api.eventoscafebugado.cafebugado.com.br` desde a sprint anterior — sem alteração.
+`notFound()` sem `not-found.jsx` local nesta rota: o boundary global (`src/app/not-found.jsx`, já
+existe) cobre — não precisa criar arquivo novo.
+
+**Nada muda** em `EventCard.jsx`, `UpcomingEvents.jsx`, `EventsGrid.jsx`, `EventRowCompact.jsx`,
+`CalendarEventItem.jsx` — a navegação para `/eventos/[slug]` já está correta em todos.
+`EventActions.jsx`, `BackToEventsButton.jsx`, `loading.jsx`, `EventLocation`, `RichText` também não
+mudam — já esperam exatamente o formato de `event` que o novo endpoint devolve.
 
 ## Tarefas
 
 ### Backend
 
-1. **T1 — `IEventoRepository`**: adicionar `FindPublishedFilters` e mudar `findPublished` para
-   aceitar o objeto de filtros (`evento.repository.interface.ts`).
-2. **T2 — `PrismaEventoRepository.findPublished`**: aplicar `cidade`/`modalidade` no `where`
-   (case-insensitive), manter `take`/`skip` como já é.
-3. **T3 — `ListPublishedQueryDto`**: adicionar `cidade?`/`modalidade?` com validação
-   (`@IsString`, `@MaxLength`).
-4. **T4 — `EventsService.getPublished` / `EventsController.findPublished`**: repassar o objeto de
-   filtros inteiro (não mais `limit`/`offset` posicionais).
+1. **T1 — `IEventoRepository`**: adicionar `findBySlugOrId(slugOrId: string): Promise<Evento | null>`.
+2. **T2 — `PrismaEventoRepository.findBySlugOrId`**: `findFirst` com `status: 'publicado'` +
+   `OR: [slug, id]`, incluindo `id` no `OR` só quando `slugOrId` bate com regex de UUID.
+3. **T3 — `EventsService.getBySlugOrId`**: mapeia pra `EventPublicResponseDto`, lança
+   `NotFoundException` quando repositório retorna `null`.
+4. **T4 — `EventsController`**: `@Get('slug/:slugOrId')`, Swagger (`@ApiOkResponse`,
+   `@ApiNotFoundResponse`).
 5. **T5 — Testes** (ver seção própria abaixo).
 6. **T6 — Docs**: nova entrada no `SPRINT.md` do backend (`D:\backendeventos-public-api\SPRINT.md`,
-   "Sprint 1.6" — mesmo padrão da entrada 1.5 de `/events/featured`) e atualização da tabela de
-   endpoints no `README.md` dele.
+   "Sprint 3" — o próprio roadmap dele já reserva esse número) e atualização da tabela de endpoints
+   do `README.md`.
 
 ### Frontend
 
-7. **T7 — `eventService.js`**: adicionar `getPublishedEvents({ cidade, modalidade, limit, offset })`.
-8. **T8 — `app/eventos/page.jsx`**: virar Server Component assíncrono (padrão de `app/page.jsx`).
-9. **T9 — `app/eventos/page.test.jsx`**: reescrever para mockar `getPublishedEvents` (mesmo padrão
-   de `app/page.test.jsx`) — caminho feliz (eventos mockados chegam ao `EventsPageClient`) +
-   resiliência (API falha, página não quebra, sem crash).
-10. **T10 — `src/test/mocks/handlers.js`**: novo handler `GET /events/published` → `[]` por
-    padrão (mesmo padrão do handler de `/events/featured`).
-11. **T11 — `src/services/eventService.test.js`**: estender com testes de `getPublishedEvents`
-    (busca ok, `cidade`/`modalidade`/`limit`/`offset` viram query params quando informados,
-    ausentes quando omitidos, erro não-2xx anexa `.status`).
-12. **T12 (opcional, baixo custo)** — corrigir a seção "Backend" do `CLAUDE.md` da raiz, hoje
-    desatualizada (ainda descreve o backend como FastAPI/v2 — a API em uso é a nova, NestJS+Prisma
-    v3). Não bloqueia a feature; é acerto de documentação.
+7. **T7 — `eventService.js`**: adicionar `getEventBySlug(slugOrId)` (com `next: { revalidate: 30 }`).
+8. **T8 — `app/eventos/[slug]/page.jsx`**: implementar `loadEvent` real (com `cache()` do React),
+   receber e usar `params` (assíncrono) em `generateMetadata` e na página, `notFound()` em 404,
+   `eventTags: []` por enquanto.
+9. **T9 — `app/eventos/[slug]/page.test.jsx`**: reescrever — hoje só afirma que tudo rejeita.
+   Cobrir: caminho feliz (evento mockado renderiza título/descrição/ações), 404 chama `notFound()`,
+   erro de servidor/rede propaga pro `error.jsx` (comportamento atual do `error.test.jsx` não
+   muda).
+10. **T10 — `src/test/mocks/handlers.js`**: novo handler `GET /events/slug/:slugOrId` → 404 por
+    padrão (mesmo espírito dos handlers de `/events/published`/`/events/featured`), com overrides
+    por teste para o caminho feliz.
+11. **T11 — `src/services/eventService.test.js`**: estender com testes de `getEventBySlug` (busca
+    ok, encoding do slug/id na URL, erro 404 anexa `.status`).
+12. **T12 (opcional, baixo custo)** — conferir se `EventCard.test.jsx`/`EventsGrid.test.jsx`
+    continuam verdes sem alteração (não deveriam precisar mudar — navegação já testada e já
+    correta).
 
 ## Critérios de conclusão
 
-- [ ] `GET /events/published` sem parâmetros mantém exatamente o comportamento de hoje (mesmo
-      payload, mesmo cache) — nenhuma regressão nos testes já existentes (`contract.spec.ts`,
-      `events-published.e2e-spec.ts` originais).
-- [ ] `GET /events/published?cidade=São Paulo` retorna só eventos dessa cidade (case-insensitive).
-- [ ] `GET /events/published?modalidade=Online` retorna só eventos dessa modalidade.
-- [ ] Filtros combináveis entre si e com `limit`/`offset`.
-- [ ] `/eventos` (frontend) renderiza eventos reais vindos da API, com busca, tag (sem dado real
-      ainda, mas sem quebrar), local/modalidade, intervalo de data, favoritos e paginação
-      funcionando exatamente como hoje (client-side).
-- [ ] Falha da API em `/eventos` não derruba a página — cai no `ErrorState` já existente
-      (`EventsGrid`), erro reportado ao Sentry.
-- [ ] `npm run lint && npm run test && npm run test:e2e` verdes em `D:\backendeventos-public-api`,
-      cobertura ≥ 80% mantida em `modules/events/**`.
-- [ ] `pnpm lint && pnpm test:run && pnpm build` verdes em `e:\agendas_eventos`, thresholds do
-      `vitest.config.js` mantidos (55%/50%/48%).
-- [ ] Verificação manual: dev server do frontend contra o backend local e contra produção v3 —
-      `/eventos` mostra eventos reais, filtros/paginação funcionam, sem erro de CSP no console.
+- [x] `GET /events/slug/{slugOrId}` retorna o evento (16 campos do DTO público) quando `slugOrId`
+      bate com um `slug` publicado.
+- [x] Mesmo endpoint retorna o evento quando `slugOrId` é um `id` (UUID) publicado.
+- [x] Retorna 404 quando não existe evento com esse slug/id, e também quando existe mas não está
+      `publicado` (nunca vaza rascunho/recusado).
+- [x] Passar uma string não-UUID no lugar do id nunca gera erro 500 (branch do `OR` com `id` só
+      entra quando o formato bate).
+- [x] `/eventos/[slug]` no frontend renderiza dados reais: imagem, título, descrição, data/horário/
+      dia da semana/modalidade, localização, CTA externo, favoritar, compartilhar, adicionar ao
+      calendário. Verificado via `page.test.jsx` (RTL); pendente checagem visual num browser real.
+- [x] Acessar um slug/id inexistente mostra a página 404 do site (`not-found.jsx`), não o
+      `error.jsx` genérico. `loadEvent` chama `notFound()` quando `error.status === 404`.
+- [x] Falha de rede/servidor (não 404) continua caindo no `error.jsx` já existente, com botão
+      "Tentar novamente".
+- [x] `generateMetadata` (title/description/OG/Twitter) reflete o evento real — coberto por teste;
+      inspeção visual de `<head>` em produção fica para a verificação manual abaixo.
+- [ ] Apenas 1 chamada de rede ao backend por visita à página (dedupe via `cache()`). `loadEvent` é
+      envolvido em `cache()` do React — funciona no runtime real do App Router (RSC), mas **não é
+      verificável por teste unitário**: Vitest/jsdom roda fora do contexto de request do RSC, onde
+      `cache()` não dedupe (confirmado empiricamente — um teste que tentava afirmar 1 chamada só
+      falhou com 2, e foi removido por não refletir o ambiente real). Fica pendente de verificação
+      manual (aba Network do browser contra o dev server).
+- [x] Clicar em "Saber mais sobre o evento" / "Ver evento" em qualquer ponto do site (home,
+      `/eventos`, calendário) leva à página de detalhe funcionando — nenhuma alteração nesses
+      componentes; suíte de regressão (`EventCard.test.jsx`, `EventsGrid.test.jsx`) continua verde.
+- [x] `npm run lint && npm run test && npm run test:e2e` verdes em `D:\backendeventos-public-api`
+      (65 unitários + 34 e2e/contrato), cobertura ≥ 80% mantida em `modules/events/**`.
+- [x] `pnpm lint && pnpm test:run && pnpm build` verdes em `e:\agendas_eventos` (278 testes, 72
+      arquivos); build gera `/eventos/[slug]` como rota dinâmica (`ƒ`).
+- [ ] Verificação manual: dev server do frontend contra produção v3 — abrir um evento real a
+      partir da home, da listagem e por URL direta. **Não feita nesta sessão.**
 
 ## Arquivos afetados
 
 **Backend `D:\backendeventos-public-api` (modificados):**
 
 - `src/modules/events/repositories/evento.repository.interface.ts`
-- `src/modules/events/repositories/prisma-evento.repository.ts`
-- `src/modules/events/repositories/prisma-evento.repository.spec.ts`
-- `src/modules/events/events.service.ts`
-- `src/modules/events/events.service.spec.ts`
-- `src/modules/events/events.controller.ts`
-- `src/modules/events/events.controller.spec.ts`
-- `src/modules/events/dto/list-published-query.dto.ts`
-- `src/modules/events/dto/list-published-query.dto.spec.ts`
-- `test/events-published.e2e-spec.ts`
+- `src/modules/events/repositories/prisma-evento.repository.ts` (+ `.spec.ts`)
+- `src/modules/events/events.service.ts` (+ `.spec.ts`)
+- `src/modules/events/events.controller.ts` (+ `.spec.ts`)
+- `test/events-detail.e2e-spec.ts` (novo)
 - `README.md`, `SPRINT.md`
 
-**Sem alteração (confirmado por leitura direta):** `dto/event-public-response.dto.ts` (e seu
-spec), `test/contract.spec.ts`, `common/interceptors/cache-control.interceptor.ts`.
+**Sem alteração:** `dto/event-public-response.dto.ts`, `test/contract.spec.ts`,
+`common/interceptors/cache-control.interceptor.ts` (endpoint novo já herda o cache de classe).
 
 **Frontend `e:\agendas_eventos` (modificados):**
 
 - `src/services/eventService.js`
 - `src/services/eventService.test.js`
-- `src/app/eventos/page.jsx`
-- `src/app/eventos/page.test.jsx`
+- `src/app/eventos/[slug]/page.jsx`
+- `src/app/eventos/[slug]/page.test.jsx`
 - `src/test/mocks/handlers.js`
-- `CLAUDE.md` (opcional, T12)
 
-**Sem alteração:** `src/app/eventos/EventsPageClient.jsx`, `src/hooks/useEventFilters.js`,
-`src/hooks/usePagination.js`, `src/hooks/useViewMode.js`, `src/components/EventsGrid.jsx`,
-`src/components/EventsFilters.jsx`, `src/components/FilterModal.jsx`,
-`src/components/Pagination.jsx`, `src/components/EventCard.jsx`,
-`src/utils/eventLocationOptions.js`, `.env.example`, `next.config.mjs`.
+**Sem alteração:** `src/app/eventos/[slug]/EventActions.jsx`,
+`src/app/eventos/[slug]/BackToEventsButton.jsx`, `src/app/eventos/[slug]/error.jsx`,
+`src/app/eventos/[slug]/loading.jsx`, `src/components/EventCard.jsx`,
+`src/components/UpcomingEvents.jsx`, `src/components/EventsGrid.jsx`,
+`src/components/EventRowCompact.jsx`, `src/components/CalendarView/CalendarEventItem.jsx`,
+`src/components/EventLocation.jsx`, `src/components/EventRecommendations.jsx` (continua stub, fora
+de escopo), `next.config.mjs` (CSP já cobre o host), `.env.example`.
 
 ## Testes necessários
 
 **Backend:**
 
-- Unitário de repositório: `where` inclui `cidade`/`modalidade` quando informados (com
-  `mode: 'insensitive'`), omite quando não informados; `findPublished({ limit, offset })` continua
-  repassando `take`/`skip` corretamente (call signature migrada de posicional para objeto).
-- Unitário de service/controller: repassam o objeto de filtros inteiro sem transformação.
-- Unitário de DTO (`list-published-query.dto.spec.ts`): aceita `cidade`/`modalidade` como string,
-  rejeita acima do `maxLength`.
-- E2E: `?cidade=`/`?modalidade=` chegam corretos no `where` da chamada ao Prisma (mock);
-  combinação com `limit`/`offset`; regressão dos testes já existentes (cache header, CORS, campos
-  proibidos, 400 em `limit` fora do intervalo).
-- Contrato (`contract.spec.ts`): sem alteração — mesma garantia de 16 campos exatos.
+- Repositório: encontra por `slug`; encontra por `id` (UUID válido); não inclui `id` no `OR`
+  quando `slugOrId` não é UUID; retorna `null` para slug/id não publicado; retorna `null` quando
+  não existe.
+- Service: mapeia entidade → DTO corretamente; lança `NotFoundException` quando repositório
+  retorna `null`.
+- Controller: delega pro service com o param da rota.
+- E2E: 200 com os 16 campos do DTO para slug válido; 200 para id (UUID) válido; 404 para
+  inexistente; 404 para não-publicado; 404 (não 500) para string arbitrária no lugar de um UUID;
+  header `Cache-Control` presente (herdado do interceptor).
 
 **Frontend:**
 
-- Unitário de `getPublishedEvents` via MSW: happy path, cada filtro vira query param só quando
-  informado, erro não-2xx anexa `.status`.
-- `app/eventos/page.test.jsx`: caminho feliz (evento mockado chega ao `EventsPageClient`,
-  renderizado na tela) + resiliência (API rejeita, página mostra estado de erro em vez de crashar).
-- Regressão: suíte existente de `EventsPageClient.test.jsx` (filtros, paginação, view mode) não
-  deve precisar de nenhuma mudança — continua operando sobre a prop `events`, agora populada com
-  dados reais em produção.
+- `getEventBySlug` via MSW: happy path; erro 404 anexa `.status`; slug/id com espaço/acento chega
+  intacto do outro lado (percent-encoding automático de `new URL()` dentro de `apiGet`, sem
+  precisar de `encodeURIComponent` manual — mesmo mecanismo já usado pelos query params).
+- `page.test.jsx`: happy path renderiza campos-chave do evento; 404 aciona `notFound()` (mock de
+  `next/navigation`); erro genérico propaga (mesmo comportamento coberto hoje).
+- Regressão: `EventCard.test.jsx`, `EventsGrid.test.jsx` — sem mudança esperada, só rodar pra
+  confirmar que nada quebrou.
 
 ## Fora de escopo (deliberado, não faz parte desta sprint)
 
-- Página de detalhe `/eventos/[slug]` — depende de `GET /events/slug/{slugOrId}`, que não existe
-  no backend (Sprint 3 do roadmap dele). Fica para quando o usuário pedir.
-- Mover o filtro de local (`?local=`) para o servidor (usar `cidade`/`modalidade` no fetch) —
-  capability pronta no backend, mas não usada nesta fase por decisão explícita do usuário. Mudaria
-  a arquitetura deliberadamente client-side documentada em `usePagination.js`/`useEventFilters.js`
-  (introduziria round-trip ao servidor a cada troca de local). Próximo passo natural, não incluído
-  aqui.
-- Paginação e contagem total no servidor (`total`/envelope de resposta) — segue com paginação
-  100% client-side sobre a lista completa, como hoje.
-- Tags (`/tags`, `/events/tags-map`) — `tagsMap` continua `{}`; filtro de tag na UI fica sem dado
-  real até o backend implementar (Sprint 2 do roadmap dele).
-- `/galeria`, `/sobre`, `EventRecommendations` — dependem de endpoints que não existem ainda no
-  backend (Sprints 4-6 do roadmap dele).
+- Tags reais na página de detalhe (`eventTags`) — endpoint `/tags`/`evento_tags` não existe ainda
+  (Sprint 2 do roadmap do backend); fica `eventTags: []`, mesmo padrão já usado em `tagsMap={}` na
+  listagem.
+- `EventRecommendations` (seção "eventos recomendados" no fim da página) — depende de
+  `GET /events/{id}/recommended`, que não existe (Sprint 6 do backend); componente já é um stub
+  que retorna `null`, continua assim.
+- Qualquer mudança em `EventCard`/navegação — já está correta, confirmado por leitura direta do
+  código; risco desnecessário mexer no que já funciona.
+- Botão "Saber mais" de `CalendarEventItem`/linha compacta que aponta pro link externo do evento
+  (não pro detalhe interno) — comportamento pré-existente e deliberado nesses componentes
+  específicos, não faz parte desta sprint.
 
 ## Status
 
-Implementado (T1–T11; T12 também aplicado). Backend: `npm run lint && npm run test && npm run
-test:e2e` verdes (55 unitários + 27 e2e/contrato), cobertura ≥ 80% mantida em `modules/events/**`.
-Frontend: `pnpm lint && pnpm test:run && pnpm build` verdes (272/272 testes, 72 arquivos), `/eventos`
-compila como rota dinâmica (`ƒ`). Verificação manual contra o backend real (local/produção v3)
-ainda não foi feita nesta sessão — recomendada antes do deploy.
+Implementado (T1–T12). Backend (`D:\backendeventos-public-api`): `npm run lint`, `npm run test`
+(65 unitários) e `npm run test:e2e` (34 e2e/contrato) verdes; cobertura ≥ 80% mantida em
+`modules/events/**`. Frontend (`e:\agendas_eventos`): `pnpm lint`, `pnpm test:run` (278 testes, 72
+arquivos) e `pnpm build` verdes; `/eventos/[slug]` compila como rota dinâmica (`ƒ`).
+
+Duas pendências deliberadas, fora do alcance de teste automatizado, anotadas nos "Critérios de
+conclusão" acima:
+
+- Dedupe de rede via `cache()` do React entre `generateMetadata` e a página — real no runtime do
+  App Router, mas não observável em teste unitário (Vitest/jsdom não roda dentro do contexto de
+  request do RSC).
+- Verificação manual do fluxo completo num browser real (dev server contra a API v3) — não feita
+  nesta sessão.

@@ -10,3 +10,10 @@ export async function getPublishedEvents({ cidade, modalidade, limit, offset } =
     context: 'getPublishedEvents',
   })
 }
+
+export async function getEventBySlug(slugOrId) {
+  return apiGet(`/events/slug/${slugOrId}`, {
+    context: 'getEventBySlug',
+    next: { revalidate: 30 },
+  })
+}

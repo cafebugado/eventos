@@ -14,4 +14,7 @@ const API_BASE_URL = 'https://v3.api.eventoscafebugado.cafebugado.com.br'
 export const handlers = [
   http.get(`${API_BASE_URL}/events/featured`, () => HttpResponse.json([])),
   http.get(`${API_BASE_URL}/events/published`, () => HttpResponse.json([])),
+  http.get(`${API_BASE_URL}/events/slug/:slugOrId`, () =>
+    HttpResponse.json({ message: 'Evento não encontrado' }, { status: 404 })
+  ),
 ]
