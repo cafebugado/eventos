@@ -14,8 +14,9 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const INITIAL_VALUES = { nome: '', email: '', assunto: '', mensagem: '' }
 
 // O app antigo usava react-hook-form aqui; como esse formulário não envia
-// para nenhum backend (só simula com alert()), optamos por state manual em
-// vez de adicionar react-hook-form como dependência nova do projeto.
+// para nenhum backend (só simula sucesso com Snackbar/Alert do MUI),
+// optamos por state manual em vez de adicionar react-hook-form como
+// dependência nova do projeto.
 function validate(values) {
   const errors = {}
   if (!values.nome || values.nome.trim().length < 2) {
