@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '../test/mocks/server'
 import {
-  getEventBySlug,
-  getEventTags,
+  getEventDetail,
   getEventsTagsMap,
   getFeaturedEvents,
   getPublishedEvents,
@@ -102,35 +101,43 @@ describe('getPublishedEvents', () => {
   })
 })
 
-describe('getEventBySlug', () => {
-  it('busca o evento pelo slug na API', async () => {
-    const event = { id: '1', slug: 'meetup-cafe-bugado', nome: 'Meetup Café Bugado' }
+describe('getEventDetail', () => {
+  it('busca o detalhe agregado (evento + tags) pelo slug na API', async () => {
+    const detail = {
+      evento: { id: '1', slug: 'meetup-cafe-bugado', nome: 'Meetup Café Bugado' },
+      tags: [{ id: 't1', nome: 'Backend', cor: '#2563eb' }],
+    }
     server.use(
-      http.get(`${API_BASE_URL}/events/slug/meetup-cafe-bugado`, () => HttpResponse.json(event))
+      http.get(`${API_BASE_URL}/events/slug/meetup-cafe-bugado/detail`, () =>
+        HttpResponse.json(detail)
+      )
     )
 
-    await expect(getEventBySlug('meetup-cafe-bugado')).resolves.toEqual(event)
+    await expect(getEventDetail('meetup-cafe-bugado')).resolves.toEqual(detail)
   })
 
   it('preserva o slug/id exato na URL mesmo com espaço/acento', async () => {
     server.use(
-      http.get(`${API_BASE_URL}/events/slug/:slugOrId`, ({ params }) => {
+      http.get(`${API_BASE_URL}/events/slug/:slugOrId/detail`, ({ params }) => {
         expect(params.slugOrId).toBe('evento com espaço')
-        return HttpResponse.json({ id: '1' })
+        return HttpResponse.json({ evento: { id: '1' }, tags: [] })
       })
     )
 
-    await expect(getEventBySlug('evento com espaço')).resolves.toEqual({ id: '1' })
+    await expect(getEventDetail('evento com espaço')).resolves.toEqual({
+      evento: { id: '1' },
+      tags: [],
+    })
   })
 
   it('anexa status 404 no erro quando o evento não existe', async () => {
     server.use(
-      http.get(`${API_BASE_URL}/events/slug/inexistente`, () =>
+      http.get(`${API_BASE_URL}/events/slug/inexistente/detail`, () =>
         HttpResponse.json({ message: 'Evento não encontrado' }, { status: 404 })
       )
     )
 
-    await expect(getEventBySlug('inexistente')).rejects.toMatchObject({ status: 404 })
+    await expect(getEventDetail('inexistente')).rejects.toMatchObject({ status: 404 })
   })
 })
 
@@ -169,25 +176,6 @@ describe('getEventsTagsMap', () => {
     )
 
     await expect(getEventsTagsMap()).rejects.toMatchObject({ status: 500 })
-  })
-})
-
-describe('getEventTags', () => {
-  it('busca as tags de um evento específico na API', async () => {
-    const tags = [{ id: '1', nome: 'Backend', cor: '#2563eb' }]
-    server.use(http.get(`${API_BASE_URL}/events/evento-1/tags`, () => HttpResponse.json(tags)))
-
-    await expect(getEventTags('evento-1')).resolves.toEqual(tags)
-  })
-
-  it('anexa status 404 no erro quando o evento não existe', async () => {
-    server.use(
-      http.get(`${API_BASE_URL}/events/inexistente/tags`, () =>
-        HttpResponse.json({ message: 'Evento não encontrado' }, { status: 404 })
-      )
-    )
-
-    await expect(getEventTags('inexistente')).rejects.toMatchObject({ status: 404 })
   })
 })
 

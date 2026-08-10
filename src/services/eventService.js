@@ -11,9 +11,9 @@ export async function getPublishedEvents({ cidade, modalidade, limit, offset } =
   })
 }
 
-export async function getEventBySlug(slugOrId) {
-  return apiGet(`/events/slug/${slugOrId}`, {
-    context: 'getEventBySlug',
+export async function getEventDetail(slugOrId) {
+  return apiGet(`/events/slug/${slugOrId}/detail`, {
+    context: 'getEventDetail',
     next: { revalidate: 30 },
   })
 }
@@ -24,10 +24,6 @@ export async function getTags() {
 
 export async function getEventsTagsMap() {
   return apiGet('/events/tags-map', { context: 'getEventsTagsMap' })
-}
-
-export async function getEventTags(eventoId) {
-  return apiGet(`/events/${eventoId}/tags`, { context: 'getEventTags' })
 }
 
 export async function getRecommendedEvents(eventId, limit = 3) {

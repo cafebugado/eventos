@@ -2,12 +2,11 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import EventDetailsPage, { generateMetadata } from './page'
-import { getEventBySlug, getEventTags } from '../../../services/eventService'
+import { getEventDetail } from '../../../services/eventService'
 import { captureError } from '../../../lib/sentry'
 
 vi.mock('../../../services/eventService', () => ({
-  getEventBySlug: vi.fn(),
-  getEventTags: vi.fn(),
+  getEventDetail: vi.fn(),
 }))
 vi.mock('../../../lib/sentry', () => ({
   captureError: vi.fn(),
@@ -50,19 +49,18 @@ function buildParams(slug = 'meetup-cafe-bugado') {
 
 describe('EventDetailsPage', () => {
   beforeEach(() => {
-    getEventBySlug.mockReset()
-    getEventTags.mockReset().mockResolvedValue([])
+    getEventDetail.mockReset().mockResolvedValue({ evento: event, tags: [] })
     captureError.mockReset()
     notFoundMock.mockClear()
   })
 
-  it('busca o evento pelo slug e renderiza os dados reais', async () => {
-    getEventBySlug.mockResolvedValue(event)
+  it('busca o detalhe agregado do evento e renderiza os dados reais', async () => {
+    getEventDetail.mockResolvedValue({ evento: event, tags: [] })
 
     const ui = await EventDetailsPage(buildParams())
     renderWithTheme(ui)
 
-    expect(getEventBySlug).toHaveBeenCalledWith('meetup-cafe-bugado')
+    expect(getEventDetail).toHaveBeenCalledWith('meetup-cafe-bugado')
     expect(screen.getByRole('heading', { name: 'Meetup Café Bugado' })).toBeInTheDocument()
     expect(screen.getByText('Um encontro mensal da comunidade')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /participar do evento/i })).toHaveAttribute(
@@ -74,7 +72,7 @@ describe('EventDetailsPage', () => {
   it('chama notFound() e propaga quando a API responde 404', async () => {
     const error = new Error('not found')
     error.status = 404
-    getEventBySlug.mockRejectedValue(error)
+    getEventDetail.mockRejectedValue(error)
 
     await expect(EventDetailsPage(buildParams('inexistente'))).rejects.toThrow('NEXT_NOT_FOUND')
     expect(notFoundMock).toHaveBeenCalled()
@@ -83,7 +81,7 @@ describe('EventDetailsPage', () => {
 
   it('propaga erro de rede/servidor (não 404) para o error.jsx, reportando ao Sentry', async () => {
     const error = new Error('falha de rede')
-    getEventBySlug.mockRejectedValue(error)
+    getEventDetail.mockRejectedValue(error)
 
     await expect(EventDetailsPage(buildParams())).rejects.toThrow('falha de rede')
     expect(notFoundMock).not.toHaveBeenCalled()
@@ -92,24 +90,24 @@ describe('EventDetailsPage', () => {
     })
   })
 
-  it('busca as tags do evento e renderiza os chips reais', async () => {
-    getEventBySlug.mockResolvedValue(event)
-    getEventTags.mockResolvedValue([
-      { id: 'tag-1', nome: 'Backend', cor: '#2563eb' },
-      { id: 'tag-2', nome: 'Nodejs', cor: '#16a34a' },
-    ])
+  it('renderiza os chips de tag reais recebidos no envelope do detalhe', async () => {
+    getEventDetail.mockResolvedValue({
+      evento: event,
+      tags: [
+        { id: 'tag-1', nome: 'Backend', cor: '#2563eb' },
+        { id: 'tag-2', nome: 'Nodejs', cor: '#16a34a' },
+      ],
+    })
 
     const ui = await EventDetailsPage(buildParams())
     renderWithTheme(ui)
 
-    expect(getEventTags).toHaveBeenCalledWith(event.id)
     expect(screen.getByText('Backend')).toBeInTheDocument()
     expect(screen.getByText('Nodejs')).toBeInTheDocument()
   })
 
   it('não renderiza nenhum chip quando o evento não tem tags', async () => {
-    getEventBySlug.mockResolvedValue(event)
-    getEventTags.mockResolvedValue([])
+    getEventDetail.mockResolvedValue({ evento: event, tags: [] })
 
     const ui = await EventDetailsPage(buildParams())
     renderWithTheme(ui)
@@ -118,24 +116,9 @@ describe('EventDetailsPage', () => {
     expect(screen.queryByText('Backend')).not.toBeInTheDocument()
   })
 
-  it('não quebra a página quando a busca de tags falha (degradação graciosa)', async () => {
-    getEventBySlug.mockResolvedValue(event)
-    const tagsError = new Error('falha ao buscar tags')
-    getEventTags.mockRejectedValue(tagsError)
-
-    const ui = await EventDetailsPage(buildParams())
-    renderWithTheme(ui)
-
-    expect(screen.getByRole('heading', { name: 'Meetup Café Bugado' })).toBeInTheDocument()
-    expect(notFoundMock).not.toHaveBeenCalled()
-    expect(captureError).toHaveBeenCalledWith(tagsError, {
-      context: 'EventDetailsPage.loadEventTags',
-    })
-  })
-
   describe('generateMetadata', () => {
     it('gera title/description/OG a partir do evento real', async () => {
-      getEventBySlug.mockResolvedValue(event)
+      getEventDetail.mockResolvedValue({ evento: event, tags: [] })
 
       const metadata = await generateMetadata(buildParams())
 
@@ -148,7 +131,7 @@ describe('EventDetailsPage', () => {
     it('propaga 404 igual à página', async () => {
       const error = new Error('not found')
       error.status = 404
-      getEventBySlug.mockRejectedValue(error)
+      getEventDetail.mockRejectedValue(error)
 
       await expect(generateMetadata(buildParams('inexistente'))).rejects.toThrow('NEXT_NOT_FOUND')
     })

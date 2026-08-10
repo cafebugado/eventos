@@ -19,7 +19,7 @@ import { captureError } from '../../../lib/sentry'
 import { vivoVioleta } from '../../../theme/tokens/vivoVioleta'
 import { isEventPast } from '../../../utils/eventDate'
 import { stripRichText } from '../../../utils/richText'
-import { getEventBySlug, getEventTags } from '../../../services/eventService'
+import { getEventDetail } from '../../../services/eventService'
 import RichText from '../../../components/RichText'
 import EventLocation from '../../../components/EventLocation'
 import EventRecommendations from '../../../components/EventRecommendations'
@@ -44,9 +44,9 @@ export const dynamic = 'force-dynamic'
 // isso, cada visita dispararia 2 chamadas de rede idênticas nesse mesmo
 // request (uma para SEO, outra para o corpo da página).
 const loadEvent = cache(async (slug) => {
-  let event
+  let detail
   try {
-    event = await getEventBySlug(slug)
+    detail = await getEventDetail(slug)
   } catch (error) {
     if (error.status === 404) {
       notFound()
@@ -55,16 +55,7 @@ const loadEvent = cache(async (slug) => {
     throw error
   }
 
-  // getEventTags falhando não deve derrubar a página de detalhe — só os
-  // chips de tag ficam indisponíveis (degradação graciosa).
-  let eventTags = []
-  try {
-    eventTags = await getEventTags(event.id)
-  } catch (error) {
-    captureError(error, { context: 'EventDetailsPage.loadEventTags' })
-  }
-
-  return { event, eventTags }
+  return { event: detail.evento, eventTags: detail.tags }
 })
 
 export async function generateMetadata({ params }) {
