@@ -32,3 +32,7 @@ export async function getRecommendedEvents(eventId, limit = 3) {
     context: 'getRecommendedEvents',
   })
 }
+
+export async function getContributors() {
+  return apiGet('/contributors', { context: 'getContributors' })
+}

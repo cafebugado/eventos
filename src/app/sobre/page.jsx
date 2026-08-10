@@ -1,6 +1,8 @@
 import Container from '@mui/material/Container'
 import AboutFeatures from '../../components/AboutFeatures'
 import ContributorsGrid from '../../components/ContributorsGrid'
+import { captureError } from '../../lib/sentry'
+import { getContributors } from '../../services/eventService'
 
 export const metadata = {
   title: 'Sobre | Eventos Café Bugado',
@@ -10,13 +12,20 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
-// Sem fonte de dados: integração com a API removida — estatísticas e
-// contribuintes voltam quando a nova API for plugada (ver SPRINT.md).
-export default function AboutPage() {
+// Estatísticas (AboutFeatures totalEventos) continuam sem fonte de dados —
+// depende de GET /events/stats/public, fora do escopo desta mudança.
+export default async function AboutPage() {
+  let contributors = []
+  try {
+    contributors = await getContributors()
+  } catch (error) {
+    captureError(error, { context: 'AboutPage.loadContributors' })
+  }
+
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
       <AboutFeatures totalEventos={null} />
-      <ContributorsGrid contributors={[]} />
+      <ContributorsGrid contributors={contributors} />
     </Container>
   )
 }

@@ -17,4 +17,5 @@ export const handlers = [
   http.get(`${API_BASE_URL}/tags`, () => HttpResponse.json([])),
   http.get(`${API_BASE_URL}/events/tags-map`, () => HttpResponse.json({})),
   http.get(`${API_BASE_URL}/events/:eventId/recommended`, () => HttpResponse.json([])),
+  http.get(`${API_BASE_URL}/contributors`, () => HttpResponse.json([])),
 ]

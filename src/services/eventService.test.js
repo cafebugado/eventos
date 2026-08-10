@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '../test/mocks/server'
 import {
+  getContributors,
   getEventDetail,
   getEventsTagsMap,
   getFeaturedEvents,
@@ -221,5 +222,33 @@ describe('getRecommendedEvents', () => {
     )
 
     await expect(getRecommendedEvents('inexistente')).rejects.toMatchObject({ status: 404 })
+  })
+})
+
+describe('getContributors', () => {
+  it('busca a lista de contribuintes na API', async () => {
+    const contributors = [
+      {
+        id: '1',
+        nome: 'Alice',
+        avatar_url: 'https://example.com/a.png',
+        github_url: 'https://github.com/alice',
+        linkedin_url: null,
+        portfolio_url: null,
+      },
+    ]
+    server.use(http.get(`${API_BASE_URL}/contributors`, () => HttpResponse.json(contributors)))
+
+    await expect(getContributors()).resolves.toEqual(contributors)
+  })
+
+  it('anexa status no erro quando a API responde não-2xx', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/contributors`, () =>
+        HttpResponse.json({ detail: 'erro interno' }, { status: 500 })
+      )
+    )
+
+    await expect(getContributors()).rejects.toMatchObject({ status: 500 })
   })
 })
