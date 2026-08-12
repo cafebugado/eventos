@@ -57,11 +57,19 @@ export default function EventsPageClient({ events, tagsMap, tags, error }) {
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-      <Stack spacing={0.5} sx={{ mb: 4, textAlign: 'center' }}>
-        <Typography variant="h4" component="h1">
+      <Stack spacing={4} sx={{ mb: 4, alignItems: 'center' }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{ fontSize: { xs: '1.85rem', md: '2.25rem' }, textAlign: 'center' }}
+        >
           Próximos eventos
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 640, mx: 'auto' }}>
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
+        >
           Eventos de tecnologia que estão rolando ou vão acontecer em breve. Tudo indicado pela
           comunidade, com meetups, workshops, hackathons e conferências para quem quer aprender,
           trocar ideia e se aproximar da área.

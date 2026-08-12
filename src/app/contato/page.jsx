@@ -38,8 +38,12 @@ const CONTACT_ITEMS = [
 export default function ContactPage() {
   return (
     <Container maxWidth="md" sx={{ py: { xs: 5, md: 8 } }}>
-      <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 5 }}>
-        <Typography variant="h3" component="h1" sx={{ fontSize: { xs: '2rem', md: '2.5rem' } }}>
+      <Stack spacing={4} sx={{ mb: 5, alignItems: 'center' }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{ fontSize: { xs: '1.85rem', md: '2.25rem' }, textAlign: 'center' }}
+        >
           Vamos fortalecer a{' '}
           <Box component="span" sx={{ color: 'primary.main' }}>
             comunidade juntos
@@ -48,7 +52,7 @@ export default function ContactPage() {
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ maxWidth: 640, mx: 'auto', fontSize: '1.05rem' }}
+          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
         >
           Se você organiza eventos, participa ou quer colaborar, a gente quer ouvir você. Conte sua
           ideia, dúvida ou sugestão e vamos conversar.

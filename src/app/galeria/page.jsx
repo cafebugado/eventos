@@ -18,8 +18,12 @@ export default async function GalleryPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
-      <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 5 }}>
-        <Typography variant="h3" component="h1" sx={{ fontSize: { xs: '2rem', md: '2.5rem' } }}>
+      <Stack spacing={4} sx={{ mb: 5, alignItems: 'center' }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{ fontSize: { xs: '1.85rem', md: '2.25rem' }, textAlign: 'center' }}
+        >
           Galeria da{' '}
           <Box component="span" sx={{ color: 'primary.main' }}>
             Comunidade
@@ -28,7 +32,7 @@ export default async function GalleryPage() {
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ maxWidth: 720, mx: 'auto', fontSize: '1.05rem' }}
+          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
         >
           Cada foto conta uma história. Aqui, pessoas de comunidades como{' '}
           <Box component="strong">Café Bugado</Box>, <Box component="strong">Meet Up Tech SP</Box> e

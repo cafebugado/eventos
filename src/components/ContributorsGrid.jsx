@@ -19,9 +19,13 @@ import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNewOutlined'
 // em Footer.jsx, que já é client, funciona sem esse problema.
 export default function ContributorsGrid({ contributors = [] }) {
   return (
-    <Stack spacing={3} sx={{ mt: { xs: 6, md: 8 } }}>
-      <Box sx={{ textAlign: 'center' }}>
-        <Typography variant="h4" component="h2">
+    <Stack spacing={4} sx={{ mt: { xs: 6, md: 8 } }}>
+      <Stack spacing={4} sx={{ alignItems: 'center' }}>
+        <Typography
+          variant="h3"
+          component="h2"
+          sx={{ fontSize: { xs: '1.85rem', md: '2.25rem' }, textAlign: 'center' }}
+        >
           Quem mantém este{' '}
           <Box component="span" sx={{ color: 'primary.main' }}>
             projeto
@@ -30,12 +34,12 @@ export default function ContributorsGrid({ contributors = [] }) {
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ maxWidth: 640, mx: 'auto', mt: 1 }}
+          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
         >
           Este projeto é feito pela comunidade. Conheça as pessoas que contribuem para manter esta
           plataforma funcionando e sempre melhorando.
         </Typography>
-      </Box>
+      </Stack>
 
       {contributors.length === 0 ? (
         <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>

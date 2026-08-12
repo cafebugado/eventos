@@ -53,8 +53,12 @@ const FEATURES = [
 // useEventStats()/SWR do app antigo.
 export default function AboutFeatures({ totalEventos }) {
   return (
-    <Stack spacing={4}>
-      <Typography variant="h3" component="h2" sx={{ fontSize: { xs: '1.85rem', md: '2.25rem' } }}>
+    <Stack spacing={4} sx={{ alignItems: 'center' }}>
+      <Typography
+        variant="h3"
+        component="h2"
+        sx={{ fontSize: { xs: '1.85rem', md: '2.25rem' }, textAlign: 'center' }}
+      >
         Um jeito mais simples de descobrir{' '}
         <Box component="span" sx={{ color: 'primary.main' }}>
           eventos de tecnologia
@@ -64,7 +68,7 @@ export default function AboutFeatures({ totalEventos }) {
       <Typography
         variant="body1"
         color="text.secondary"
-        sx={{ fontSize: '1.05rem', maxWidth: 760 }}
+        sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
       >
         A Comunidade Café Bugado surgiu porque encontrar eventos de tecnologia nem sempre é simples.
         As informações ficam espalhadas em vários lugares. Criamos um espaço para reunir tudo em um
