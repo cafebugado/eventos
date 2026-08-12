@@ -17,6 +17,36 @@ const MONTH_ABBREVIATIONS = [
   'dez',
 ]
 
+// Nomes completos do dia da semana, com "-feira" nos dias úteis (Domingo e
+// Sábado sem sufixo) — fonte única pros componentes de calendário, indexados
+// por Date#getDay() (0 = Domingo).
+export const WEEKDAY_NAMES_LONG = [
+  'Domingo',
+  'Segunda-feira',
+  'Terça-feira',
+  'Quarta-feira',
+  'Quinta-feira',
+  'Sexta-feira',
+  'Sábado',
+]
+
+// Nomes completos do mês, capitalizados (ex.: "Agosto"), indexados por
+// Date#getMonth() (0 = Janeiro). Use .toLowerCase() pra forma minúscula.
+export const MONTH_NAMES_LONG = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+]
+
 /**
  * Converte uma string de data para objeto Date.
  * Suporta DD/MM/YYYY, YYYY-MM-DD e ISO 8601.
