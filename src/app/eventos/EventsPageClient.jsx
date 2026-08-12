@@ -19,9 +19,8 @@ import Pagination from '../../components/Pagination'
 // Client Component: recebe os dados já buscados no servidor (app/eventos/page.jsx)
 // e cuida de toda a interação (filtros, paginação, view mode, favoritos). Os
 // filtros e a página atual vivem na URL (ver hooks/useEventFilters.js e
-// hooks/usePagination.js) — este componente lê `searchParams` via
-// next/navigation, não via prop, então filtrar/paginar não re-executa o
-// Server Component pai (Partial Rendering do App Router).
+// hooks/usePagination.js). A busca atualiza `q` só no submit e filtra a lista
+// carregada, já que a API atual rejeita parâmetros de busca no endpoint.
 export default function EventsPageClient({ events, tagsMap, tags, error }) {
   const router = useRouter()
   const agenda = useMemo(() => sortEventsByDate(events), [events])
@@ -38,8 +37,6 @@ export default function EventsPageClient({ events, tagsMap, tags, error }) {
     setSelectedTagId,
     showPastEvents,
     setShowPastEvents,
-    showOnlyFavourites,
-    setShowOnlyFavourites,
     selectedLocation,
     setSelectedLocation,
     dateFrom,
@@ -91,9 +88,6 @@ export default function EventsPageClient({ events, tagsMap, tags, error }) {
         selectedLocation={selectedLocation}
         onSelectLocation={setSelectedLocation}
         filterActiveCount={filterActiveCount}
-        showOnlyFavourites={showOnlyFavourites}
-        onToggleFavourites={() => setShowOnlyFavourites((v) => !v)}
-        favouriteIds={favouriteIds}
         viewMode={viewMode}
         onChangeViewMode={changeViewMode}
         tags={tags}

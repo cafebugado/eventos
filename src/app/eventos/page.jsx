@@ -12,6 +12,11 @@ export const dynamic = 'force-dynamic'
 
 // getTags/getEventsTagsMap falhando não deve derrubar a listagem de eventos —
 // só o filtro por tag fica indisponível (degradação graciosa).
+function readSearchParam(searchParams, key) {
+  const value = searchParams?.get ? searchParams.get(key) : searchParams?.[key]
+  return Array.isArray(value) ? value[0] : value
+}
+
 async function loadEvents() {
   const [eventsResult, tagsResult, tagsMapResult] = await Promise.allSettled([
     getPublishedEvents(),
@@ -37,7 +42,11 @@ async function loadEvents() {
   return { events: eventsResult.value, tags, tagsMap, error: null }
 }
 
-export default async function EventsPage() {
+export default async function EventsPage({ searchParams } = {}) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined
+  // A rota lê `q` para reagir ao submit da busca, mas não repassa para a API:
+  // o backend atual retorna 400 para parâmetros de pesquisa nesse endpoint.
+  readSearchParam(resolvedSearchParams, 'q')
   const { events, tags, tagsMap, error } = await loadEvents()
 
   return <EventsPageClient events={events} tagsMap={tagsMap} tags={tags} error={error} />

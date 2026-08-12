@@ -6,13 +6,11 @@ import { isEventPast } from '../utils/eventDate'
 import { withUpdatedParams } from '../utils/urlSearchParams'
 
 // Porta useEventFilters.js (app antigo, estado local via useState) para
-// next/navigation — cada filtro agora vive na URL (?q=&tag=&past=&fav=&from=&to=),
+// next/navigation — os filtros vivem na URL (?q=&tag=&past=&fav=&from=&to=),
 // tornando a listagem filtrada compartilhável/"voltar" funcional. Qualquer
 // mudança de filtro reseta a página para 1 (mesmo comportamento do app antigo,
-// que chamava goToPage(1) manualmente antes de cada setter).
-//
-// Ver comentário em usePagination.js sobre por que isso não gera round-trip
-// ao servidor a cada troca de filtro.
+// que chamava goToPage(1) manualmente antes de cada setter). A busca deve chamar
+// setSearchTerm somente no submit do formulário, evitando navegação a cada tecla.
 export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
   const router = useRouter()
   const pathname = usePathname()

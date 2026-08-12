@@ -5,10 +5,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { withUpdatedParams } from '../utils/urlSearchParams'
 
 // Porta usePagination.js (app antigo, baseado em useSearchParams do
-// react-router) para next/navigation. A página /eventos (app/eventos/page.jsx)
-// deliberadamente NÃO lê a prop `searchParams` — por isso, navegações que só
-// mudam a query string aqui ficam inteiramente client-side (Partial Rendering
-// do App Router), sem round-trip ao servidor/API a cada troca de página.
+// react-router) para next/navigation. Este hook mantém a paginação sincronizada
+// com a URL.
 export function usePagination(items, pageSize) {
   const router = useRouter()
   const pathname = usePathname()

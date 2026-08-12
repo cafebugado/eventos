@@ -20,9 +20,6 @@ const baseProps = {
   onDateFrom: vi.fn(),
   onDateTo: vi.fn(),
   filterActiveCount: 0,
-  showOnlyFavourites: false,
-  onToggleFavourites: vi.fn(),
-  favouriteIds: new Set(),
   viewMode: 'grid',
   onChangeViewMode: vi.fn(),
   tags: [],
@@ -43,6 +40,31 @@ describe('EventsFilters', () => {
     renderWithTheme(<EventsFilters {...baseProps} />)
     await userEvent.click(screen.getByRole('button', { name: /abrir busca/i }))
     expect(screen.getByPlaceholderText('Buscar evento...')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^buscar$/i })).toBeDisabled()
+  })
+
+  it('não aplica a busca enquanto digita e aplica ao clicar em Buscar', async () => {
+    const onSearchChange = vi.fn()
+    renderWithTheme(<EventsFilters {...baseProps} onSearchChange={onSearchChange} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /abrir busca/i }))
+    await userEvent.type(screen.getByPlaceholderText('Buscar evento...'), 'react')
+
+    expect(onSearchChange).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: /^buscar$/i })).toBeEnabled()
+
+    await userEvent.click(screen.getByRole('button', { name: /^buscar$/i }))
+    expect(onSearchChange).toHaveBeenCalledWith('react')
+  })
+
+  it('fecha a busca inline ao clicar fora do formulário', async () => {
+    renderWithTheme(<EventsFilters {...baseProps} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /abrir busca/i }))
+    expect(screen.getByPlaceholderText('Buscar evento...')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
+    expect(screen.queryByPlaceholderText('Buscar evento...')).not.toBeInTheDocument()
   })
 
   it('não exibe o botão de favoritos quando não há favoritos', () => {
@@ -50,9 +72,9 @@ describe('EventsFilters', () => {
     expect(screen.queryByRole('button', { name: /favoritos/i })).not.toBeInTheDocument()
   })
 
-  it('exibe o botão de favoritos quando há favoritos (desktop)', () => {
+  it('não exibe o botão de favoritos quando há favoritos', () => {
     renderWithTheme(<EventsFilters {...baseProps} favouriteIds={new Set(['1'])} />)
-    expect(screen.getByRole('button', { name: /favoritos/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /favoritos/i })).not.toBeInTheDocument()
   })
 
   it('renderiza o ViewToggle', () => {

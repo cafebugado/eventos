@@ -17,6 +17,7 @@ describe('SearchModal', () => {
   it('renderiza o input quando isOpen=true', () => {
     renderWithTheme(<SearchModal isOpen onClose={vi.fn()} value="" onChange={vi.fn()} />)
     expect(screen.getByPlaceholderText('Buscar evento...')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^buscar$/i })).toBeDisabled()
   })
 
   it('chama onChange ao digitar', async () => {
@@ -31,5 +32,15 @@ describe('SearchModal', () => {
     renderWithTheme(<SearchModal isOpen onClose={vi.fn()} value="react" onChange={onChange} />)
     await userEvent.click(screen.getByRole('button', { name: /limpar busca/i }))
     expect(onChange).toHaveBeenCalledWith('')
+  })
+
+  it('chama onSubmit ao clicar em Buscar', async () => {
+    const onSubmit = vi.fn()
+    renderWithTheme(
+      <SearchModal isOpen onClose={vi.fn()} value="react" onChange={vi.fn()} onSubmit={onSubmit} />
+    )
+    expect(screen.getByRole('button', { name: /^buscar$/i })).toBeEnabled()
+    await userEvent.click(screen.getByRole('button', { name: /^buscar$/i }))
+    expect(onSubmit).toHaveBeenCalledWith('react')
   })
 })

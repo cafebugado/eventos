@@ -38,6 +38,7 @@ const event = {
 
 describe('EventsPage', () => {
   beforeEach(() => {
+    getPublishedEvents.mockReset().mockResolvedValue([])
     getTags.mockReset().mockResolvedValue([])
     getEventsTagsMap.mockReset().mockResolvedValue({})
   })
@@ -60,6 +61,12 @@ describe('EventsPage', () => {
     getPublishedEvents.mockResolvedValue([])
 
     await EventsPage()
+
+    expect(getPublishedEvents).toHaveBeenCalledWith()
+  })
+
+  it('mantém a leitura de q sem repassar para a API, que ainda não aceita busca', async () => {
+    await EventsPage({ searchParams: Promise.resolve({ q: ' react ' }) })
 
     expect(getPublishedEvents).toHaveBeenCalledWith()
   })
