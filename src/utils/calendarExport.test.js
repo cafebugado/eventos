@@ -27,6 +27,10 @@ describe('generateICS', () => {
     const ics = generateICS(event)
     expect(ics).toContain('DESCRIPTION:Uma descrição &lt;b&gt;qualquer&lt;/b&gt;')
   })
+
+  it('lança erro em vez de gerar data inválida quando data_evento está malformado', () => {
+    expect(() => generateICS({ ...event, data_evento: 'não é uma data' })).toThrow(/Data inválida/)
+  })
 })
 
 describe('getGoogleCalendarUrl', () => {

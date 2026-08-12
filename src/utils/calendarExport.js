@@ -1,8 +1,14 @@
+import { parseEventDate } from './eventDate'
+
 // Converte DD/MM/YYYY + HH:MM para formato iCal YYYYMMDDTHHMMSS
 function toICalDate(dateBR, time) {
-  const [day, month, year] = dateBR.split('/')
+  const date = parseEventDate(dateBR)
+  if (!date) {
+    throw new Error(`Data inválida para exportação de calendário: "${dateBR}"`)
+  }
   const [hour, minute] = (time || '00:00').split(':')
-  return `${year}${month.padStart(2, '0')}${day.padStart(2, '0')}T${hour.padStart(2, '0')}${minute.padStart(2, '0')}00`
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${hour.padStart(2, '0')}${minute.padStart(2, '0')}00`
 }
 
 function sanitizePlainText(input) {
