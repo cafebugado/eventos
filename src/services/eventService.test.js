@@ -5,6 +5,7 @@ import {
   getContributors,
   getEventDetail,
   getEventsTagsMap,
+  getEventStats,
   getFeaturedEvents,
   getPublishedEvents,
   getRecommendedEvents,
@@ -250,5 +251,24 @@ describe('getContributors', () => {
     )
 
     await expect(getContributors()).rejects.toMatchObject({ status: 500 })
+  })
+})
+
+describe('getEventStats', () => {
+  it('busca as estatísticas de eventos na API', async () => {
+    const stats = { totalEventos: 42 }
+    server.use(http.get(`${API_BASE_URL}/events/stats/public`, () => HttpResponse.json(stats)))
+
+    await expect(getEventStats()).resolves.toEqual(stats)
+  })
+
+  it('anexa status no erro quando a API responde não-2xx', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/stats/public`, () =>
+        HttpResponse.json({ detail: 'erro interno' }, { status: 500 })
+      )
+    )
+
+    await expect(getEventStats()).rejects.toMatchObject({ status: 500 })
   })
 })

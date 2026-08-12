@@ -36,3 +36,7 @@ export async function getRecommendedEvents(eventId, limit = 3) {
 export async function getContributors() {
   return apiGet('/contributors', { context: 'getContributors' })
 }
+
+export async function getEventStats() {
+  return apiGet('/events/stats/public', { context: 'getEventStats' })
+}
