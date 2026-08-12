@@ -145,7 +145,7 @@ linhas / 50% funções / 48% branches).
 - [x] F1–F3 concluídas com os critérios de cada uma (frontend).
 - [x] `/galeria` exibe os álbuns reais da API — confirmado em 2026-08-12 rodando o backend
       localmente (`PORT=3001 npm run start:dev`) contra o Supabase real: `GET
-  /gallery/albums/public` devolveu 3 álbuns reais (Codecon, Databricks Meetup São Paulo,
+/gallery/albums/public` devolveu 3 álbuns reais (Codecon, Databricks Meetup São Paulo,
       Techbra Meetup), `getGalleryEvents()` filtrou corretamente o álbum sem fotos (Codecon) e
       mapeou os outros dois pro shape exato de `GalleryEventCard`/`GalleryPhotoModal`. **Não
       foi possível abrir no navegador nesta sessão** — o dev server do frontend já estava
