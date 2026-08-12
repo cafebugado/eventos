@@ -9,22 +9,22 @@ import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined'
 import ArrowOutwardOutlinedIcon from '@mui/icons-material/ArrowOutwardOutlined'
 import { isEventPast } from '../utils/eventDate'
 
-// Não usamos next/link no row inteiro (como o EventCard) porque o CTA "Acessar"
-// já é um <a> real — aninhar <a> dentro de <a> é HTML inválido. Em vez disso,
-// o row é uma div clicável (role="button") que navega via router.push, igual
-// ao EventCard.
+// Não usamos next/link no row inteiro para evitar markup interativo aninhado.
+// O row e o CTA navegam via router.push, igual ao EventCard.
 export default function EventRowCompact({ event, style }) {
   const router = useRouter()
   const past = isEventPast(event.data_evento)
   const href = `/eventos/${event.slug || event.id}`
+  const navigateToDetails = () => router.push(href)
 
   return (
     <Stack
       direction="row"
       role="button"
       tabIndex={0}
-      onClick={() => router.push(href)}
-      onKeyDown={(e) => e.key === 'Enter' && router.push(href)}
+      aria-label={event.nome}
+      onClick={navigateToDetails}
+      onKeyDown={(e) => e.key === 'Enter' && navigateToDetails()}
       spacing={2}
       style={style}
       sx={{
@@ -59,18 +59,14 @@ export default function EventRowCompact({ event, style }) {
         </Typography>
       </Stack>
       <Button
-        component="a"
-        href={past ? undefined : event.link}
-        target="_blank"
-        rel="noopener noreferrer"
         disabled={past}
         size="small"
         variant={past ? 'text' : 'outlined'}
         endIcon={!past && <ArrowOutwardOutlinedIcon fontSize="small" />}
         onClick={(e) => {
           e.stopPropagation()
-          if (past) {
-            e.preventDefault()
+          if (!past) {
+            navigateToDetails()
           }
         }}
         sx={{ flexShrink: 0 }}

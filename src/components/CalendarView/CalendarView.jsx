@@ -47,11 +47,12 @@ function dateKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
-export default function CalendarView({ events, eventTagsMap, favouriteIds, toggleFavourite }) {
+export default function CalendarView({ events }) {
   const today = getToday()
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
   const [currentMonth, setCurrentMonth] = useState(today.getMonth())
   const [selectedDay, setSelectedDay] = useState(null)
+  const isCurrentMonth = currentYear === today.getFullYear() && currentMonth === today.getMonth()
 
   const eventsByDate = useMemo(() => {
     const map = {}
@@ -75,6 +76,10 @@ export default function CalendarView({ events, eventTagsMap, favouriteIds, toggl
   )
 
   function prevMonth() {
+    if (isCurrentMonth) {
+      return
+    }
+
     if (currentMonth === 0) {
       setCurrentMonth(11)
       setCurrentYear((y) => y - 1)
@@ -111,7 +116,12 @@ export default function CalendarView({ events, eventTagsMap, favouriteIds, toggl
     <Box>
       <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-          <IconButton onClick={prevMonth} aria-label="Mês anterior" size="small">
+          <IconButton
+            onClick={prevMonth}
+            aria-label="Mês anterior"
+            size="small"
+            disabled={isCurrentMonth}
+          >
             <ChevronLeftOutlinedIcon />
           </IconButton>
           <Typography variant="h6" component="h3" sx={{ minWidth: 160, textAlign: 'center' }}>
@@ -159,9 +169,6 @@ export default function CalendarView({ events, eventTagsMap, favouriteIds, toggl
         <CalendarDayModal
           date={selectedDay.date}
           events={selectedDay.events}
-          eventTagsMap={eventTagsMap}
-          favouriteIds={favouriteIds}
-          toggleFavourite={toggleFavourite}
           onClose={() => setSelectedDay(null)}
         />
       )}

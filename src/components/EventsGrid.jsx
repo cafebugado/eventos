@@ -95,14 +95,7 @@ export default function EventsGrid({
     if (calendarEvents.length === 0) {
       return <EmptyState hasEvents={totalEvents > 0} />
     }
-    return (
-      <CalendarView
-        events={calendarEvents}
-        eventTagsMap={eventTagsMap}
-        favouriteIds={favouriteIds}
-        toggleFavourite={toggleFavourite}
-      />
-    )
+    return <CalendarView events={calendarEvents} />
   }
 
   if (filteredEvents.length === 0) {

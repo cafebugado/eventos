@@ -61,6 +61,28 @@ describe('CalendarView', () => {
     expect(screen.getByText(`${MONTH_NAMES[nextMonthIndex]} ${nextYear}`)).toBeInTheDocument()
   })
 
+  it('não permite voltar para meses anteriores ao mês atual', async () => {
+    const today = getToday()
+    renderWithTheme(
+      <CalendarView
+        events={[]}
+        eventTagsMap={{}}
+        favouriteIds={new Set()}
+        toggleFavourite={vi.fn()}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: /mês anterior/i })).toBeDisabled()
+
+    await userEvent.click(screen.getByRole('button', { name: /próximo mês/i }))
+    await userEvent.click(screen.getByRole('button', { name: /mês anterior/i }))
+
+    expect(
+      screen.getByText(`${MONTH_NAMES[today.getMonth()]} ${today.getFullYear()}`)
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /mês anterior/i })).toBeDisabled()
+  })
+
   it('abre o modal do dia ao clicar em um dia com eventos', async () => {
     const today = getToday()
     const dd = String(today.getDate()).padStart(2, '0')

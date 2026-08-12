@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
@@ -22,6 +22,10 @@ const event = {
 }
 
 describe('EventRowCompact', () => {
+  beforeEach(() => {
+    pushMock.mockClear()
+  })
+
   it('renderiza nome, data e horário', () => {
     renderWithTheme(<EventRowCompact event={event} />)
     expect(screen.getByText('Evento Compacto')).toBeInTheDocument()
@@ -43,5 +47,13 @@ describe('EventRowCompact', () => {
   it('exibe "Acessar" para eventos futuros', () => {
     renderWithTheme(<EventRowCompact event={{ ...event, data_evento: '01/01/2999' }} />)
     expect(screen.getByText('Acessar')).toBeInTheDocument()
+  })
+
+  it('navega para a página do evento ao clicar em Acessar', async () => {
+    renderWithTheme(<EventRowCompact event={{ ...event, data_evento: '01/01/2999' }} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /acessar/i }))
+
+    expect(pushMock).toHaveBeenCalledWith('/eventos/1')
   })
 })

@@ -14,14 +14,7 @@ function formatModalDate(date) {
 
 // Reusa o Modal compartilhado (Dialog do MUI) em vez do portal/focus-trap
 // escrito à mão no app antigo — scroll-lock, foco e Escape já vêm de graça.
-export default function CalendarDayModal({
-  date,
-  events,
-  eventTagsMap,
-  favouriteIds,
-  toggleFavourite,
-  onClose,
-}) {
+export default function CalendarDayModal({ date, events, onClose }) {
   return (
     <Modal
       isOpen
@@ -35,19 +28,9 @@ export default function CalendarDayModal({
       </Typography>
 
       <Stack spacing={1.5}>
-        {events.map((event) => {
-          const tags = eventTagsMap?.[String(event.id)] || []
-          return (
-            <CalendarEventItem
-              key={event.id}
-              event={event}
-              tags={tags}
-              favouriteIds={favouriteIds ?? new Set()}
-              toggleFavourite={toggleFavourite ?? (() => {})}
-              onNavigate={onClose}
-            />
-          )
-        })}
+        {events.map((event) => (
+          <CalendarEventItem key={event.id} event={event} onNavigate={onClose} />
+        ))}
       </Stack>
     </Modal>
   )

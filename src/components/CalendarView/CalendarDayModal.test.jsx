@@ -19,14 +19,7 @@ const events = [
 describe('CalendarDayModal', () => {
   it('renderiza a contagem de eventos e a data formatada', () => {
     renderWithTheme(
-      <CalendarDayModal
-        date={new Date(2999, 1, 20)}
-        events={events}
-        eventTagsMap={{}}
-        favouriteIds={new Set()}
-        toggleFavourite={vi.fn()}
-        onClose={vi.fn()}
-      />
+      <CalendarDayModal date={new Date(2999, 1, 20)} events={events} onClose={vi.fn()} />
     )
     expect(screen.getByText('2 eventos neste dia')).toBeInTheDocument()
     expect(screen.getByText('Evento Um')).toBeInTheDocument()
@@ -36,14 +29,7 @@ describe('CalendarDayModal', () => {
 
   it('formata domingo sem o sufixo "-feira"', () => {
     renderWithTheme(
-      <CalendarDayModal
-        date={new Date(2999, 1, 24)}
-        events={[events[0]]}
-        eventTagsMap={{}}
-        favouriteIds={new Set()}
-        toggleFavourite={vi.fn()}
-        onClose={vi.fn()}
-      />
+      <CalendarDayModal date={new Date(2999, 1, 24)} events={[events[0]]} onClose={vi.fn()} />
     )
     expect(screen.getByText('Domingo, 24 de fevereiro de 2999')).toBeInTheDocument()
   })
