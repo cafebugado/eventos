@@ -2,7 +2,8 @@ import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import PhotoLibraryOutlinedIcon from '@mui/icons-material/PhotoLibraryOutlined'
+import GalleryPageClient from './GalleryPageClient'
+import { getGalleryEvents } from '../../services/galleryService'
 
 export const metadata = {
   title: 'Galeria | Eventos Café Bugado',
@@ -12,10 +13,9 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
-// Sem fonte de dados: aguardando GET /gallery/albums/public (Sprint 5 da API
-// dedicada), bloqueado em GRANT manual de auth.* no Supabase — ver
-// D:\backendeventos-public-api\SPRINT.md.
-export default function GalleryPage() {
+export default async function GalleryPage() {
+  const events = await getGalleryEvents()
+
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
       <Stack spacing={1.5} sx={{ textAlign: 'center', mb: 5 }}>
@@ -37,12 +37,7 @@ export default function GalleryPage() {
         </Typography>
       </Stack>
 
-      <Stack spacing={1.5} sx={{ alignItems: 'center', textAlign: 'center', py: 8 }}>
-        <PhotoLibraryOutlinedIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
-        <Typography variant="body1" color="text.secondary">
-          Erro ao carregar a galeria. Tente novamente mais tarde.
-        </Typography>
-      </Stack>
+      <GalleryPageClient events={events} />
     </Container>
   )
 }
