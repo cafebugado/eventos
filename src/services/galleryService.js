@@ -24,6 +24,9 @@ function mapAlbumToGalleryEvent(album) {
 }
 
 export async function getGalleryEvents() {
-  const albums = await apiGet('/gallery/albums/public', { context: 'getGalleryEvents' })
+  const albums = await apiGet('/gallery/albums/public', {
+    context: 'getGalleryEvents',
+    next: { revalidate: 120 },
+  })
   return albums.filter((album) => album.fotos.length > 0).map(mapAlbumToGalleryEvent)
 }

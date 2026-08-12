@@ -159,6 +159,7 @@ export default function GalleryPhotoModal({ event, photoIndex, onClose, onPrev, 
                   component="img"
                   src={p.thumb}
                   alt={p.caption}
+                  loading="lazy"
                   sx={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 0.5 }}
                 />
               </Box>

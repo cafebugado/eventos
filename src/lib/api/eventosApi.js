@@ -22,8 +22,8 @@ function buildUrl(path, params) {
 // Sem cache por padrão — os dados mudam a qualquer momento (eventos novos,
 // badge de "hoje"/"acontecendo agora"), então cada request busca o estado
 // atual. Passe `next: { revalidate }` pra rotas que toleram cache (ex.:
-// sitemap.js) — nesse caso `cache: 'no-store'` é omitido, já que os dois são
-// mutuamente exclusivos.
+// getTags, getContributors — ver eventService.js) — nesse caso `cache:
+// 'no-store'` é omitido, já que os dois são mutuamente exclusivos.
 export async function apiGet(path, { params, context, next, ...fetchOptions } = {}) {
   const url = buildUrl(path, params)
 

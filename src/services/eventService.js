@@ -19,11 +19,11 @@ export async function getEventDetail(slugOrId) {
 }
 
 export async function getTags() {
-  return apiGet('/tags', { context: 'getTags' })
+  return apiGet('/tags', { context: 'getTags', next: { revalidate: 300 } })
 }
 
 export async function getEventsTagsMap() {
-  return apiGet('/events/tags-map', { context: 'getEventsTagsMap' })
+  return apiGet('/events/tags-map', { context: 'getEventsTagsMap', next: { revalidate: 300 } })
 }
 
 export async function getRecommendedEvents(eventId, limit = 3) {
@@ -34,9 +34,9 @@ export async function getRecommendedEvents(eventId, limit = 3) {
 }
 
 export async function getContributors() {
-  return apiGet('/contributors', { context: 'getContributors' })
+  return apiGet('/contributors', { context: 'getContributors', next: { revalidate: 600 } })
 }
 
 export async function getEventStats() {
-  return apiGet('/events/stats/public', { context: 'getEventStats' })
+  return apiGet('/events/stats/public', { context: 'getEventStats', next: { revalidate: 120 } })
 }

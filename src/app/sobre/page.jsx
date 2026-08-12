@@ -13,19 +13,20 @@ export const metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function AboutPage() {
-  let contributors = []
-  try {
-    contributors = await getContributors()
-  } catch (error) {
-    captureError(error, { context: 'AboutPage.loadContributors' })
+  const [contributorsResult, statsResult] = await Promise.allSettled([
+    getContributors(),
+    getEventStats(),
+  ])
+
+  if (contributorsResult.status === 'rejected') {
+    captureError(contributorsResult.reason, { context: 'AboutPage.loadContributors' })
+  }
+  if (statsResult.status === 'rejected') {
+    captureError(statsResult.reason, { context: 'AboutPage.loadEventStats' })
   }
 
-  let totalEventos = null
-  try {
-    ;({ totalEventos } = await getEventStats())
-  } catch (error) {
-    captureError(error, { context: 'AboutPage.loadEventStats' })
-  }
+  const contributors = contributorsResult.status === 'fulfilled' ? contributorsResult.value : []
+  const totalEventos = statsResult.status === 'fulfilled' ? statsResult.value.totalEventos : null
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
