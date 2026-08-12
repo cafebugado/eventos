@@ -12,8 +12,9 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
-// Sem fonte de dados: integração com a API removida — a galeria volta a
-// carregar álbuns quando a nova API for plugada (ver SPRINT.md).
+// Sem fonte de dados: aguardando GET /gallery/albums/public (Sprint 5 da API
+// dedicada), bloqueado em GRANT manual de auth.* no Supabase — ver
+// D:\backendeventos-public-api\SPRINT.md.
 export default function GalleryPage() {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
