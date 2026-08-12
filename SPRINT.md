@@ -106,13 +106,16 @@ linhas / 50% funções / 48% branches).
 
 ## Definition of Done — geral
 
-- [ ] F1–F3 concluídas com os critérios de cada uma.
-- [ ] `/sobre` renderiza contribuintes reais quando a API devolve dados — confirmado
-      manualmente com `npm run dev`.
-- [ ] Falha na API não quebra a página (continua no estado vazio).
-- [ ] `npm run test` verde; `npm run lint` sem erros novos.
-- [ ] Nenhum novo `console.log`.
-- [ ] `AboutFeatures totalEventos={null}` inalterado (fora de escopo, confirmado).
+- [x] F1–F3 concluídas com os critérios de cada uma.
+- [x] `/sobre` renderiza contribuintes reais quando a API devolve dados — confirmado
+      manualmente com `npm run dev` (2026-08-12: HTTP 200, contribuintes reais no HTML —
+      ex. link `github.com/brulprado` —, sem o texto de estado vazio).
+- [x] Falha na API não quebra a página (continua no estado vazio) — coberto por
+      `page.test.jsx` ("degrada graciosamente e reporta ao Sentry...").
+- [x] `npm run test` verde (303 testes); `npm run lint` sem erros novos (0 erros, só os 15
+      warnings pré-existentes de `*.stories.jsx`).
+- [x] Nenhum novo `console.log` (zero ocorrências em `src/`, confirmado via grep).
+- [x] `AboutFeatures totalEventos={null}` inalterado (fora de escopo, confirmado).
 - [ ] Após o merge desta sprint: revisar se comentários no código (ex.: `src/app/**/page.jsx`)
       referenciam este `SPRINT.md` por algo que não está mais aqui — como este arquivo é
       reescrito por inteiro a cada sprint (não é cumulativo), referências deixadas em código de
