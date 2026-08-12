@@ -28,6 +28,7 @@ import { vivoVioleta } from '../theme/tokens/vivoVioleta'
 import { formatDateToDayMonth } from '../utils/eventDate'
 
 const FALLBACK_IMAGE = '/eventos.png'
+const CARD_BADGE_SX = { borderRadius: 1 }
 
 function ModalidadeIcon({ modalidade, fontSize }) {
   if (modalidade === 'Online') {
@@ -157,7 +158,7 @@ export default function EventCard({
             label={badgeText}
             color={badgeColor}
             size="small"
-            sx={{ position: 'absolute', top: 8, right: 8 }}
+            sx={{ ...CARD_BADGE_SX, position: 'absolute', top: 8, right: 8 }}
           />
         )}
 
@@ -166,7 +167,7 @@ export default function EventCard({
             label="Novo"
             color="success"
             size="small"
-            sx={{ position: 'absolute', top: 8, left: 8 }}
+            sx={{ ...CARD_BADGE_SX, position: 'absolute', top: 8, left: 8 }}
           />
         )}
 
@@ -183,6 +184,7 @@ export default function EventCard({
                 label={tag.nome}
                 size="small"
                 sx={{
+                  ...CARD_BADGE_SX,
                   bgcolor: darken(tag.cor || vivoVioleta['500'], 0.15),
                   color: 'common.white',
                   fontWeight: 600,
@@ -200,7 +202,7 @@ export default function EventCard({
             label="Acontecendo agora!"
             color="success"
             size="small"
-            sx={{ position: 'absolute', top: 8, left: 8 }}
+            sx={{ ...CARD_BADGE_SX, position: 'absolute', top: 8, left: 8 }}
           />
         )}
 
@@ -210,7 +212,7 @@ export default function EventCard({
             label={`Começa em ${countdown}`}
             color="primary"
             size="small"
-            sx={{ position: 'absolute', top: 8, left: 8 }}
+            sx={{ ...CARD_BADGE_SX, position: 'absolute', top: 8, left: 8 }}
           />
         )}
       </Box>

@@ -6,15 +6,11 @@ export default {
   component: ViewToggle,
 }
 
-function Template({ isMobile }) {
+function Template() {
   const [viewMode, setViewMode] = useState('grid')
-  return <ViewToggle viewMode={viewMode} onChange={setViewMode} isMobile={isMobile} />
+  return <ViewToggle viewMode={viewMode} onChange={setViewMode} />
 }
 
-export const Desktop = {
-  render: () => <Template isMobile={false} />,
-}
-
-export const Mobile = {
-  render: () => <Template isMobile />,
+export const Default = {
+  render: () => <Template />,
 }

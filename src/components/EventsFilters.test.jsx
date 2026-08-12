@@ -77,9 +77,10 @@ describe('EventsFilters', () => {
     expect(screen.queryByRole('button', { name: /favoritos/i })).not.toBeInTheDocument()
   })
 
-  it('renderiza o ViewToggle', () => {
+  it('renderiza o seletor de modo de visualização sem o modo Lista', () => {
     renderWithTheme(<EventsFilters {...baseProps} />)
     expect(screen.getByRole('group', { name: /modo de visualização/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Lista' })).not.toBeInTheDocument()
   })
 
   it('repassa locationOptions pro FilterModal', async () => {

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 const STORAGE_KEY = 'eventos-view-mode'
-const VALID_MODES = ['grid', 'list', 'compact', 'calendar']
+const VALID_MODES = ['grid', 'compact', 'calendar']
 
 // Preferência de visualização — mantida em localStorage (não na URL), pois é
 // uma preferência de exibição do usuário, não um filtro compartilhável.

@@ -60,7 +60,7 @@ describe('EventsGrid', () => {
     expect(screen.getByText('Nenhum evento encontrado')).toBeInTheDocument()
   })
 
-  it('renderiza EventCard para viewMode=grid', () => {
+  it('renderiza EventCard em grade', () => {
     renderWithTheme(<EventsGrid {...baseProps} filteredEvents={[event]} totalEvents={1} />)
     expect(screen.getByText('Evento Grid')).toBeInTheDocument()
   })

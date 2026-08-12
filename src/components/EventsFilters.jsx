@@ -191,11 +191,7 @@ export default function EventsFilters({
       </Badge>
 
       <Stack sx={{ ml: 'auto' }}>
-        <ViewToggle
-          viewMode={isMobile && viewMode === 'grid' ? 'list' : viewMode}
-          onChange={onChangeViewMode}
-          isMobile={isMobile}
-        />
+        <ViewToggle viewMode={viewMode} onChange={onChangeViewMode} />
       </Stack>
 
       <FilterModal

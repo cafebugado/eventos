@@ -128,8 +128,7 @@ export default function EventsGrid({
       sx={{
         display: 'grid',
         gap: 3,
-        gridTemplateColumns:
-          viewMode === 'list' ? '1fr' : { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
       }}
     >
       {filteredEvents.map((item, index) => (
