@@ -113,3 +113,7 @@ linhas / 50% funções / 48% branches).
 - [ ] `npm run test` verde; `npm run lint` sem erros novos.
 - [ ] Nenhum novo `console.log`.
 - [ ] `AboutFeatures totalEventos={null}` inalterado (fora de escopo, confirmado).
+- [ ] Após o merge desta sprint: revisar se comentários no código (ex.: `src/app/**/page.jsx`)
+      referenciam este `SPRINT.md` por algo que não está mais aqui — como este arquivo é
+      reescrito por inteiro a cada sprint (não é cumulativo), referências deixadas em código de
+      sprints anteriores ficam órfãs quando o conteúdo muda de assunto.

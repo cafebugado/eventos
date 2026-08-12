@@ -8,6 +8,20 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/), e e
 
 ## [Não lançado]
 
+Reescrita completa da stack, em `feature/nextjs-mui-zustand-migration` desde 2026-08 (ainda não mergeada em `developer`). As entradas anteriores deste changelog descrevem o app antigo (Vite + React Router) — a partir daqui o projeto é outro.
+
+### Alterado
+
+- Migração completa Vite + React Router → Next.js 16 (App Router) + MUI + Zustand + Storybook
+- Frontend parou de falar com o Supabase direto (`@supabase/ssr`, `@supabase/supabase-js`, `lib/supabase/`) e passou a consumir só uma API pública dedicada, somente-leitura, via `apiGet` (`src/lib/api/eventosApi.js`)
+- `@sentry/react` → `@sentry/nextjs`
+- Código do app reorganizado para dentro de `src/`, seguindo a convenção do Next.js 16
+
+### Removido
+
+- Painel administrativo inteiro (RBAC, dashboards, moderação) — decisão de negócio definitiva, não portado pro Next.js
+- Notificações em tempo real de novos eventos (`NewEventToast`) — dependia de Supabase Realtime, sem equivalente na API nova
+
 ## [0.6.x] - 2026-04
 
 ### Corrigido
