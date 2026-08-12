@@ -8,24 +8,10 @@ import IconButton from '@mui/material/IconButton'
 import Button from '@mui/material/Button'
 import ChevronLeftOutlinedIcon from '@mui/icons-material/ChevronLeftOutlined'
 import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined'
-import { parseEventDate, getToday } from '../../utils/eventDate'
+import { parseEventDate, getToday, MONTH_NAMES_LONG } from '../../utils/eventDate'
 import CalendarDay from './CalendarDay'
 import CalendarDayModal from './CalendarDayModal'
 
-const MONTH_NAMES = [
-  'Janeiro',
-  'Fevereiro',
-  'Março',
-  'Abril',
-  'Maio',
-  'Junho',
-  'Julho',
-  'Agosto',
-  'Setembro',
-  'Outubro',
-  'Novembro',
-  'Dezembro',
-]
 const DAY_HEADERS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
 function buildCalendarGrid(year, month) {
@@ -129,7 +115,7 @@ export default function CalendarView({ events, eventTagsMap, favouriteIds, toggl
             <ChevronLeftOutlinedIcon />
           </IconButton>
           <Typography variant="h6" component="h3" sx={{ minWidth: 160, textAlign: 'center' }}>
-            {MONTH_NAMES[currentMonth]} {currentYear}
+            {MONTH_NAMES_LONG[currentMonth]} {currentYear}
           </Typography>
           <IconButton onClick={nextMonth} aria-label="Próximo mês" size="small">
             <ChevronRightOutlinedIcon />
