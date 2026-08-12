@@ -6,7 +6,7 @@ import { isEventPast } from '../utils/eventDate'
 import { withUpdatedParams } from '../utils/urlSearchParams'
 
 // Porta useEventFilters.js (app antigo, estado local via useState) para
-// next/navigation — os filtros vivem na URL (?q=&tag=&past=&fav=&from=&to=),
+// next/navigation — os filtros vivem na URL (?q=&tag=&fav=&from=&to=),
 // tornando a listagem filtrada compartilhável/"voltar" funcional. Qualquer
 // mudança de filtro reseta a página para 1 (mesmo comportamento do app antigo,
 // que chamava goToPage(1) manualmente antes de cada setter). A busca deve chamar
@@ -18,7 +18,6 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
 
   const searchTerm = searchParams.get('q') || ''
   const selectedTagId = searchParams.get('tag') || ''
-  const showPastEvents = searchParams.get('past') === '1'
   const showOnlyFavourites = searchParams.get('fav') === '1'
   const dateFrom = searchParams.get('from') || ''
   const dateTo = searchParams.get('to') || ''
@@ -26,7 +25,7 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
 
   const updateFilter = useCallback(
     (patch) => {
-      const query = withUpdatedParams(searchParams, patch, { resetPage: true })
+      const query = withUpdatedParams(searchParams, { ...patch, past: false }, { resetPage: true })
       router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
     },
     [pathname, router, searchParams]
@@ -34,14 +33,6 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
 
   const setSearchTerm = useCallback((value) => updateFilter({ q: value }), [updateFilter])
   const setSelectedTagId = useCallback((value) => updateFilter({ tag: value }), [updateFilter])
-
-  const setShowPastEvents = useCallback(
-    (value) => {
-      const next = typeof value === 'function' ? value(showPastEvents) : value
-      updateFilter({ past: next })
-    },
-    [updateFilter, showPastEvents]
-  )
 
   const setShowOnlyFavourites = useCallback(
     (value) => {
@@ -56,6 +47,17 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
 
   const setSelectedLocation = useCallback((value) => updateFilter({ local: value }), [updateFilter])
 
+  const setFilters = useCallback(
+    ({ tag, local, from, to }) => {
+      updateFilter({ tag, local, from, to })
+    },
+    [updateFilter]
+  )
+
+  const clearFilters = useCallback(() => {
+    updateFilter({ tag: '', local: '', from: '', to: '' })
+  }, [updateFilter])
+
   const filteredEvents = useMemo(() => {
     return agenda.filter((event) => {
       const searchLower = searchTerm.toLowerCase()
@@ -68,7 +70,7 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
         !selectedTagId ||
         (eventTagsMap[event.id] || []).some((tag) => String(tag.id) === selectedTagId)
 
-      const matchesPastFilter = showPastEvents || !isEventPast(event.data_evento)
+      const matchesUpcomingEvent = !isEventPast(event.data_evento)
 
       const matchesFavourite = !showOnlyFavourites || favouriteIds.has(event.id)
 
@@ -96,7 +98,7 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
       return (
         matchesSearch &&
         matchesTag &&
-        matchesPastFilter &&
+        matchesUpcomingEvent &&
         matchesFavourite &&
         matchesLocation &&
         matchesDate
@@ -107,7 +109,6 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
     searchTerm,
     selectedTagId,
     eventTagsMap,
-    showPastEvents,
     showOnlyFavourites,
     favouriteIds,
     selectedLocation,
@@ -116,19 +117,13 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
   ])
 
   const filterActiveCount =
-    (selectedTagId ? 1 : 0) +
-    (showPastEvents ? 1 : 0) +
-    (selectedLocation ? 1 : 0) +
-    (dateFrom ? 1 : 0) +
-    (dateTo ? 1 : 0)
+    (selectedTagId ? 1 : 0) + (selectedLocation ? 1 : 0) + (dateFrom || dateTo ? 1 : 0)
 
   return {
     searchTerm,
     setSearchTerm,
     selectedTagId,
     setSelectedTagId,
-    showPastEvents,
-    setShowPastEvents,
     showOnlyFavourites,
     setShowOnlyFavourites,
     selectedLocation,
@@ -137,6 +132,8 @@ export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
     setDateFrom,
     dateTo,
     setDateTo,
+    setFilters,
+    clearFilters,
     filteredEvents,
     filterActiveCount,
   }

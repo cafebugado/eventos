@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { sortEventsByDate } from '../../utils/eventDate'
+import { isEventPast, sortEventsByDate } from '../../utils/eventDate'
 import { getLocationOptions } from '../../utils/eventLocationOptions'
 import { useFavouritesStore } from '../../store/useFavouritesStore'
 import { useEventFilters } from '../../hooks/useEventFilters'
@@ -23,7 +23,10 @@ import Pagination from '../../components/Pagination'
 // carregada, já que a API atual rejeita parâmetros de busca no endpoint.
 export default function EventsPageClient({ events, tagsMap, tags, error }) {
   const router = useRouter()
-  const agenda = useMemo(() => sortEventsByDate(events), [events])
+  const agenda = useMemo(
+    () => sortEventsByDate(events).filter((event) => !isEventPast(event.data_evento)),
+    [events]
+  )
   const locationOptions = useMemo(() => getLocationOptions(agenda), [agenda])
 
   const favouriteIds = useFavouritesStore((state) => state.favouriteIds)
@@ -35,14 +38,14 @@ export default function EventsPageClient({ events, tagsMap, tags, error }) {
     setSearchTerm,
     selectedTagId,
     setSelectedTagId,
-    showPastEvents,
-    setShowPastEvents,
     selectedLocation,
     setSelectedLocation,
     dateFrom,
     setDateFrom,
     dateTo,
     setDateTo,
+    setFilters,
+    clearFilters,
     filteredEvents,
     filterActiveCount,
   } = useEventFilters(agenda, tagsMap, favouriteIds)
@@ -78,12 +81,12 @@ export default function EventsPageClient({ events, tagsMap, tags, error }) {
         onSearchChange={setSearchTerm}
         selectedTagId={selectedTagId}
         onSelectTag={setSelectedTagId}
-        showPastEvents={showPastEvents}
-        onTogglePast={() => setShowPastEvents((v) => !v)}
         dateFrom={dateFrom}
         dateTo={dateTo}
         onDateFrom={setDateFrom}
         onDateTo={setDateTo}
+        onApplyFilters={setFilters}
+        onClearFilters={clearFilters}
         locationOptions={locationOptions}
         selectedLocation={selectedLocation}
         onSelectLocation={setSelectedLocation}
@@ -99,7 +102,7 @@ export default function EventsPageClient({ events, tagsMap, tags, error }) {
         error={error}
         onRetry={() => router.refresh()}
         filteredEvents={pagedItems}
-        allEvents={viewMode === 'calendar' ? filteredEvents : undefined}
+        allEvents={viewMode === 'calendar' ? agenda : undefined}
         totalEvents={agenda.length}
         viewMode={viewMode}
         pageSize={pageSize}

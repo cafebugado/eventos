@@ -81,9 +81,9 @@ describe('useEventFilters', () => {
     expect(result.current.filteredEvents.map((e) => e.id)).toEqual(['2'])
   })
 
-  it('inclui eventos passados quando ?past=1', () => {
+  it('ignora ?past=1 e mantém eventos passados ocultos', () => {
     const { result } = setup('past=1')
-    expect(result.current.filteredEvents.map((e) => e.id)).toEqual(['1', '2', '3', '4'])
+    expect(result.current.filteredEvents.map((e) => e.id)).toEqual(['1', '2', '3'])
   })
 
   it('filtra só favoritos quando ?fav=1', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import EventsFilters from './EventsFilters'
@@ -13,12 +13,12 @@ const baseProps = {
   onSearchChange: vi.fn(),
   selectedTagId: '',
   onSelectTag: vi.fn(),
-  showPastEvents: false,
-  onTogglePast: vi.fn(),
   dateFrom: '',
   dateTo: '',
   onDateFrom: vi.fn(),
   onDateTo: vi.fn(),
+  onApplyFilters: vi.fn(),
+  onClearFilters: vi.fn(),
   filterActiveCount: 0,
   viewMode: 'grid',
   onChangeViewMode: vi.fn(),
@@ -83,23 +83,123 @@ describe('EventsFilters', () => {
     expect(screen.queryByRole('button', { name: 'Lista' })).not.toBeInTheDocument()
   })
 
-  it('repassa locationOptions pro FilterModal', async () => {
-    renderWithTheme(<EventsFilters {...baseProps} locationOptions={['São Paulo']} />)
-    await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
-    expect(screen.getByText('São Paulo')).toBeInTheDocument()
+  it('não mostra busca nem filtros quando o modo calendário está ativo', () => {
+    renderWithTheme(<EventsFilters {...baseProps} viewMode="calendar" />)
+    expect(screen.queryByRole('button', { name: /abrir busca/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /filtros/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('group', { name: /modo de visualização/i })).toBeInTheDocument()
   })
 
-  it('chama onSelectLocation ao selecionar um local dentro do FilterModal', async () => {
-    const onSelectLocation = vi.fn()
+  it('fecha os filtros abertos ao trocar para calendário', async () => {
+    const onChangeViewMode = vi.fn()
     renderWithTheme(
       <EventsFilters
         {...baseProps}
         locationOptions={['São Paulo']}
-        onSelectLocation={onSelectLocation}
+        onChangeViewMode={onChangeViewMode}
+      />
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
+    expect(screen.getByLabelText(/local/i)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /calendário/i }))
+
+    expect(onChangeViewMode).toHaveBeenCalledWith('calendar')
+    expect(screen.queryByLabelText(/local/i)).not.toBeInTheDocument()
+  })
+
+  it('abre os filtros em linha no desktop', async () => {
+    renderWithTheme(<EventsFilters {...baseProps} locationOptions={['São Paulo']} />)
+    await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
+    expect(screen.getByLabelText(/tags/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/local/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/data/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /limpar/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /ver resultados/i })).toBeDisabled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('aplica os filtros desktop ao clicar em Ver resultados', async () => {
+    const onApplyFilters = vi.fn()
+    renderWithTheme(
+      <EventsFilters
+        {...baseProps}
+        locationOptions={['São Paulo']}
+        onApplyFilters={onApplyFilters}
       />
     )
     await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
-    await userEvent.click(screen.getByText('São Paulo'))
-    expect(onSelectLocation).toHaveBeenCalledWith('São Paulo')
+    await userEvent.click(screen.getByLabelText(/local/i))
+    await userEvent.click(screen.getByRole('option', { name: 'São Paulo' }))
+    expect(screen.getByRole('button', { name: /limpar/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /ver resultados/i })).toBeEnabled()
+    await userEvent.click(screen.getByRole('button', { name: /ver resultados/i }))
+    expect(onApplyFilters).toHaveBeenCalledWith({
+      tag: '',
+      local: 'São Paulo',
+      from: '',
+      to: '',
+    })
+    expect(screen.getByLabelText(/local/i)).toBeInTheDocument()
+  })
+
+  it('limpa os filtros desktop e fecha o painel', async () => {
+    const onClearFilters = vi.fn()
+    renderWithTheme(
+      <EventsFilters
+        {...baseProps}
+        selectedLocation="São Paulo"
+        filterActiveCount={1}
+        locationOptions={['São Paulo']}
+        onClearFilters={onClearFilters}
+      />
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
+    await userEvent.click(screen.getByRole('button', { name: /limpar/i }))
+
+    expect(onClearFilters).toHaveBeenCalled()
+    expect(screen.queryByLabelText(/local/i)).not.toBeInTheDocument()
+  })
+
+  it('fecha os filtros desktop ao clicar fora', async () => {
+    renderWithTheme(
+      <>
+        <button type="button">Fora</button>
+        <EventsFilters {...baseProps} locationOptions={['São Paulo']} />
+      </>
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
+    expect(screen.getByLabelText(/local/i)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Fora' }))
+    expect(screen.queryByLabelText(/local/i)).not.toBeInTheDocument()
+  })
+
+  it('fecha o menu de seleção ao rolar a página', async () => {
+    renderWithTheme(
+      <EventsFilters
+        {...baseProps}
+        tags={[{ id: 1, nome: 'React' }]}
+        locationOptions={['São Paulo']}
+      />
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
+    await userEvent.click(screen.getByLabelText(/tags/i))
+    expect(screen.getByRole('option', { name: 'React' })).toBeInTheDocument()
+
+    fireEvent.scroll(window)
+    expect(screen.queryByRole('option', { name: 'React' })).not.toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: /tags/i })).toBeInTheDocument()
+  })
+
+  it('mantém o modal de filtros no mobile', async () => {
+    renderWithTheme(<EventsFilters {...baseProps} isMobile locationOptions={['São Paulo']} />)
+    await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText('São Paulo')).toBeInTheDocument()
   })
 })

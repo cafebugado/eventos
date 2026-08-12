@@ -6,8 +6,6 @@ import Chip from '@mui/material/Chip'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
-import Switch from '@mui/material/Switch'
-import FormControlLabel from '@mui/material/FormControlLabel'
 import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined'
 import { Modal } from './Modal'
 
@@ -17,22 +15,17 @@ export default function FilterModal({
   tags,
   selectedTagId,
   onSelectTag,
-  showPastEvents,
-  onTogglePast,
   dateFrom,
   dateTo,
   onDateFrom,
   onDateTo,
+  onClearFilters,
   locationOptions,
   selectedLocation,
   onSelectLocation,
 }) {
   const activeCount =
-    (selectedTagId ? 1 : 0) +
-    (showPastEvents ? 1 : 0) +
-    (selectedLocation ? 1 : 0) +
-    (dateFrom ? 1 : 0) +
-    (dateTo ? 1 : 0)
+    (selectedTagId ? 1 : 0) + (selectedLocation ? 1 : 0) + (dateFrom || dateTo ? 1 : 0)
 
   const footer = (
     <>
@@ -40,13 +33,14 @@ export default function FilterModal({
         <Button
           color="inherit"
           onClick={() => {
-            onSelectTag('')
-            if (showPastEvents) {
-              onTogglePast()
+            if (onClearFilters) {
+              onClearFilters()
+            } else {
+              onSelectTag('')
+              onSelectLocation('')
+              onDateFrom('')
+              onDateTo('')
             }
-            onSelectLocation('')
-            onDateFrom('')
-            onDateTo('')
           }}
         >
           Limpar filtros ({activeCount})
@@ -141,27 +135,6 @@ export default function FilterModal({
               fullWidth
             />
           </Stack>
-        </Box>
-
-        <Box>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            Período
-          </Typography>
-          <FormControlLabel
-            control={<Switch checked={showPastEvents} onChange={onTogglePast} />}
-            label={
-              <Box>
-                <Typography variant="body2">
-                  {showPastEvents ? 'Mostrando' : 'Ocultar'} eventos passados
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {showPastEvents
-                    ? 'Clique para ocultar eventos já realizados'
-                    : 'Clique para incluir eventos já realizados'}
-                </Typography>
-              </Box>
-            }
-          />
         </Box>
       </Stack>
     </Modal>

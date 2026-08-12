@@ -1,9 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import EventsPageClient from './EventsPageClient'
 import { useFavouritesStore } from '../../store/useFavouritesStore'
+import { getToday } from '../../utils/eventDate'
 
 const { useSearchParamsMock, replaceMock } = vi.hoisted(() => ({
   useSearchParamsMock: vi.fn(() => new URLSearchParams()),
@@ -53,6 +54,7 @@ describe('EventsPageClient', () => {
   beforeEach(() => {
     useSearchParamsMock.mockReturnValue(new URLSearchParams())
     useFavouritesStore.setState({ favourites: [], favouriteIds: new Set() })
+    window.localStorage.removeItem('eventos-view-mode')
     replaceMock.mockClear()
   })
 
@@ -104,14 +106,15 @@ describe('EventsPageClient', () => {
     expect(screen.getByText('Nenhum evento encontrado')).toBeInTheDocument()
   })
 
-  it('deriva as opções de local dos eventos recebidos e filtra ao selecionar uma no modal', async () => {
+  it('deriva as opções de local dos eventos recebidos e filtra ao aplicar pelo painel desktop', async () => {
     renderWithTheme(
       <EventsPageClient events={eventsWithLocation} tagsMap={{}} tags={[]} error={null} />
     )
 
     await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
-    const dialog = screen.getByRole('dialog')
-    await userEvent.click(within(dialog).getByText('São Paulo'))
+    await userEvent.click(screen.getByLabelText(/local/i))
+    await userEvent.click(screen.getByRole('option', { name: 'São Paulo' }))
+    await userEvent.click(screen.getByRole('button', { name: /ver resultados/i }))
 
     expect(replaceMock).toHaveBeenCalledWith('/eventos?local=S%C3%A3o+Paulo', { scroll: false })
   })
@@ -140,5 +143,27 @@ describe('EventsPageClient', () => {
 
     expect(screen.getByText('Meetup Backend')).toBeInTheDocument()
     expect(screen.queryByText('Workshop Frontend')).not.toBeInTheDocument()
+  })
+
+  it('não aplica filtros ativos quando muda para o calendário', async () => {
+    const today = getToday()
+    const date = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`
+    useSearchParamsMock.mockReturnValue(new URLSearchParams('q=inexistente'))
+
+    renderWithTheme(
+      <EventsPageClient
+        events={[{ id: '1', nome: 'Evento no Calendário', data_evento: date, horario: '19:00' }]}
+        tagsMap={{}}
+        tags={[]}
+        error={null}
+      />
+    )
+
+    expect(screen.getByText('Nenhum evento encontrado')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /calendário/i }))
+    await userEvent.click(screen.getByRole('button', { name: new RegExp(`^${today.getDate()},`) }))
+
+    expect(await screen.findByText('Evento no Calendário')).toBeInTheDocument()
   })
 })

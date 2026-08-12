@@ -19,8 +19,6 @@ const baseProps = {
   tags,
   selectedTagId: '',
   onSelectTag: vi.fn(),
-  showPastEvents: false,
-  onTogglePast: vi.fn(),
   dateFrom: '',
   dateTo: '',
   onDateFrom: vi.fn(),
@@ -44,11 +42,9 @@ describe('FilterModal', () => {
     expect(onSelectTag).toHaveBeenCalledWith('1')
   })
 
-  it('chama onTogglePast ao clicar no switch de eventos passados', async () => {
-    const onTogglePast = vi.fn()
-    renderWithTheme(<FilterModal {...baseProps} onTogglePast={onTogglePast} />)
-    await userEvent.click(screen.getByRole('switch'))
-    expect(onTogglePast).toHaveBeenCalled()
+  it('não renderiza o switch de eventos passados', () => {
+    renderWithTheme(<FilterModal {...baseProps} />)
+    expect(screen.queryByRole('switch')).not.toBeInTheDocument()
   })
 
   it('não exibe "Limpar filtros" quando não há filtros ativos', () => {
@@ -57,7 +53,7 @@ describe('FilterModal', () => {
   })
 
   it('exibe "Limpar filtros" com contagem quando há filtros ativos', () => {
-    renderWithTheme(<FilterModal {...baseProps} selectedTagId="1" showPastEvents />)
+    renderWithTheme(<FilterModal {...baseProps} selectedTagId="1" dateFrom="2999-01-01" />)
     expect(screen.getByText(/limpar filtros \(2\)/i)).toBeInTheDocument()
   })
 
