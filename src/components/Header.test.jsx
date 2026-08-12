@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { ThemeProvider } from '@mui/material/styles'
 import theme from '../theme/theme'
 import { vivoVioleta } from '../theme/tokens/vivoVioleta'
+import { useFavouritesStore } from '../store/useFavouritesStore'
 import Header from './Header'
 
 const { usePathnameMock } = vi.hoisted(() => ({ usePathnameMock: vi.fn(() => '/') }))
@@ -27,16 +28,30 @@ function renderWithTheme(ui) {
 describe('Header', () => {
   beforeEach(() => {
     usePathnameMock.mockReturnValue('/')
+    useFavouritesStore.setState({ favourites: [], favouriteIds: new Set() })
+    window.localStorage.clear()
   })
 
-  it('renderiza todos os itens de navegação', () => {
+  it('renderiza os itens de navegação sem Favoritos quando não há favoritos', () => {
     renderWithTheme(<Header />)
     const nav = screen.getByRole('navigation')
     expect(within(nav).getByRole('link', { name: 'Inicio' })).toBeInTheDocument()
-    expect(within(nav).getByRole('link', { name: 'Eventos' })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Sobre' })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'Eventos' })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Galeria' })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Contato' })).toBeInTheDocument()
+    expect(within(nav).queryByRole('link', { name: 'Favoritos' })).not.toBeInTheDocument()
+  })
+
+  it('mostra Favoritos quando existe evento favoritado', () => {
+    useFavouritesStore.setState({
+      favourites: [{ id: '1', nome: 'Evento favorito' }],
+      favouriteIds: new Set(['1']),
+    })
+
+    renderWithTheme(<Header />)
+    const nav = screen.getByRole('navigation')
+    expect(within(nav).getByRole('link', { name: 'Favoritos' })).toBeInTheDocument()
   })
 
   it('marca a rota atual como ativa', () => {

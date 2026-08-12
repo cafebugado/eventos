@@ -9,7 +9,8 @@ import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
 import useScrollTrigger from '@mui/material/useScrollTrigger'
 import { alpha, useColorScheme } from '@mui/material/styles'
-import { NAVIGATION_ITEMS } from '../constants/navigation'
+import { NAVIGATION_ITEMS, ROUTES } from '../constants/navigation'
+import { useFavouritesStore } from '../store/useFavouritesStore'
 import ComingSoonButton from './ComingSoonButton'
 import ThemeToggleSwitch from './ThemeToggleSwitch'
 import { vivoVioleta } from '../theme/tokens/vivoVioleta'
@@ -23,8 +24,12 @@ import { vivoVioleta } from '../theme/tokens/vivoVioleta'
 export default function Header() {
   const { mode, setMode } = useColorScheme()
   const pathname = usePathname()
+  const favouritesCount = useFavouritesStore((state) => state.favourites.length)
   const isScrolled = useScrollTrigger({ disableHysteresis: true, threshold: 20 })
   const isDarkMode = mode === 'dark'
+  const navigationItems = NAVIGATION_ITEMS.filter(
+    (item) => item.path !== ROUTES.FAVOURITES || favouritesCount > 0
+  )
 
   return (
     <AppBar
@@ -64,7 +69,7 @@ export default function Header() {
           component="nav"
           sx={{ display: { xs: 'none', md: 'flex' }, gap: 0.5, flex: 1, justifyContent: 'center' }}
         >
-          {NAVIGATION_ITEMS.map((item) => {
+          {navigationItems.map((item) => {
             const isActive = pathname === item.path
             const activeColor = isDarkMode ? vivoVioleta['200'] : vivoVioleta['500']
             return (

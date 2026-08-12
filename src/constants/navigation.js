@@ -17,9 +17,9 @@ export const ROUTES = {
 
 export const NAVIGATION_ITEMS = [
   { path: ROUTES.HOME, label: 'Inicio', icon: HomeOutlinedIcon },
-  { path: ROUTES.EVENTS, label: 'Eventos', icon: CalendarMonthOutlinedIcon },
   { path: ROUTES.ABOUT, label: 'Sobre', icon: GroupsOutlinedIcon },
+  { path: ROUTES.EVENTS, label: 'Eventos', icon: CalendarMonthOutlinedIcon },
   { path: ROUTES.GALLERY, label: 'Galeria', icon: CollectionsOutlinedIcon },
-  { path: ROUTES.CONTACT, label: 'Contato', icon: MailOutlineIcon },
   { path: ROUTES.FAVOURITES, label: 'Favoritos', icon: FavoriteBorderOutlinedIcon },
+  { path: ROUTES.CONTACT, label: 'Contato', icon: MailOutlineIcon },
 ]

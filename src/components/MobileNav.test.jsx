@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider } from '@mui/material/styles'
 import theme from '../theme/theme'
+import { useFavouritesStore } from '../store/useFavouritesStore'
 import MobileNav from './MobileNav'
 
 const { usePathnameMock, pushMock } = vi.hoisted(() => ({
@@ -23,19 +24,34 @@ describe('MobileNav', () => {
   beforeEach(() => {
     usePathnameMock.mockReturnValue('/')
     pushMock.mockClear()
+    useFavouritesStore.setState({ favourites: [], favouriteIds: new Set() })
+    window.localStorage.clear()
   })
 
-  it('abre o menu e mostra todos os itens de navegação mais o toggle de tema', async () => {
+  it('abre o menu sem Favoritos quando não há favoritos', async () => {
     renderWithTheme(<MobileNav />)
 
     await userEvent.click(screen.getByRole('button', { name: 'Menu de navegação' }))
 
     expect(screen.getByRole('menuitem', { name: 'Inicio' })).toBeInTheDocument()
-    expect(screen.getByRole('menuitem', { name: 'Eventos' })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Sobre' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Eventos' })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Galeria' })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Contato' })).toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: 'Favoritos' })).not.toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Modo escuro' })).toBeInTheDocument()
+  })
+
+  it('mostra Favoritos quando existe evento favoritado', async () => {
+    useFavouritesStore.setState({
+      favourites: [{ id: '1', nome: 'Evento favorito' }],
+      favouriteIds: new Set(['1']),
+    })
+    renderWithTheme(<MobileNav />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Menu de navegação' }))
+
+    expect(screen.getByRole('menuitem', { name: 'Favoritos' })).toBeInTheDocument()
   })
 
   it('navega e fecha o menu ao clicar em um item', async () => {

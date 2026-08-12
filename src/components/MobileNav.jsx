@@ -9,7 +9,8 @@ import Backdrop from '@mui/material/Backdrop'
 import { useColorScheme } from '@mui/material/styles'
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
-import { NAVIGATION_ITEMS } from '../constants/navigation'
+import { NAVIGATION_ITEMS, ROUTES } from '../constants/navigation'
+import { useFavouritesStore } from '../store/useFavouritesStore'
 
 // Equivalente ao FloatingMenu do app antigo (src/components/FloatingMenu.jsx),
 // reconstruído com o SpeedDial do MUI em vez de CSS customizado. Só aparece
@@ -20,7 +21,11 @@ export default function MobileNav() {
   const router = useRouter()
   const pathname = usePathname()
   const { mode, setMode } = useColorScheme()
+  const favouritesCount = useFavouritesStore((state) => state.favourites.length)
   const isDarkMode = mode === 'dark'
+  const navigationItems = NAVIGATION_ITEMS.filter(
+    (item) => item.path !== ROUTES.FAVOURITES || favouritesCount > 0
+  )
 
   const handleNavigate = (path) => {
     setOpen(false)
@@ -55,7 +60,7 @@ export default function MobileNav() {
           right: 24,
         }}
       >
-        {NAVIGATION_ITEMS.map((item) => {
+        {navigationItems.map((item) => {
           const IconComponent = item.icon
           const isActive = pathname === item.path
           return (
