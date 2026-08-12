@@ -31,5 +31,20 @@ describe('CalendarDayModal', () => {
     expect(screen.getByText('2 eventos neste dia')).toBeInTheDocument()
     expect(screen.getByText('Evento Um')).toBeInTheDocument()
     expect(screen.getByText('Evento Dois')).toBeInTheDocument()
+    expect(screen.getByText('Quarta-feira, 20 de fevereiro de 2999')).toBeInTheDocument()
+  })
+
+  it('formata domingo sem o sufixo "-feira"', () => {
+    renderWithTheme(
+      <CalendarDayModal
+        date={new Date(2999, 1, 24)}
+        events={[events[0]]}
+        eventTagsMap={{}}
+        favouriteIds={new Set()}
+        toggleFavourite={vi.fn()}
+        onClose={vi.fn()}
+      />
+    )
+    expect(screen.getByText('Domingo, 24 de fevereiro de 2999')).toBeInTheDocument()
   })
 })

@@ -4,33 +4,12 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { Modal } from '../Modal'
 import CalendarEventItem from './CalendarEventItem'
-
-const DAY_NAMES = [
-  'Domingo',
-  'Segunda-feira',
-  'Terça-feira',
-  'Quarta-feira',
-  'Quinta-feira',
-  'Sexta-feira',
-  'Sábado',
-]
-const MONTH_NAMES = [
-  'janeiro',
-  'fevereiro',
-  'março',
-  'abril',
-  'maio',
-  'junho',
-  'julho',
-  'agosto',
-  'setembro',
-  'outubro',
-  'novembro',
-  'dezembro',
-]
+import { WEEKDAY_NAMES_LONG, MONTH_NAMES_LONG } from '../../utils/eventDate'
 
 function formatModalDate(date) {
-  return `${DAY_NAMES[date.getDay()]}, ${date.getDate()} de ${MONTH_NAMES[date.getMonth()]} de ${date.getFullYear()}`
+  const weekday = WEEKDAY_NAMES_LONG[date.getDay()]
+  const month = MONTH_NAMES_LONG[date.getMonth()].toLowerCase()
+  return `${weekday}, ${date.getDate()} de ${month} de ${date.getFullYear()}`
 }
 
 // Reusa o Modal compartilhado (Dialog do MUI) em vez do portal/focus-trap
