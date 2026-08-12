@@ -12,7 +12,7 @@ export async function getPublishedEvents({ cidade, modalidade, limit, offset } =
 }
 
 export async function getEventDetail(slugOrId) {
-  return apiGet(`/events/slug/${slugOrId}/detail`, {
+  return apiGet(`/events/slug/${encodeURIComponent(slugOrId)}/detail`, {
     context: 'getEventDetail',
     next: { revalidate: 30 },
   })
@@ -27,7 +27,7 @@ export async function getEventsTagsMap() {
 }
 
 export async function getRecommendedEvents(eventId, limit = 3) {
-  return apiGet(`/events/${eventId}/recommended`, {
+  return apiGet(`/events/${encodeURIComponent(eventId)}/recommended`, {
     params: { limit },
     context: 'getRecommendedEvents',
   })

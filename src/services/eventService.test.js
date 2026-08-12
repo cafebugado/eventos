@@ -141,6 +141,20 @@ describe('getEventDetail', () => {
 
     await expect(getEventDetail('inexistente')).rejects.toMatchObject({ status: 404 })
   })
+
+  it('codifica caracteres estruturais (/, ?, #) no slug em vez de deixá-los alterar a URL', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/slug/:slugOrId/detail`, ({ params }) => {
+        expect(params.slugOrId).toBe('a/b?c#d')
+        return HttpResponse.json({ evento: { id: '1' }, tags: [] })
+      })
+    )
+
+    await expect(getEventDetail('a/b?c#d')).resolves.toEqual({
+      evento: { id: '1' },
+      tags: [],
+    })
+  })
 })
 
 describe('getTags', () => {
@@ -223,6 +237,17 @@ describe('getRecommendedEvents', () => {
     )
 
     await expect(getRecommendedEvents('inexistente')).rejects.toMatchObject({ status: 404 })
+  })
+
+  it('codifica caracteres estruturais (/, ?, #) no eventId em vez de deixá-los alterar a URL', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/:eventId/recommended`, ({ params }) => {
+        expect(params.eventId).toBe('a/b?c#d')
+        return HttpResponse.json([])
+      })
+    )
+
+    await expect(getRecommendedEvents('a/b?c#d')).resolves.toEqual([])
   })
 })
 

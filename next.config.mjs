@@ -18,7 +18,13 @@ const SECURITY_HEADERS = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
+      // 'unsafe-inline' ainda necessário: o App Router injeta <script> inline
+      // durante o streaming de RSC (self.__next_f.push(...)) para hidratar
+      // progressivamente — removê-lo exige CSP com nonce por request via
+      // middleware (mudança maior, não feita aqui). 'unsafe-eval' foi
+      // removido: nenhum código do app ou das libs usadas (MUI, Sentry,
+      // Vercel Analytics) depende de eval em produção.
+      "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
       "img-src 'self' data: https: blob:",
