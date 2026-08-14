@@ -40,6 +40,7 @@ export default function ContactForm() {
   const [values, setValues] = useState(INITIAL_VALUES)
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  const canSubmit = Object.values(values).every((value) => value.trim().length > 0)
 
   function handleChange(field) {
     return (event) => setValues((prev) => ({ ...prev, [field]: event.target.value }))
@@ -106,6 +107,7 @@ export default function ContactForm() {
         type="submit"
         variant="contained"
         endIcon={<SendOutlinedIcon />}
+        disabled={!canSubmit}
         sx={{ alignSelf: 'flex-start' }}
       >
         Enviar mensagem
