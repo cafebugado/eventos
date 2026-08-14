@@ -49,16 +49,21 @@ export default function ContributorsGrid({ contributors = [] }) {
         <Box
           sx={{
             display: 'grid',
-            gap: 3,
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+            gap: { xs: 1.5, sm: 3 },
+            gridTemplateColumns: {
+              xs: 'repeat(2, minmax(0, 1fr))',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)',
+            },
           }}
         >
           {contributors.map((contributor) => (
             <Stack
               key={contributor.id}
-              spacing={1.5}
+              spacing={{ xs: 1, sm: 1.5 }}
               sx={{
-                p: 3,
+                p: { xs: 1.5, sm: 3 },
+                minWidth: 0,
                 alignItems: 'center',
                 textAlign: 'center',
                 bgcolor: 'background.paper',
@@ -70,9 +75,18 @@ export default function ContributorsGrid({ contributors = [] }) {
               <Avatar
                 src={contributor.avatar_url}
                 alt={contributor.nome}
-                sx={{ width: 72, height: 72 }}
+                sx={{ width: { xs: 56, sm: 72 }, height: { xs: 56, sm: 72 } }}
               />
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  width: '100%',
+                  minWidth: 0,
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontWeight: 600,
+                  overflowWrap: 'anywhere',
+                }}
+              >
                 {contributor.nome}
               </Typography>
               <Stack direction="row" spacing={0.5}>

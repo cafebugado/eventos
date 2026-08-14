@@ -131,7 +131,7 @@ export default function AboutFeatures({ totalEventos }) {
                   borderRadius: 2,
                   bgcolor: 'action.selected',
                   color: 'primary.main',
-                  display: 'flex',
+                  display: { xs: 'none', sm: 'flex' },
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
