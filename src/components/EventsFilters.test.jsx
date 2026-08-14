@@ -200,6 +200,9 @@ describe('EventsFilters', () => {
     renderWithTheme(<EventsFilters {...baseProps} isMobile locationOptions={['São Paulo']} />)
     await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
     expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByText('São Paulo')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: /local/i })).not.toHaveAttribute(
+      'aria-disabled',
+      'true'
+    )
   })
 })

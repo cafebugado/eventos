@@ -482,6 +482,7 @@ export default function EventsFilters({
         isOpen={filtersVisible && isMobile && filterModalOpen}
         onClose={() => setFilterModalOpen(false)}
         tags={tags}
+        onApplyFilters={onApplyFilters}
         selectedTagId={selectedTagId}
         onSelectTag={onSelectTag}
         dateFrom={dateFrom}
