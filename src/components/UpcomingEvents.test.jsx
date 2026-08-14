@@ -61,4 +61,19 @@ describe('UpcomingEvents', () => {
       '/eventos'
     )
   })
+
+  it('mostra mensagem de erro em vez de sumir quando a busca falhou e não há eventos', () => {
+    renderWithTheme(<UpcomingEvents events={[]} tagsMap={{}} hasError />)
+    expect(
+      screen.getByText(/não foi possível carregar os eventos em destaque/i)
+    ).toBeInTheDocument()
+  })
+
+  it('prioriza os eventos recebidos sobre a mensagem de erro quando ambos estão presentes', () => {
+    renderWithTheme(<UpcomingEvents events={events} tagsMap={{}} hasError />)
+    expect(screen.getByText('Evento Um')).toBeInTheDocument()
+    expect(
+      screen.queryByText(/não foi possível carregar os eventos em destaque/i)
+    ).not.toBeInTheDocument()
+  })
 })
