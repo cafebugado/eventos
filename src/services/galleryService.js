@@ -28,5 +28,10 @@ export async function getGalleryEvents() {
     context: 'getGalleryEvents',
     next: { revalidate: 120 },
   })
-  return albums.filter((album) => album.fotos.length > 0).map(mapAlbumToGalleryEvent)
+  if (!Array.isArray(albums)) {
+    return []
+  }
+  return albums
+    .filter((album) => Array.isArray(album.fotos) && album.fotos.length > 0)
+    .map(mapAlbumToGalleryEvent)
 }

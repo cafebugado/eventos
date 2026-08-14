@@ -93,4 +93,29 @@ describe('getGalleryEvents', () => {
 
     await expect(getGalleryEvents()).rejects.toMatchObject({ status: 500 })
   })
+
+  it('ignora álbuns com fotos malformadas em vez de lançar', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/gallery/albums/public`, () =>
+        HttpResponse.json([buildAlbum({ id: 'fotos-nulas', fotos: null }), buildAlbum()])
+      )
+    )
+
+    const result = await getGalleryEvents()
+
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe('album-1')
+  })
+
+  it('devolve lista vazia quando a API responde um payload que não é array', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/gallery/albums/public`, () =>
+        HttpResponse.json({ detail: 'formato inesperado' })
+      )
+    )
+
+    const result = await getGalleryEvents()
+
+    expect(result).toEqual([])
+  })
 })

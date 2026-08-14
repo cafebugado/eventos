@@ -3,9 +3,13 @@ import { render, screen } from '@testing-library/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import GalleryPage, { metadata } from './page'
 import { getGalleryEvents } from '../../services/galleryService'
+import { captureError } from '../../lib/sentry'
 
 vi.mock('../../services/galleryService', () => ({
   getGalleryEvents: vi.fn(),
+}))
+vi.mock('../../lib/sentry', () => ({
+  captureError: vi.fn(),
 }))
 
 function renderWithTheme(ui) {
@@ -15,6 +19,7 @@ function renderWithTheme(ui) {
 describe('GalleryPage', () => {
   beforeEach(() => {
     getGalleryEvents.mockReset()
+    captureError.mockReset()
   })
 
   it('define metadata de título e descrição', () => {
@@ -46,9 +51,15 @@ describe('GalleryPage', () => {
     expect(screen.getByText('Meetup Café Bugado')).toBeInTheDocument()
   })
 
-  it('propaga o erro pro error boundary da rota quando a busca falha', async () => {
-    getGalleryEvents.mockRejectedValue(new Error('falha de rede'))
+  it('degrada graciosamente e reporta ao Sentry quando a busca de álbuns falha', async () => {
+    const error = new Error('falha de rede')
+    getGalleryEvents.mockRejectedValue(error)
 
-    await expect(GalleryPage()).rejects.toThrow('falha de rede')
+    renderWithTheme(await GalleryPage())
+
+    expect(screen.getByText(/galeria da/i)).toBeInTheDocument()
+    expect(captureError).toHaveBeenCalledWith(error, {
+      context: 'GalleryPage.loadGalleryEvents',
+    })
   })
 })
