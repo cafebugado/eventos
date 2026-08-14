@@ -1,33 +1,38 @@
-import { LayoutGrid, List, AlignJustify, CalendarDays } from 'lucide-react'
-import './ViewToggle.css'
+'use client'
+
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import ToggleButton from '@mui/material/ToggleButton'
+import GridViewIcon from '@mui/icons-material/GridView'
+import ViewAgendaIcon from '@mui/icons-material/ViewAgenda'
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 
 const MODES = [
-  { id: 'grid', icon: LayoutGrid, label: 'Grade', mobileOnly: false },
-  { id: 'list', icon: List, label: 'Lista', mobileOnly: false },
-  { id: 'compact', icon: AlignJustify, label: 'Compacto', mobileOnly: false },
-  { id: 'calendar', icon: CalendarDays, label: 'Calendário', mobileOnly: false },
+  { id: 'grid', icon: GridViewIcon, label: 'Grade' },
+  { id: 'compact', icon: ViewAgendaIcon, label: 'Compacto' },
+  { id: 'calendar', icon: CalendarMonthIcon, label: 'Calendário' },
 ]
 
-export default function ViewToggle({ viewMode, onChange, isMobile }) {
-  const modes = isMobile ? MODES.filter((m) => m.id !== 'grid') : MODES
-
+export default function ViewToggle({ viewMode, onChange }) {
   return (
-    <div className="view-toggle" role="group" aria-label="Modo de visualização">
-      {modes.map((mode) => {
+    <ToggleButtonGroup
+      value={viewMode}
+      exclusive
+      onChange={(event, value) => {
+        if (value) {
+          onChange(value)
+        }
+      }}
+      size="small"
+      aria-label="Modo de visualização"
+    >
+      {MODES.map((mode) => {
         const ModeIcon = mode.icon
         return (
-          <button
-            key={mode.id}
-            className={`view-toggle-btn${viewMode === mode.id ? ' active' : ''}`}
-            onClick={() => onChange(mode.id)}
-            title={mode.label}
-            aria-label={mode.label}
-            aria-pressed={viewMode === mode.id}
-          >
-            <ModeIcon size={16} />
-          </button>
+          <ToggleButton key={mode.id} value={mode.id} aria-label={mode.label} title={mode.label}>
+            <ModeIcon fontSize="small" />
+          </ToggleButton>
         )
       })}
-    </div>
+    </ToggleButtonGroup>
   )
 }

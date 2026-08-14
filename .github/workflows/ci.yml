@@ -17,38 +17,10 @@ on:
       - developer
 
 env:
-  NODE_VERSION: '20'
-  PNPM_VERSION: '9'
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10'
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-
-      - name: Instalar pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Instalar dependências
-        run: pnpm install --frozen-lockfile
-
-      - name: Verificar formatação (Prettier)
-        run: pnpm format:check
-
-      - name: Executar ESLint
-        run: pnpm lint
-
   security:
     name: Auditoria de Segurança
     runs-on: ubuntu-latest
@@ -86,23 +58,50 @@ jobs:
             echo "Nenhuma secret encontrada."
           fi
 
-      - name: Validar security headers no nginx.conf
+      - name: Validar security headers no next.config.mjs
         run: |
-          echo "Validando security headers no nginx.conf..."
+          echo "Validando security headers no next.config.mjs..."
           MISSING=""
-          grep -q "X-Frame-Options" nginx.conf || MISSING="$MISSING X-Frame-Options"
-          grep -q "X-Content-Type-Options" nginx.conf || MISSING="$MISSING X-Content-Type-Options"
-          grep -q "X-XSS-Protection" nginx.conf || MISSING="$MISSING X-XSS-Protection"
-          grep -q "Referrer-Policy" nginx.conf || MISSING="$MISSING Referrer-Policy"
-          grep -q "Content-Security-Policy" nginx.conf || MISSING="$MISSING CSP"
-          grep -q "Permissions-Policy" nginx.conf || MISSING="$MISSING Permissions-Policy"
-          grep -q "server_tokens off" nginx.conf || MISSING="$MISSING server_tokens"
+          grep -q "X-Frame-Options" next.config.mjs || MISSING="$MISSING X-Frame-Options"
+          grep -q "X-Content-Type-Options" next.config.mjs || MISSING="$MISSING X-Content-Type-Options"
+          grep -q "X-XSS-Protection" next.config.mjs || MISSING="$MISSING X-XSS-Protection"
+          grep -q "Referrer-Policy" next.config.mjs || MISSING="$MISSING Referrer-Policy"
+          grep -q "Content-Security-Policy" next.config.mjs || MISSING="$MISSING CSP"
+          grep -q "Permissions-Policy" next.config.mjs || MISSING="$MISSING Permissions-Policy"
           if [ -n "$MISSING" ]; then
-            echo "::error::Security headers ausentes no nginx.conf:$MISSING"
+            echo "::error::Security headers ausentes no next.config.mjs:$MISSING"
             exit 1
           else
             echo "Todos os security headers presentes."
           fi
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Verificar formatação (Prettier)
+        run: pnpm format:check
+
+      - name: Executar ESLint
+        run: pnpm lint
 
   test:
     name: Testes
@@ -127,10 +126,10 @@ jobs:
       - name: Instalar dependências
         run: pnpm install --frozen-lockfile
 
-      - name: Executar testes
-        run: pnpm test:run
+      - name: Instalar navegador do Playwright (Chromium)
+        run: pnpm exec playwright install --with-deps chromium
 
-      - name: Gerar relatório de cobertura
+      - name: Executar testes com cobertura
         run: pnpm test:coverage
 
       - name: Upload cobertura para Codecov
@@ -164,10 +163,3 @@ jobs:
 
       - name: Build de produção
         run: pnpm build
-
-      - name: Upload artefato de build
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-          retention-days: 7

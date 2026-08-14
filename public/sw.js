@@ -1,8 +1,7 @@
 const CACHE_VERSION = 'v2'
 const STATIC_CACHE = `cb-static-${CACHE_VERSION}`
-const EVENTS_CACHE = `cb-events-${CACHE_VERSION}`
 
-const STATIC_ASSETS = ['/', '/eventos', '/sobre', '/manifest.json', '/favicon.svg']
+const STATIC_ASSETS = ['/', '/eventos', '/sobre', '/manifest.webmanifest', '/icon.svg']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS)))
@@ -14,11 +13,7 @@ self.addEventListener('activate', (event) => {
     caches
       .keys()
       .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => key !== STATIC_CACHE && key !== EVENTS_CACHE)
-            .map((key) => caches.delete(key))
-        )
+        Promise.all(keys.filter((key) => key !== STATIC_CACHE).map((key) => caches.delete(key)))
       )
   )
   self.clients.claim()
@@ -35,24 +30,17 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Assets com hash no nome (/assets/*.js, /assets/*.css) são imutáveis por deploy —
-  // nunca cachear pelo SW para evitar servir chunks de builds anteriores
-  if (url.pathname.startsWith('/assets/')) {
+  // Assets com hash no nome (/_next/static/*) são imutáveis por build — nunca
+  // cachear pelo SW pra evitar servir chunks de uma versão anterior do app.
+  if (url.pathname.startsWith('/_next/static/')) {
     return
   }
 
-  if (url.href.includes('supabase')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone()
-            caches.open(EVENTS_CACHE).then((cache) => cache.put(request, clone))
-          }
-          return response
-        })
-        .catch(() => caches.match(request))
-    )
+  // RSC payloads (fetches internos do App Router pra troca de rota/dados) não
+  // são estáticos: o mesmo _rsc pode se repetir entre builds diferentes, mas o
+  // conteúdo depende da versão do app. Cachear isso serve payload de um build
+  // antigo referenciando chunks que não existem mais (404 em cascata).
+  if (url.searchParams.has('_rsc') || request.headers.get('RSC') === '1') {
     return
   }
 
@@ -76,13 +64,15 @@ self.addEventListener('fetch', (event) => {
       if (cached) {
         return cached
       }
-      return fetch(request).then((response) => {
-        if (response.ok) {
-          const clone = response.clone()
-          caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone))
-        }
-        return response
-      })
+      return fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+        .catch(() => Response.error())
     })
   )
 })

@@ -18,7 +18,7 @@ pnpm dev
 | -------------------- | ---------------------------------------- |
 | `pnpm dev`           | Inicia o servidor de desenvolvimento     |
 | `pnpm build`         | Gera build de produção                   |
-| `pnpm preview`       | Preview da build de produção             |
+| `pnpm start`         | Roda o build de produção localmente      |
 | `pnpm lint`          | Verifica erros de linting                |
 | `pnpm lint:fix`      | Corrige erros de linting automaticamente |
 | `pnpm format`        | Formata todos os arquivos com Prettier   |
@@ -215,27 +215,24 @@ hotfix/corrigir-crash-producao
 ## Estrutura do Projeto
 
 ```
-src/
-├── admin/          # Painel administrativo (Login, Dashboard, AdminSidebar, GalleryAdmin, CommunityAdmin, GithubStats, AuditLog)
-├── pages/          # Páginas públicas (Home, EventsPage, EventDetails, About, Contact, Gallery, NotFound)
-├── components/     # Componentes reutilizáveis
-│   ├── Modal/      # Sistema unificado de modais (Modal, ConfirmModal)
-│   ├── EventCard   # Card de evento (variant compact/full)
-│   ├── CalendarView/   # Visualização em calendário
-│   ├── LocationSelector/
-│   ├── PwaInstallBanner/  PwaInstallButton/  PwaUpdateBanner/
-│   ├── gallery/    # GalleryEventCard, GalleryPhotoModal
-│   └── ...         # Header, Footer, Pagination, ShareButtons, SEOHead, etc.
-├── services/       # Serviços de API (Supabase): event, tag, auth, contributor, community, galeria, profile, role, github, audit
-├── hooks/          # Custom hooks: useUserRole, useMediaQuery, usePagination, useSidebarCollapse, useGallery
-├── lib/            # Configurações base: supabase.js, apiClient.js (withRetry), sentry.js, vitals.js, pwa.js
-├── utils/          # Funções utilitárias: eventSearch.js, richText.js
-├── constants/      # Constantes da aplicação: messages.js
-├── context/        # React Context: ThemeProvider
-├── test/           # Infraestrutura de testes: setup.js, utils.jsx, mocks/
-├── assets/         # Arquivos estáticos
-├── App.jsx         # Listagem de eventos (/eventos)
-└── main.jsx        # Entry point (rotas, providers)
+eventos/
+├── src/
+│   ├── app/         # Rotas (App Router): page.jsx, eventos/, sobre/, contato/, galeria/
+│   │                # cada rota tem seu Server Component de dados + loading/error nativos
+│   ├── components/  # Componentes reutilizáveis (Header, Footer, EventCard, Modal/, gallery/, CalendarView/, MobileNav...)
+│   ├── services/    # Serviços de leitura (API dedicada): event, tag, contributor, galeria
+│   ├── hooks/       # Custom hooks: useMediaQuery, usePagination, useEventFilters, usePwa
+│   ├── store/       # Estado global (Zustand): useFavouritesStore
+│   ├── lib/         # api/eventosApi.js (fetch wrapper), apiClient.js (withRetry), sentry.js, pwa.js
+│   ├── theme/       # Tema MUI (ThemeRegistry, theme.js)
+│   ├── utils/       # Funções utilitárias
+│   ├── constants/   # Constantes da aplicação (navigation.js)
+│   └── test/        # Infraestrutura de testes: setup, mocks/
+├── e2e/             # Testes end-to-end (Playwright)
+├── public/          # Arquivos estáticos
+├── docs/            # esta pasta
+├── .github/         # Workflows CI/CD
+└── .husky/          # Git hooks (pre-commit, commit-msg)
 ```
 
 ## Dúvidas

@@ -2,8 +2,29 @@ let deferredPrompt = null
 let registrationPromise = null
 
 export function registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
     return Promise.resolve(null)
+  }
+  // Fora de produção (ex.: `next dev` em localhost) o SW não deve rodar: sua
+  // estratégia cache-first passa a servir páginas/assets do cache do
+  // navegador em vez do servidor de dev, e edições locais somem "presas" em
+  // cache até um unregister manual. Ativamente desregistra qualquer SW que já
+  // esteja instalado (de uma sessão anterior a esta correção) e limpa os
+  // caches que ele criou, pra máquinas já afetadas se autocorrigirem.
+  if (process.env.NODE_ENV !== 'production') {
+    if (!registrationPromise) {
+      registrationPromise = navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) => Promise.all(registrations.map((r) => r.unregister())))
+        .then(() =>
+          typeof caches !== 'undefined'
+            ? caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+            : null
+        )
+        .then(() => null)
+        .catch(() => null)
+    }
+    return registrationPromise
   }
   if (!registrationPromise) {
     registrationPromise = navigator.serviceWorker
@@ -14,7 +35,7 @@ export function registerServiceWorker() {
 }
 
 export function getSwStatus(registration) {
-  if (!('serviceWorker' in navigator)) {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
     return 'unsupported'
   }
   if (!registration) {
@@ -39,6 +60,9 @@ export function skipWaiting(registration) {
 }
 
 export function isInstalledPwa() {
+  if (typeof window === 'undefined') {
+    return false
+  }
   return (
     window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
   )
@@ -59,6 +83,9 @@ export async function promptInstall() {
 }
 
 export function captureInstallPrompt() {
+  if (typeof window === 'undefined') {
+    return
+  }
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault()
     deferredPrompt = e

@@ -5,27 +5,20 @@
 frontend:
   - changed-files:
       - any-glob-to-any-file:
-          - 'src/components/**'
-          - 'src/pages/**'
-          - 'src/layout/**'
-          - 'src/styles/**'
+          - 'app/**'
+          - 'components/**'
+          - 'theme/**'
           - '**/*.css'
           - '**/*.jsx'
 
 backend:
   - changed-files:
       - any-glob-to-any-file:
-          - 'src/services/**'
-          - 'src/lib/**'
-          - 'src/hooks/**'
-          - 'src/context/**'
-          - 'src/contexts/**'
-          - 'src/utils/**'
-
-admin:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'src/admin/**'
+          - 'services/**'
+          - 'lib/**'
+          - 'hooks/**'
+          - 'store/**'
+          - 'utils/**'
 
 tests:
   - changed-files:
@@ -58,8 +51,6 @@ dependencies:
 infra:
   - changed-files:
       - any-glob-to-any-file:
-          - 'nginx.conf'
-          - 'Dockerfile'
-          - 'docker-compose*.yml'
+          - 'next.config.mjs'
+          - 'vercel.json'
           - '.env.example'
-          - 'vite.config.*'

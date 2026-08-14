@@ -1,6 +1,52 @@
 // Nomes dos dias da semana (usado por getDayName)
 const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
+// Abreviações de mês (usado por formatDateToDayMonth)
+const MONTH_ABBREVIATIONS = [
+  'jan',
+  'fev',
+  'mar',
+  'abr',
+  'mai',
+  'jun',
+  'jul',
+  'ago',
+  'set',
+  'out',
+  'nov',
+  'dez',
+]
+
+// Nomes completos do dia da semana, com "-feira" nos dias úteis (Domingo e
+// Sábado sem sufixo) — fonte única pros componentes de calendário, indexados
+// por Date#getDay() (0 = Domingo).
+export const WEEKDAY_NAMES_LONG = [
+  'Domingo',
+  'Segunda-feira',
+  'Terça-feira',
+  'Quarta-feira',
+  'Quinta-feira',
+  'Sexta-feira',
+  'Sábado',
+]
+
+// Nomes completos do mês, capitalizados (ex.: "Agosto"), indexados por
+// Date#getMonth() (0 = Janeiro). Use .toLowerCase() pra forma minúscula.
+export const MONTH_NAMES_LONG = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+]
+
 /**
  * Converte uma string de data para objeto Date.
  * Suporta DD/MM/YYYY, YYYY-MM-DD e ISO 8601.
@@ -125,6 +171,17 @@ export function formatDateToDisplay(value) {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const year = date.getFullYear()
   return `${day}/${month}/${year}`
+}
+
+/** Formata Date para "DD MMM" (ex.: "06 ago"), pra badges compactos de data. */
+export function formatDateToDayMonth(value) {
+  const date = parseEventDate(value)
+  if (!date) {
+    return ''
+  }
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = MONTH_ABBREVIATIONS[date.getMonth()]
+  return `${day} ${month}`
 }
 
 /** Retorna o nome do dia da semana para uma data. */

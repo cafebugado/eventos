@@ -1,4 +1,10 @@
-import { Loader2, Trash2 } from 'lucide-react'
+'use client'
+
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
+import Typography from '@mui/material/Typography'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import Modal from './Modal'
 
 /**
@@ -10,7 +16,7 @@ import Modal from './Modal'
  *   onConfirm      () => void        — chamado no botão de confirmação
  *   title          string            — título do modal
  *   message        ReactNode         — texto/conteúdo de confirmação
- *   icon           ReactNode | null  — ícone; default <Trash2> vermelho
+ *   icon           ReactNode | null  — ícone; default ícone de lixeira vermelho
  *   confirmLabel   string            — label do botão confirmar; default 'Excluir'
  *   cancelLabel    string            — label do botão cancelar; default 'Cancelar'
  *   confirmVariant 'danger' | 'primary' — estilo do botão confirmar; default 'danger'
@@ -31,31 +37,39 @@ export default function ConfirmModal({
   size = 'sm',
 }) {
   const resolvedIcon =
-    icon !== undefined ? icon : <Trash2 size={40} className="modal-confirm-icon" />
+    icon !== undefined ? icon : <DeleteOutlineIcon sx={{ fontSize: 40, color: 'error.main' }} />
 
   const footer = (
     <>
-      <button type="button" className="btn-secondary" onClick={onClose} disabled={isLoading}>
+      <Button variant="outlined" color="inherit" onClick={onClose} disabled={isLoading}>
         {cancelLabel}
-      </button>
-      <button
-        type="button"
-        className={confirmVariant === 'danger' ? 'btn-danger' : 'btn-primary'}
+      </Button>
+      <Button
+        variant="contained"
+        color={confirmVariant === 'danger' ? 'error' : 'primary'}
         onClick={onConfirm}
         disabled={isLoading}
+        startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : null}
       >
-        {isLoading ? <Loader2 size={16} className="spinning" /> : null}
         {confirmLabel}
-      </button>
+      </Button>
     </>
   )
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size={size} footer={footer}>
-      <div className="modal-confirm-body">
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 1.5,
+          textAlign: 'center',
+        }}
+      >
         {resolvedIcon}
-        <p>{message}</p>
-      </div>
+        <Typography component="p">{message}</Typography>
+      </Box>
     </Modal>
   )
 }

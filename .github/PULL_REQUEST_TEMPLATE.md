@@ -48,7 +48,7 @@ Closes #
 
 ### Dados e serviços (se aplicável)
 
-- [ ] Chamadas ao Supabase usam `withRetry` de `apiClient.js`
+- [ ] Chamadas à API usam `withRetry` de `apiClient.js`
 - [ ] Datas estão no formato correto (`DD/MM/YYYY` para exibição, `YYYY-MM-DD` para input date nativo)
 - [ ] Imports circulares foram evitados (usar import dinâmico quando necessário)
 

@@ -1,26 +1,94 @@
-import { Target, Zap, Globe, Handshake, BookOpen, Heart } from 'lucide-react'
+import Box from '@mui/material/Box'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import GpsFixedOutlinedIcon from '@mui/icons-material/GpsFixedOutlined'
+import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined'
+import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined'
+import HandshakeOutlinedIcon from '@mui/icons-material/HandshakeOutlined'
+import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
+import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined'
 import StatCounter from './StatCounter'
-import { useEventStats } from '../hooks/useEvents'
 
-function AboutFeatures() {
-  const { stats } = useEventStats()
-  const totalEventos = stats?.total ?? null
+const FEATURES = [
+  {
+    icon: GpsFixedOutlinedIcon,
+    title: 'Curadoria Especializada',
+    description:
+      'Os eventos são indicados por comunidades e pessoas da área. Antes de publicar, avaliamos se fazem sentido para quem está começando ou já atua em tecnologia.',
+  },
+  {
+    icon: BoltOutlinedIcon,
+    title: 'Atualização em Tempo Real',
+    description:
+      'As informações são atualizadas constantemente para refletir mudanças de data, local ou formato dos eventos. Assim você acompanha tudo sem depender de vários canais diferentes.',
+  },
+  {
+    icon: PublicOutlinedIcon,
+    title: 'Diversidade de Categorias',
+    description:
+      'Reunimos eventos de diferentes formatos e temas dentro da tecnologia. De encontros para iniciantes a eventos mais técnicos, presenciais ou online.',
+  },
+  {
+    icon: HandshakeOutlinedIcon,
+    title: 'Comunidade Ativa',
+    description:
+      'Conecte-se com pessoas que participam ativamente da comunidade de tecnologia. Aqui você encontra quem aprende, compartilha eventos, troca experiências e ajuda outros a crescer na área.',
+  },
+  {
+    icon: MenuBookOutlinedIcon,
+    title: 'Conteúdo Acessível',
+    description:
+      'Acreditamos que o conhecimento deve ser para todos. Priorizamos eventos gratuitos e acessíveis, para que qualquer pessoa possa aprender e se desenvolver na área de tecnologia.',
+  },
+  {
+    icon: FavoriteBorderOutlinedIcon,
+    title: 'Projeto Colaborativo',
+    description:
+      'Mantido por voluntários apaixonados por tecnologia. Qualquer pessoa pode sugerir eventos, contribuir com melhorias e ajudar a fortalecer o ecossistema tech da comunidade.',
+  },
+]
 
+// Server Component: `totalEventos` vem pronto do servidor (app/sobre/page.jsx
+// via getEventStats) — sem loading state client-side, ao contrário do
+// useEventStats()/SWR do app antigo.
+export default function AboutFeatures({ totalEventos }) {
   return (
-    <div className="sobre-content">
-      <h2>
-        Um jeito mais simples de descobrir
-        <br />
-        <span className="highlight">eventos de tecnologia</span>
-      </h2>
-      <p>
+    <Stack spacing={4} sx={{ alignItems: 'center' }}>
+      <Typography
+        variant="h3"
+        component="h2"
+        sx={{ fontSize: { xs: '1.85rem', md: '2.25rem' }, textAlign: 'center' }}
+      >
+        Um jeito mais simples de descobrir{' '}
+        <Box component="span" sx={{ color: 'primary.main' }}>
+          eventos de tecnologia
+        </Box>
+      </Typography>
+
+      <Typography
+        variant="body1"
+        color="text.secondary"
+        sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
+      >
         A Comunidade Café Bugado surgiu porque encontrar eventos de tecnologia nem sempre é simples.
         As informações ficam espalhadas em vários lugares. Criamos um espaço para reunir tudo em um
         só ponto e facilitar o acesso de quem quer participar, aprender e se conectar com a
         comunidade.
-      </p>
+      </Typography>
 
-      <div className="about-stats">
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={4}
+        divider={
+          <Box
+            sx={{
+              display: { xs: 'none', sm: 'block' },
+              borderLeft: '1px solid',
+              borderColor: 'divider',
+            }}
+          />
+        }
+      >
         <StatCounter
           value={3}
           suffix=" anos"
@@ -33,74 +101,53 @@ function AboutFeatures() {
             label="Eventos cadastrados na plataforma pela comunidade"
           />
         )}
-      </div>
+      </Stack>
 
-      <div className="features">
-        <div className="feature">
-          <div className="feature-icon">
-            <Target size={40} />
-          </div>
-          <h4>Curadoria Especializada</h4>
-          <p>
-            Os eventos são indicados por comunidades e pessoas da área. Antes de publicar, avaliamos
-            se fazem sentido para quem está começando ou já atua em tecnologia.
-          </p>
-        </div>
-        <div className="feature">
-          <div className="feature-icon">
-            <Zap size={40} />
-          </div>
-          <h4>Atualização em Tempo Real</h4>
-          <p>
-            As informações são atualizadas constantemente para refletir mudanças de data, local ou
-            formato dos eventos. Assim você acompanha tudo sem depender de vários canais diferentes.
-          </p>
-        </div>
-        <div className="feature">
-          <div className="feature-icon">
-            <Globe size={40} />
-          </div>
-          <h4>Diversidade de Categorias</h4>
-          <p>
-            Reunimos eventos de diferentes formatos e temas dentro da tecnologia. De encontros para
-            iniciantes a eventos mais técnicos, presenciais ou online.
-          </p>
-        </div>
-        <div className="feature">
-          <div className="feature-icon">
-            <Handshake size={40} />
-          </div>
-          <h4>Comunidade Ativa</h4>
-          <p>
-            Conecte-se com pessoas que participam ativamente da comunidade de tecnologia. Aqui você
-            encontra quem aprende, compartilha eventos, troca experiências e ajuda outros a crescer
-            na área.
-          </p>
-        </div>
-        <div className="feature">
-          <div className="feature-icon">
-            <BookOpen size={40} />
-          </div>
-          <h4>Conteúdo Acessível</h4>
-          <p>
-            Acreditamos que o conhecimento deve ser para todos. Priorizamos eventos gratuitos e
-            acessíveis, para que qualquer pessoa possa aprender e se desenvolver na área de
-            tecnologia.
-          </p>
-        </div>
-        <div className="feature">
-          <div className="feature-icon">
-            <Heart size={40} />
-          </div>
-          <h4>Projeto Colaborativo</h4>
-          <p>
-            Mantido por voluntários apaixonados por tecnologia. Qualquer pessoa pode sugerir
-            eventos, contribuir com melhorias e ajudar a fortalecer o ecossistema tech da
-            comunidade.
-          </p>
-        </div>
-      </div>
-    </div>
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 3,
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+        }}
+      >
+        {FEATURES.map((feature) => {
+          const Icon = feature.icon
+          return (
+            <Stack
+              key={feature.title}
+              spacing={1.5}
+              sx={{
+                p: 2.5,
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 2,
+                  bgcolor: 'action.selected',
+                  color: 'primary.main',
+                  display: { xs: 'none', sm: 'flex' },
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Icon fontSize="large" />
+              </Box>
+              <Typography variant="subtitle1" component="h4" sx={{ fontWeight: 600 }}>
+                {feature.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {feature.description}
+              </Typography>
+            </Stack>
+          )
+        })}
+      </Box>
+    </Stack>
   )
 }
-export default AboutFeatures

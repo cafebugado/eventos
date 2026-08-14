@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react'
 
 /**
@@ -14,7 +16,7 @@ export function useCountUp(end, duration = 2000) {
   useEffect(() => {
     const el = ref.current
     if (!el) {
-      return
+      return undefined
     }
 
     const observer = new IntersectionObserver(

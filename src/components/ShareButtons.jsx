@@ -1,13 +1,19 @@
-import { Share2 } from 'lucide-react'
-import './ShareButtons.css'
-import SocialIcons from './SocialIcons.jsx'
-function ShareButtons({ className, eventName, eventDate, eventTime, eventUrl, eventLocation }) {
+'use client'
+
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined'
+import SocialIcons from './SocialIcons'
+
+export default function ShareButtons({ eventName, eventDate, eventTime, eventUrl, eventLocation }) {
   return (
-    <div className={`share-buttons ${className || ''}`}>
-      <span className="share-label">
-        <Share2 size={16} />
-        Compartilhar
-      </span>
+    <Stack direction="row" spacing={1.5} useFlexGap sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+      <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+        <ShareOutlinedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+        <Typography variant="body2" color="text.secondary">
+          Compartilhar
+        </Typography>
+      </Stack>
       <SocialIcons
         eventName={eventName}
         eventDate={eventDate}
@@ -15,7 +21,6 @@ function ShareButtons({ className, eventName, eventDate, eventTime, eventUrl, ev
         eventUrl={eventUrl}
         eventLocation={eventLocation}
       />
-    </div>
+    </Stack>
   )
 }
-export default ShareButtons

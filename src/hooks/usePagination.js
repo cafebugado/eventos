@@ -1,12 +1,20 @@
-import { useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+'use client'
 
-export default function usePagination(items, pageSize) {
-  const [searchParams, setSearchParams] = useSearchParams()
+import { useCallback, useMemo } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { withUpdatedParams } from '../utils/urlSearchParams'
+
+// Porta usePagination.js (app antigo, baseado em useSearchParams do
+// react-router) para next/navigation. Este hook mantém a paginação sincronizada
+// com a URL.
+export function usePagination(items, pageSize) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   const currentPage = useMemo(() => {
     const p = parseInt(searchParams.get('page') || '1', 10)
-    return isNaN(p) || p < 1 ? 1 : p
+    return Number.isNaN(p) || p < 1 ? 1 : p
   }, [searchParams])
 
   const totalPages = useMemo(() => {
@@ -25,19 +33,14 @@ export default function usePagination(items, pageSize) {
     return items.slice(startIndex, startIndex + pageSize)
   }, [items, currentPage, totalPages, pageSize])
 
-  const goToPage = (page) => {
-    const next = Math.min(Math.max(page, 1), totalPages)
-    setSearchParams((prev) => {
-      const params = new URLSearchParams(prev)
-      params.set('page', String(next))
-      return params
-    })
-  }
+  const goToPage = useCallback(
+    (page) => {
+      const next = Math.min(Math.max(page, 1), totalPages)
+      const query = withUpdatedParams(searchParams, { page: next === 1 ? '' : next })
+      router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
+    },
+    [pathname, router, searchParams, totalPages]
+  )
 
-  return {
-    currentPage,
-    totalPages,
-    pagedItems,
-    goToPage,
-  }
+  return { currentPage, totalPages, pagedItems, goToPage }
 }

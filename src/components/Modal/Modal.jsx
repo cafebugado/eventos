@@ -1,19 +1,26 @@
-import { useEffect, useRef } from 'react'
-import { createPortal } from 'react-dom'
-import { X } from 'lucide-react'
-import './Modal.css'
+'use client'
+
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import IconButton from '@mui/material/IconButton'
+import CloseIcon from '@mui/icons-material/Close'
+
+const SIZE_MAP = { sm: 400, md: 600, lg: 740 }
 
 /**
- * Modal base reutilizável.
+ * Modal base reutilizável, construído sobre o Dialog do MUI (que já cuida de
+ * portal, foco/focus-trap, scroll-lock e Escape — não precisamos reimplementar).
  *
  * Props:
- *   isOpen        boolean              — controla visibilidade
- *   onClose       () => void           — chamado ao fechar (X, overlay, Escape)
- *   title         string               — título no header
- *   size          'sm' | 'md' | 'lg'  — default 'md'
- *   children      ReactNode            — conteúdo (vai no modal-body)
- *   footer        ReactNode | null     — botões de ação; null oculta o footer
- *   closeOnOverlay boolean             — fechar ao clicar fora; default true
+ *   isOpen         boolean              — controla visibilidade
+ *   onClose        () => void           — chamado ao fechar (X, overlay, Escape)
+ *   title          string               — título no header
+ *   size           'sm' | 'md' | 'lg'   — default 'md'
+ *   children       ReactNode            — conteúdo
+ *   footer         ReactNode | null     — botões de ação; null/undefined oculta o footer
+ *   closeOnOverlay boolean              — fechar ao clicar fora; default true
  */
 export default function Modal({
   isOpen,
@@ -24,81 +31,31 @@ export default function Modal({
   footer,
   closeOnOverlay = true,
 }) {
-  const contentRef = useRef(null)
-  const previousFocusRef = useRef(null)
-
-  // Trava scroll do body e salva foco anterior
-  useEffect(() => {
-    if (!isOpen) {
+  const handleClose = (event, reason) => {
+    if (reason === 'backdropClick' && !closeOnOverlay) {
       return
     }
-    previousFocusRef.current = document.activeElement
-    document.body.style.overflow = 'hidden'
-
-    // Move foco para o primeiro elemento focável dentro do modal
-    const frame = requestAnimationFrame(() => {
-      const focusable = contentRef.current?.querySelector(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      )
-      focusable?.focus()
-    })
-
-    return () => {
-      cancelAnimationFrame(frame)
-      document.body.style.overflow = ''
-      previousFocusRef.current?.focus()
-    }
-  }, [isOpen])
-
-  // Fecha com Escape
-  useEffect(() => {
-    if (!isOpen) {
-      return
-    }
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose])
-
-  if (!isOpen) {
-    return null
+    onClose()
   }
 
-  const handleOverlayClick = () => {
-    if (closeOnOverlay) {
-      onClose()
-    }
-  }
-
-  return createPortal(
-    <div
-      className="modal-overlay"
-      onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
+  return (
+    <Dialog
+      open={isOpen}
+      onClose={handleClose}
       aria-labelledby="modal-title"
+      slotProps={{ paper: { sx: { maxWidth: SIZE_MAP[size] ?? SIZE_MAP.md, width: '100%' } } }}
     >
-      <div
-        ref={contentRef}
-        className={`modal-content modal-content--${size}`}
-        onClick={(e) => e.stopPropagation()}
+      <DialogTitle
+        id="modal-title"
+        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}
       >
-        <div className="modal-header">
-          <h2 id="modal-title">{title}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Fechar">
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="modal-body">{children}</div>
-
-        {footer !== null && footer !== undefined && <div className="modal-footer">{footer}</div>}
-      </div>
-    </div>,
-    document.body
+        {title}
+        <IconButton onClick={onClose} aria-label="Fechar" size="small">
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>{children}</DialogContent>
+      {footer !== null && footer !== undefined && <DialogActions>{footer}</DialogActions>}
+    </Dialog>
   )
 }

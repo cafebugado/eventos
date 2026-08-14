@@ -1,6 +1,11 @@
-import { MapPin } from 'lucide-react'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 
-function EventLocation({ endereco, cidade, estado, modalidade }) {
+// Componente estático — sem hooks/estado, renderiza no servidor quando usado
+// dentro de um Server Component (ver app/eventos/[slug]/page.jsx).
+export default function EventLocation({ endereco, cidade, estado, modalidade }) {
   if (modalidade === 'Online' || (!endereco && !cidade)) {
     return null
   }
@@ -9,27 +14,41 @@ function EventLocation({ endereco, cidade, estado, modalidade }) {
   const mapsQuery = encodeURIComponent(locationParts.join(', '))
 
   return (
-    <div className="event-location">
-      <div className="location-info">
-        <MapPin size={20} />
-        <div className="location-text">
-          {endereco && <span className="location-address">{endereco}</span>}
+    <Stack
+      direction={{ xs: 'column', sm: 'row' }}
+      spacing={2}
+      sx={{
+        alignItems: { xs: 'flex-start', sm: 'center' },
+        justifyContent: 'space-between',
+        p: 2,
+        my: 3,
+        bgcolor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2,
+      }}
+    >
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+        <LocationOnOutlinedIcon color="primary" />
+        <Stack spacing={0}>
+          {endereco && <Typography variant="body2">{endereco}</Typography>}
           {(cidade || estado) && (
-            <span className="location-city">{[cidade, estado].filter(Boolean).join(' - ')}</span>
+            <Typography variant="body2" color="text.secondary">
+              {[cidade, estado].filter(Boolean).join(' - ')}
+            </Typography>
           )}
-        </div>
-      </div>
-      <a
+        </Stack>
+      </Stack>
+      <Button
+        component="a"
         href={`https://www.google.com/maps/search/?api=1&query=${mapsQuery}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="location-map-link"
+        size="small"
+        startIcon={<LocationOnOutlinedIcon fontSize="small" />}
       >
-        <MapPin size={16} />
         Ver no Google Maps
-      </a>
-    </div>
+      </Button>
+    </Stack>
   )
 }
-
-export default EventLocation

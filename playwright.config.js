@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
@@ -9,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? 'github' : 'html',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -21,7 +20,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'pnpm dev',
-    url: 'http://localhost:5173',
+    url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 30000,
   },

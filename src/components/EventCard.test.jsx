@@ -1,19 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
 import EventCard from './EventCard'
-import { renderWithRouter } from '../test/utils'
 
-const mockNavigate = vi.fn()
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
-  return { ...actual, useNavigate: () => mockNavigate }
-})
-
-vi.mock('../assets/eventos.png', () => ({ default: 'mock-bg.png' }))
-vi.mock('./RichText', () => ({
-  default: ({ content, className }) => <div className={className}>{content}</div>,
+const pushMock = vi.fn()
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: pushMock }),
 }))
+
+function renderWithTheme(ui) {
+  return render(<ThemeProvider theme={createTheme()}>{ui}</ThemeProvider>)
+}
 
 const baseEvent = {
   id: '1',
@@ -32,123 +30,105 @@ const baseEvent = {
 
 describe('EventCard', () => {
   beforeEach(() => {
-    mockNavigate.mockClear()
+    pushMock.mockClear()
   })
 
-  it('deve renderizar o nome do evento', () => {
-    renderWithRouter(<EventCard event={baseEvent} />)
+  it('renderiza o nome do evento', () => {
+    renderWithTheme(<EventCard event={baseEvent} />)
     expect(screen.getByText('Evento Teste')).toBeInTheDocument()
   })
 
-  it('deve exibir badge com o período quando não é passado nem hoje', () => {
-    renderWithRouter(<EventCard event={baseEvent} />)
+  it('exibe badge com o período quando não é passado nem hoje', () => {
+    renderWithTheme(<EventCard event={baseEvent} />)
     expect(screen.getByText('Noturno')).toBeInTheDocument()
   })
 
-  it('deve exibir badge Encerrado quando isPast=true', () => {
-    renderWithRouter(<EventCard event={baseEvent} isPast />)
+  it('exibe badge Encerrado quando isPast=true', () => {
+    renderWithTheme(<EventCard event={baseEvent} isPast />)
     expect(screen.getByText('Encerrado')).toBeInTheDocument()
   })
 
-  it('deve exibir badge Hoje quando isToday=true', () => {
-    renderWithRouter(<EventCard event={baseEvent} isToday />)
+  it('exibe badge Hoje quando isToday=true', () => {
+    renderWithTheme(<EventCard event={baseEvent} isToday />)
     expect(screen.getByText('Hoje')).toBeInTheDocument()
   })
 
-  it('não deve exibir descrição por padrão (variant compact)', () => {
-    renderWithRouter(<EventCard event={baseEvent} />)
+  it('não exibe descrição por padrão (variant compact)', () => {
+    renderWithTheme(<EventCard event={baseEvent} />)
     expect(screen.queryByText('Descrição do evento teste')).not.toBeInTheDocument()
   })
 
-  it('deve exibir descrição quando showDescription=true', () => {
-    renderWithRouter(<EventCard event={baseEvent} showDescription />)
+  it('exibe descrição quando showDescription=true', () => {
+    renderWithTheme(<EventCard event={baseEvent} showDescription />)
     expect(screen.getByText('Descrição do evento teste')).toBeInTheDocument()
   })
 
-  it('não deve exibir localização quando showLocation=false', () => {
-    renderWithRouter(<EventCard event={{ ...baseEvent, modalidade: 'Presencial' }} />)
+  it('não exibe localização quando showLocation=false', () => {
+    renderWithTheme(<EventCard event={{ ...baseEvent, modalidade: 'Presencial' }} />)
     expect(screen.queryByText(/São Paulo/)).not.toBeInTheDocument()
   })
 
-  it('deve exibir localização quando showLocation=true e modalidade não é Online', () => {
-    renderWithRouter(<EventCard event={{ ...baseEvent, modalidade: 'Presencial' }} showLocation />)
+  it('exibe localização quando showLocation=true e modalidade não é Online', () => {
+    renderWithTheme(<EventCard event={{ ...baseEvent, modalidade: 'Presencial' }} showLocation />)
     expect(screen.getByText('São Paulo - SP')).toBeInTheDocument()
   })
 
-  it('não deve exibir localização quando modalidade é Online', () => {
-    renderWithRouter(<EventCard event={baseEvent} showLocation />)
+  it('não exibe localização quando modalidade é Online', () => {
+    renderWithTheme(<EventCard event={baseEvent} showLocation />)
     expect(screen.queryByText(/São Paulo/)).not.toBeInTheDocument()
   })
 
-  it('deve exibir botão de ação quando showActionButton=true e variant=full', () => {
-    renderWithRouter(<EventCard event={baseEvent} variant="full" showActionButton />)
-    // o card também tem role="button", por isso filtramos pela classe específica
-    const btn = document.querySelector('button.event-link')
-    expect(btn).toBeInTheDocument()
-    expect(btn.textContent).toMatch(/saber mais/i)
+  it('exibe botão de ação quando showActionButton=true e variant=full', () => {
+    renderWithTheme(<EventCard event={baseEvent} variant="full" showActionButton />)
+    expect(screen.getByRole('button', { name: /saber mais/i })).toBeInTheDocument()
   })
 
-  it('deve exibir link de ação quando showActionButton=true e variant=compact', () => {
-    renderWithRouter(<EventCard event={baseEvent} variant="compact" showActionButton />)
+  it('exibe link de ação quando showActionButton=true e variant=compact', () => {
+    renderWithTheme(<EventCard event={baseEvent} variant="compact" showActionButton />)
     expect(screen.getByRole('link', { name: /saber mais/i })).toBeInTheDocument()
   })
 
-  it('deve usar actionLabel customizado quando fornecido', () => {
-    renderWithRouter(
+  it('usa actionLabel customizado quando fornecido', () => {
+    renderWithTheme(
       <EventCard event={baseEvent} variant="full" showActionButton actionLabel="Participar" />
     )
-    const btn = document.querySelector('button.event-link')
-    expect(btn).toBeInTheDocument()
-    expect(btn.textContent).toMatch(/participar/i)
+    expect(screen.getByRole('button', { name: 'Participar' })).toBeInTheDocument()
   })
 
-  it('deve exibir tags quando fornecidas', () => {
+  it('exibe tags quando fornecidas', () => {
     const tags = [
       { id: 't1', nome: 'React', cor: '#61dafb' },
       { id: 't2', nome: 'Node', cor: '#68a063' },
     ]
-    renderWithRouter(<EventCard event={baseEvent} tags={tags} />)
+    renderWithTheme(<EventCard event={baseEvent} tags={tags} />)
     expect(screen.getByText('React')).toBeInTheDocument()
     expect(screen.getByText('Node')).toBeInTheDocument()
   })
 
-  it('deve navegar para /eventos/:id ao clicar', async () => {
-    const user = userEvent.setup()
-    renderWithRouter(<EventCard event={baseEvent} />)
-    await user.click(screen.getByRole('button'))
-    expect(mockNavigate).toHaveBeenCalledWith('/eventos/1')
+  it('navega para /eventos/:id ao clicar', async () => {
+    renderWithTheme(<EventCard event={baseEvent} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Evento Teste' }))
+    expect(pushMock).toHaveBeenCalledWith('/eventos/1')
   })
 
-  it('deve usar onClick customizado quando fornecido', async () => {
-    const user = userEvent.setup()
+  it('usa onClick customizado quando fornecido', async () => {
     const handleClick = vi.fn()
-    renderWithRouter(<EventCard event={baseEvent} onClick={handleClick} />)
-    // clica no card (div com role=button)
-    const cards = screen.getAllByRole('button')
-    await user.click(cards[0])
+    renderWithTheme(<EventCard event={baseEvent} onClick={handleClick} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Evento Teste' }))
     expect(handleClick).toHaveBeenCalled()
-    expect(mockNavigate).not.toHaveBeenCalled()
+    expect(pushMock).not.toHaveBeenCalled()
   })
 
-  it('deve aplicar classe ec-card--past quando isPast=true', () => {
-    renderWithRouter(<EventCard event={baseEvent} isPast />)
-    const card = screen.getByRole('button')
-    expect(card.className).toContain('ec-card--past')
+  it('exibe label "Ver detalhes do evento" quando isPast=true', () => {
+    renderWithTheme(<EventCard event={baseEvent} variant="full" showActionButton isPast />)
+    expect(screen.getByRole('button', { name: /ver detalhes do evento/i })).toBeInTheDocument()
   })
 
-  it('deve exibir label "Ver detalhes do evento" quando isPast=true', () => {
-    renderWithRouter(<EventCard event={baseEvent} variant="full" showActionButton isPast />)
-    const btn = document.querySelector('button.event-link')
-    expect(btn).toBeInTheDocument()
-    expect(btn.textContent).toMatch(/ver detalhes/i)
-  })
-
-  it('deve navegar com Enter no card', async () => {
-    const user = userEvent.setup()
-    renderWithRouter(<EventCard event={baseEvent} />)
-    const card = screen.getByRole('button')
+  it('navega com Enter no card', async () => {
+    renderWithTheme(<EventCard event={baseEvent} />)
+    const card = screen.getByRole('button', { name: 'Evento Teste' })
     card.focus()
-    await user.keyboard('{Enter}')
-    expect(mockNavigate).toHaveBeenCalledWith('/eventos/1')
+    await userEvent.keyboard('{Enter}')
+    expect(pushMock).toHaveBeenCalledWith('/eventos/1')
   })
 })

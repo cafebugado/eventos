@@ -43,23 +43,19 @@ node --version
 
 ## Problemas ao Rodar o Projeto
 
-### Tela branca / Erro de conexao com Supabase
+### Tela branca / Erro ao carregar dados
 
-**Causa**: Arquivo `.env` ausente ou com credenciais erradas.
+**Causa**: a integração com a API dedicada foi removida (ver [SPRINT.md](../SPRINT.md), em processo de troca de backend) — as páginas mostram estado vazio/erro por padrão até a nova API ser plugada. Isso é esperado no momento, não é um problema de ambiente local.
 
 ```bash
-# Verifique se o .env existe
-ls .env
+# Verifique se o .env.local existe
+ls .env.local
 
 # Se nao existe, crie a partir do exemplo
-cp .env.example .env
-
-# Edite e preencha com as credenciais corretas
-# VITE_SUPABASE_URL=https://...
-# VITE_SUPABASE_ANON_KEY=...
+cp .env.example .env.local
 ```
 
-Apos editar o `.env`, reinicie o servidor:
+Apos editar o `.env.local`, reinicie o servidor:
 
 ```bash
 # Pare o servidor (Ctrl+C)
@@ -67,45 +63,29 @@ Apos editar o `.env`, reinicie o servidor:
 pnpm dev
 ```
 
-### Porta 5173 ja esta em uso
+### Porta 3000 ja esta em uso
 
 ```bash
 # Windows - encontrar o processo usando a porta
-netstat -ano | findstr :5173
+netstat -ano | findstr :3000
 
 # Matar o processo (substitua PID pelo numero encontrado)
 taskkill /PID <PID> /F
 
 # Linux/Mac
-lsof -i :5173
+lsof -i :3000
 kill -9 <PID>
 ```
 
-Ou mude a porta no `vite.config.js` temporariamente.
+Ou rode em outra porta: `pnpm dev -- -p 3001`.
 
 ### Hot reload nao funciona (alteracoes nao aparecem)
 
-**No Docker (Windows/Mac)**:
-
-O hot reload via Docker pode ser lento. Verifique se o polling esta ativo:
+Tente limpar o cache do Next.js:
 
 ```bash
-# Ja esta configurado no docker-compose.yml:
-# CHOKIDAR_USEPOLLING=true
-```
-
-Se ainda nao funcionar, tente rodar localmente em vez de Docker:
-
-```bash
-docker-compose down
-pnpm dev
-```
-
-**Localmente**: Tente limpar o cache do Vite:
-
-```bash
-# Pare o servidor e limpe cache
-rm -rf node_modules/.vite
+# Pare o servidor e limpe o cache
+rm -rf .next
 pnpm dev
 ```
 
@@ -187,7 +167,7 @@ git rebase --abort
 Voce nao esta na pasta do projeto.
 
 ```bash
-cd agendas-eventos
+cd eventos
 git status
 ```
 
@@ -196,42 +176,6 @@ git status
 ```bash
 git checkout developer
 git pull origin developer
-```
-
----
-
-## Problemas com Docker
-
-### `docker: command not found`
-
-Docker nao esta instalado. Baixe em [https://www.docker.com/get-started](https://www.docker.com/get-started).
-
-**Windows**: Certifique-se de que o Docker Desktop esta rodando (icone na bandeja do sistema).
-
-### Container nao inicia / erro de build
-
-```bash
-# Reconstrua o container do zero
-docker-compose down
-docker-compose up --build app-dev
-```
-
-### `ENOSPC: no space left on device` (Docker)
-
-Espaco em disco cheio no Docker.
-
-```bash
-# Limpar imagens e containers antigos
-docker system prune -a
-```
-
-### Dependencias novas nao aparecem no container
-
-Apos adicionar dependencias ao `package.json`, reconstrua:
-
-```bash
-docker-compose down
-docker-compose up --build app-dev
 ```
 
 ---
@@ -279,13 +223,12 @@ Clique em **"Details"** ao lado do check que falhou no PR para ver o log complet
 
 **Erros comuns:**
 
-| Erro no CI                    | Solucao                              |
-| ----------------------------- | ------------------------------------ |
-| Lint failed                   | `pnpm lint:fix && pnpm format`       |
-| Tests failed                  | `pnpm test:run` e corrija            |
-| Build failed                  | `pnpm build` e corrija               |
-| Branch origin invalid         | Verifique se o PR e para `developer` |
-| Bundle size exceeded (1300KB) | Reduza o tamanho do bundle           |
+| Erro no CI            | Solucao                              |
+| --------------------- | ------------------------------------ |
+| Lint failed           | `pnpm lint:fix && pnpm format`       |
+| Tests failed          | `pnpm test:run` e corrija            |
+| Build failed          | `pnpm build` e corrija               |
+| Branch origin invalid | Verifique se o PR e para `developer` |
 
 ### PR nao pode ser mergeado
 
@@ -304,25 +247,13 @@ git push --force-with-lease
 
 ---
 
-## Problemas com Supabase
+## Problemas com a API
 
-### Erro de autenticacao no admin
-
-1. Verifique se o usuario existe no Supabase Dashboard > Authentication > Users
-2. Verifique se o email e senha estao corretos
-3. Verifique se o usuario foi confirmado (Auto Confirm ativado)
-
-### Imagens nao carregam
-
-1. Verifique se o bucket `imagens` existe no Supabase Storage
-2. Verifique se o bucket esta marcado como **Public**
-3. Verifique as politicas de acesso do bucket
+> A integração com a API dedicada foi removida (ver [SPRINT.md](../SPRINT.md)) — as seções abaixo voltam a se aplicar quando a nova API for plugada.
 
 ### Dados nao aparecem
 
-1. Verifique as credenciais no `.env`
-2. Verifique se as tabelas existem no Supabase (SQL Editor > ver tabelas)
-3. Verifique o console do navegador (F12) para erros de API
+Esperado no momento: sem integração com API, todas as páginas de listagem renderizam o estado vazio/erro por padrão.
 
 ---
 

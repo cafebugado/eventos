@@ -1,150 +1,83 @@
-import { useNavigate } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useUpcomingEvents } from '../hooks/useEvents'
-import BgEventos from '../assets/eventos.png'
-import './UpcomingEvents.css'
+'use client'
 
-function parseDataBadge(dataEvento) {
-  if (!dataEvento) {
-    return null
-  }
-  const parts = dataEvento.split('/')
-  if (parts.length !== 3) {
-    return null
-  }
-  const months = [
-    'JAN',
-    'FEV',
-    'MAR',
-    'ABR',
-    'MAI',
-    'JUN',
-    'JUL',
-    'AGO',
-    'SET',
-    'OUT',
-    'NOV',
-    'DEZ',
-  ]
-  const day = parts[0]
-  const month = months[parseInt(parts[1], 10) - 1]
-  return `${day} ${month}`
-}
+import Link from 'next/link'
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import Skeleton from '@mui/material/Skeleton'
+import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined'
+import EventCard from './EventCard'
+import { useFavouritesStore } from '../store/useFavouritesStore'
 
-function UpcomingEvents() {
-  const { events, loading, error } = useUpcomingEvents(3)
-  const navigate = useNavigate()
-  const [tagsMap, setTagsMap] = useState({})
+// Diferente do app antigo (UpcomingEvents.jsx tinha markup próprio de card),
+// aqui reutilizamos o EventCard compartilhado — mantém a UI consistente com
+// /eventos e as recomendações, e evita duplicar lógica de countdown/tags/
+// favoritos que o EventCard já resolve.
+export default function UpcomingEvents({ events = [], tagsMap = {}, loading = false }) {
+  const favouriteIds = useFavouritesStore((state) => state.favouriteIds)
+  const toggleFavourite = useFavouritesStore((state) => state.toggleFavourite)
 
-  useEffect(() => {
-    if (events.length === 0) {
-      return
-    }
-    import('../services/tagService').then(({ getAllEventTags }) => {
-      getAllEventTags()
-        .then(setTagsMap)
-        .catch(() => {})
-    })
-  }, [events])
-
-  if (error || (!loading && events.length === 0)) {
+  if (!loading && events.length === 0) {
     return null
   }
 
   return (
-    <section className="upcoming-section">
-      <div className="upcoming-container">
-        <div className="upcoming-header">
-          <div className="upcoming-header-left">
-            <span className="upcoming-label">PRÓXIMAS EXPERIÊNCIAS</span>
-            <h2>Eventos em Destaque</h2>
-          </div>
-          <button className="upcoming-explore-link" onClick={() => navigate('/eventos')}>
-            Explorar todos <ArrowRight size={16} />
-          </button>
-        </div>
+    <Box component="section" sx={{ py: { xs: 6, md: 10 } }}>
+      <Container maxWidth="lg">
+        <Stack
+          direction="row"
+          sx={{ alignItems: 'flex-end', justifyContent: 'space-between', mb: 4, flexWrap: 'wrap' }}
+          spacing={2}
+          useFlexGap
+        >
+          <Box>
+            <Typography
+              variant="overline"
+              color="primary"
+              sx={{ fontWeight: 700, letterSpacing: 1 }}
+            >
+              Próximas experiências
+            </Typography>
+            <Typography variant="h4" component="h2">
+              Eventos em Destaque
+            </Typography>
+          </Box>
+          <Button component={Link} href="/eventos" endIcon={<ArrowForwardOutlinedIcon />}>
+            Explorar todos
+          </Button>
+        </Stack>
 
-        {loading ? (
-          <div className="upcoming-grid">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={`skeleton-${i}`} className="upcoming-skeleton">
-                <div className="upcoming-skeleton-image" />
-                <div className="upcoming-skeleton-content">
-                  <div className="upcoming-skeleton-tag" />
-                  <div className="upcoming-skeleton-title" />
-                  <div className="upcoming-skeleton-text" />
-                  <div className="upcoming-skeleton-text short" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="upcoming-grid">
-            {events.map((event) => {
-              const dataBadge = parseDataBadge(event.data_evento)
-              return (
-                <div
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 3,
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+          }}
+        >
+          {loading
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={`skeleton-${i}`} variant="rounded" height={340} />
+              ))
+            : events.map((event) => (
+                <EventCard
                   key={event.id}
-                  className="upcoming-card"
-                  onClick={() => navigate(`/eventos/${event.slug || event.id}`)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) =>
-                    e.key === 'Enter' && navigate(`/eventos/${event.slug || event.id}`)
-                  }
-                >
-                  <div className="upcoming-card-image">
-                    <img
-                      src={event.imagem || BgEventos}
-                      alt={event.nome}
-                      loading="lazy"
-                      decoding="async"
-                      onError={(e) => {
-                        e.target.src = BgEventos
-                      }}
-                    />
-                    {dataBadge && <span className="upcoming-date-badge">{dataBadge}</span>}
-                  </div>
-                  <div className="upcoming-card-body">
-                    {(tagsMap[event.id] || []).length > 0 && (
-                      <div className="upcoming-card-tags">
-                        {(tagsMap[event.id] || []).map((tag) => (
-                          <span
-                            key={tag.id}
-                            className="upcoming-card-tag"
-                            style={{ '--tag-color': tag.cor || '#2563eb' }}
-                          >
-                            {tag.nome}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <h3>{event.nome}</h3>
-                    {event.descricao && (
-                      <p className="upcoming-card-desc">
-                        {event.descricao.replace(/<[^>]*>/g, '').slice(0, 90)}
-                        {event.descricao.replace(/<[^>]*>/g, '').length > 90 ? '…' : ''}
-                      </p>
-                    )}
-                    <button
-                      className="upcoming-card-btn"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        navigate(`/eventos/${event.slug || event.id}`)
-                      }}
-                    >
-                      Ver evento
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-    </section>
+                  event={event}
+                  tags={tagsMap[event.id] || []}
+                  variant="compact"
+                  showDescription
+                  showActionButton
+                  showInfoRows={false}
+                  showDateBadge
+                  actionInternal
+                  actionLabel="Ver evento"
+                  favouriteIds={favouriteIds}
+                  toggleFavourite={(eventId) => toggleFavourite(eventId, events)}
+                />
+              ))}
+        </Box>
+      </Container>
+    </Box>
   )
 }
-
-export default UpcomingEvents
