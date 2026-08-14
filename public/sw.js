@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v2'
+const CACHE_VERSION = 'v3'
 const STATIC_CACHE = `cb-static-${CACHE_VERSION}`
 
 const STATIC_ASSETS = ['/', '/eventos', '/sobre', '/manifest.webmanifest', '/icon.svg']
@@ -44,6 +44,14 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // Requests cross-origin (ex.: fetch direto do client pra API dedicada,
+  // feito por componentes como EventRecommendations) nunca devem passar pelo
+  // cache do SW — são dados que mudam a qualquer momento e o SW não tem como
+  // saber quando invalidar. Deixa o browser tratar normalmente.
+  if (url.origin !== self.location.origin) {
+    return
+  }
+
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -59,21 +67,20 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // Network-first pros demais assets same-origin (ex.: /_next/image, ícones,
+  // manifest): tenta buscar a versão atual primeiro e só cai pro cache
+  // quando a rede falha — cache-first aqui deixava esses assets presos numa
+  // versão antiga indefinidamente, sem nenhuma revalidação em background.
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) {
-        return cached
-      }
-      return fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone()
-            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone))
-          }
-          return response
-        })
-        .catch(() => Response.error())
-    })
+    fetch(request)
+      .then((response) => {
+        if (response.ok) {
+          const clone = response.clone()
+          caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone))
+        }
+        return response
+      })
+      .catch(() => caches.match(request).then((cached) => cached || Response.error()))
   )
 })
 
