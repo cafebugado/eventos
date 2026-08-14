@@ -23,4 +23,10 @@ describe('AboutFeatures', () => {
     renderWithTheme(<AboutFeatures totalEventos={42} />)
     expect(screen.getByText(/eventos cadastrados/i)).toBeInTheDocument()
   })
+
+  it('não exibe o contador (nem "NaN+") quando totalEventos é undefined', () => {
+    renderWithTheme(<AboutFeatures totalEventos={undefined} />)
+    expect(screen.queryByText(/eventos cadastrados/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/NaN/i)).not.toBeInTheDocument()
+  })
 })

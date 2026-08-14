@@ -94,7 +94,7 @@ export default function AboutFeatures({ totalEventos }) {
           suffix=" anos"
           label="Conectando pessoas por meio de eventos e iniciativas da comunidade"
         />
-        {totalEventos !== null && (
+        {Number.isFinite(totalEventos) && (
           <StatCounter
             value={totalEventos}
             suffix="+"
