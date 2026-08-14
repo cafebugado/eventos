@@ -65,6 +65,20 @@ export default function Header() {
           <Box component="img" src="/logo.png" alt="Eventos Cafe Bugado" sx={{ height: 36 }} />
         </Box>
 
+        <Stack
+          direction="row"
+          sx={{
+            display: { xs: 'flex', md: 'none' },
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            flex: 1,
+          }}
+        >
+          <ComingSoonButton variant="text" size="small">
+            Entrar
+          </ComingSoonButton>
+        </Stack>
+
         <Box
           component="nav"
           sx={{ display: { xs: 'none', md: 'flex' }, gap: 0.5, flex: 1, justifyContent: 'center' }}
