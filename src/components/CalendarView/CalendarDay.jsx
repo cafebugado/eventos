@@ -11,20 +11,33 @@ function EventDots({ events }) {
   const extra = events.length - MAX_DOTS
 
   return (
-    <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, alignItems: 'center', flexWrap: 'wrap' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: { xs: 0.25, sm: 0.5 },
+        mt: { xs: 0.25, sm: 0.5 },
+        minWidth: 0,
+        alignItems: 'center',
+        flexWrap: 'wrap',
+      }}
+    >
       {Array.from({ length: count }).map((_, i) => (
         <Box
           key={i}
           sx={{
-            width: 6,
-            height: 6,
+            width: { xs: 4, sm: 6 },
+            height: { xs: 4, sm: 6 },
             borderRadius: '50%',
             bgcolor: isEventPast(events[i].data_evento) ? 'text.disabled' : 'primary.main',
           }}
         />
       ))}
       {extra > 0 && (
-        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ fontSize: { xs: '0.55rem', sm: '0.6rem' }, lineHeight: 1 }}
+        >
           +{extra}
         </Typography>
       )}
@@ -47,8 +60,12 @@ export default function CalendarDay({ day, currentMonth, isToday, events, onClic
         hasEvents ? `${day}, ${events.length} evento${events.length > 1 ? 's' : ''}` : String(day)
       }
       sx={{
+        width: { xs: '100%', sm: 'auto' },
+        minWidth: { xs: 0, sm: 'auto' },
+        boxSizing: 'border-box',
+        overflow: { xs: 'hidden', sm: 'visible' },
         aspectRatio: '1',
-        p: 0.75,
+        p: { xs: 0.5, sm: 0.75 },
         borderRadius: 1.5,
         border: '1px solid',
         borderColor: isToday ? 'primary.main' : 'divider',
@@ -63,7 +80,10 @@ export default function CalendarDay({ day, currentMonth, isToday, events, onClic
         '&:hover': hasEvents ? { bgcolor: hasLive ? 'success.dark' : 'action.hover' } : undefined,
       }}
     >
-      <Typography variant="body2" sx={{ fontWeight: isToday ? 700 : 400 }}>
+      <Typography
+        variant="body2"
+        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: isToday ? 700 : 400 }}
+      >
         {day}
       </Typography>
       {hasEvents && <EventDots events={events} />}

@@ -136,13 +136,21 @@ export default function CalendarView({ events }) {
         </Button>
       </Stack>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.75 }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: 'repeat(7, minmax(0, 1fr))', sm: 'repeat(7, 1fr)' },
+          gap: { xs: 0.5, sm: 0.75 },
+          minWidth: 0,
+          overflow: { xs: 'hidden', sm: 'visible' },
+        }}
+      >
         {DAY_HEADERS.map((d) => (
           <Typography
             key={d}
             variant="caption"
             color="text.secondary"
-            sx={{ textAlign: 'center', fontWeight: 600 }}
+            sx={{ minWidth: 0, textAlign: 'center', fontWeight: 600 }}
           >
             {d}
           </Typography>
