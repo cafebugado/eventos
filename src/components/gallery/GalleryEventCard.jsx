@@ -37,7 +37,12 @@ export default function GalleryEventCard({ event, onPhotoClick }) {
         <Typography variant="h6" component="h2">
           {event.eventName}
         </Typography>
-        <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }} useFlexGap>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={{ xs: 0.75, sm: 2 }}
+          sx={{ flexWrap: { sm: 'wrap' } }}
+          useFlexGap
+        >
           <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
             <CalendarMonthOutlinedIcon fontSize="small" color="disabled" />
             <Typography variant="body2" color="text.secondary">
