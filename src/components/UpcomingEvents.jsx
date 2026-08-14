@@ -15,11 +15,16 @@ import { useFavouritesStore } from '../store/useFavouritesStore'
 // aqui reutilizamos o EventCard compartilhado — mantém a UI consistente com
 // /eventos e as recomendações, e evita duplicar lógica de countdown/tags/
 // favoritos que o EventCard já resolve.
-export default function UpcomingEvents({ events = [], tagsMap = {}, loading = false }) {
+export default function UpcomingEvents({
+  events = [],
+  tagsMap = {},
+  loading = false,
+  hasError = false,
+}) {
   const favouriteIds = useFavouritesStore((state) => state.favouriteIds)
   const toggleFavourite = useFavouritesStore((state) => state.toggleFavourite)
 
-  if (!loading && events.length === 0) {
+  if (!loading && events.length === 0 && !hasError) {
     return null
   }
 
@@ -49,34 +54,45 @@ export default function UpcomingEvents({ events = [], tagsMap = {}, loading = fa
           </Button>
         </Stack>
 
-        <Box
-          sx={{
-            display: 'grid',
-            gap: 3,
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-          }}
-        >
-          {loading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={`skeleton-${i}`} variant="rounded" height={340} />
-              ))
-            : events.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  tags={tagsMap[event.id] || []}
-                  variant="compact"
-                  showDescription
-                  showActionButton
-                  showInfoRows={false}
-                  showDateBadge
-                  actionInternal
-                  actionLabel="Ver evento"
-                  favouriteIds={favouriteIds}
-                  toggleFavourite={(eventId) => toggleFavourite(eventId, events)}
-                />
-              ))}
-        </Box>
+        {!loading && hasError && events.length === 0 ? (
+          <Typography color="text.secondary">
+            Não foi possível carregar os eventos em destaque agora. Tente novamente em instantes ou
+            confira todos os eventos na página{' '}
+            <Link href="/eventos" style={{ textDecoration: 'underline' }}>
+              Eventos
+            </Link>
+            .
+          </Typography>
+        ) : (
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 3,
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+            }}
+          >
+            {loading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={`skeleton-${i}`} variant="rounded" height={340} />
+                ))
+              : events.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    tags={tagsMap[event.id] || []}
+                    variant="compact"
+                    showDescription
+                    showActionButton
+                    showInfoRows={false}
+                    showDateBadge
+                    actionInternal
+                    actionLabel="Ver evento"
+                    favouriteIds={favouriteIds}
+                    toggleFavourite={(eventId) => toggleFavourite(eventId, events)}
+                  />
+                ))}
+          </Box>
+        )}
       </Container>
     </Box>
   )

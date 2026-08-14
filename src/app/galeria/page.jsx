@@ -4,6 +4,7 @@ import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import GalleryPageClient from './GalleryPageClient'
 import { getGalleryEvents } from '../../services/galleryService'
+import { captureError } from '../../lib/sentry'
 
 export const metadata = {
   title: 'Galeria | Eventos Café Bugado',
@@ -13,8 +14,17 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
+async function loadGalleryEvents() {
+  try {
+    return await getGalleryEvents()
+  } catch (error) {
+    captureError(error, { context: 'GalleryPage.loadGalleryEvents' })
+    return []
+  }
+}
+
 export default async function GalleryPage() {
-  const events = await getGalleryEvents()
+  const events = await loadGalleryEvents()
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>

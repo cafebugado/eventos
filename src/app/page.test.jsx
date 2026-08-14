@@ -51,7 +51,7 @@ describe('Home', () => {
     expect(screen.getByText('Evento Destaque')).toBeInTheDocument()
   })
 
-  it('não quebra a página quando a busca de destaques falha', async () => {
+  it('não quebra a página e mostra mensagem de erro quando a busca de destaques falha', async () => {
     getFeaturedEvents.mockRejectedValue(new Error('falha de rede'))
 
     const ui = await Home()
@@ -59,6 +59,9 @@ describe('Home', () => {
 
     expect(
       screen.getByRole('heading', { name: /eventos de tecnologia em um só lugar/i })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/não foi possível carregar os eventos em destaque/i)
     ).toBeInTheDocument()
   })
 

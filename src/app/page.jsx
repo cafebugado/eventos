@@ -11,10 +11,10 @@ export const dynamic = 'force-dynamic'
 
 async function loadFeaturedEvents() {
   try {
-    return await getFeaturedEvents()
+    return { events: await getFeaturedEvents(), hasError: false }
   } catch (error) {
     captureError(error, { context: 'Home.loadFeaturedEvents' })
-    return []
+    return { events: [], hasError: true }
   }
 }
 
@@ -30,7 +30,10 @@ async function loadEventsTagsMap() {
 }
 
 export default async function Home() {
-  const [events, tagsMap] = await Promise.all([loadFeaturedEvents(), loadEventsTagsMap()])
+  const [{ events, hasError }, tagsMap] = await Promise.all([
+    loadFeaturedEvents(),
+    loadEventsTagsMap(),
+  ])
 
   return (
     <>
@@ -69,7 +72,7 @@ export default async function Home() {
         </Container>
       </Box>
 
-      <UpcomingEvents events={events} tagsMap={tagsMap} />
+      <UpcomingEvents events={events} tagsMap={tagsMap} hasError={hasError} />
       <Testimonials />
     </>
   )
