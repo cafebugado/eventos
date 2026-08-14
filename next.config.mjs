@@ -24,11 +24,16 @@ const SECURITY_HEADERS = [
       // middleware (mudança maior, não feita aqui). 'unsafe-eval' foi
       // removido: nenhum código do app ou das libs usadas (MUI, Sentry,
       // Vercel Analytics) depende de eval em produção.
-      "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
+      // https://vercel.live é o widget de feedback/toolbar que a própria
+      // Vercel injeta em deployments (preview e produção) — sem liberar
+      // script-src/connect-src/font-src pra ele, o browser bloqueia o
+      // carregamento e polui o console com erros de CSP.
+      "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://vercel.live",
       "style-src 'self' 'unsafe-inline'",
-      "font-src 'self'",
+      "font-src 'self' https://vercel.live",
       "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://v3.api.eventoscafebugado.cafebugado.com.br https://vitals.vercel-insights.com https://*.ingest.us.sentry.io https://va.vercel-scripts.com",
+      "connect-src 'self' https://v3.api.eventoscafebugado.cafebugado.com.br https://vitals.vercel-insights.com https://*.ingest.us.sentry.io https://va.vercel-scripts.com https://vercel.live wss://ws-us3.pusher.com",
+      'frame-src https://vercel.live',
       "frame-ancestors 'self'",
     ].join('; '),
   },
