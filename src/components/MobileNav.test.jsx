@@ -39,7 +39,17 @@ describe('MobileNav', () => {
     expect(screen.getByRole('menuitem', { name: 'Galeria' })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Contato' })).toBeInTheDocument()
     expect(screen.queryByRole('menuitem', { name: 'Favoritos' })).not.toBeInTheDocument()
-    expect(screen.getByRole('menuitem', { name: 'Modo escuro' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Escuro' })).toBeInTheDocument()
+  })
+
+  it('não abre o menu ao passar o mouse sobre o botão', async () => {
+    renderWithTheme(<MobileNav />)
+
+    const menuButton = screen.getByRole('button', { name: 'Menu de navegação' })
+    await userEvent.hover(menuButton)
+
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('menuitem', { name: 'Eventos' })).not.toBeInTheDocument()
   })
 
   it('mostra Favoritos quando existe evento favoritado', async () => {
@@ -69,15 +79,18 @@ describe('MobileNav', () => {
     )
   })
 
-  it('alterna o tema ao clicar na ação de tema', async () => {
+  it('alterna o tema sem fechar o menu', async () => {
     renderWithTheme(<MobileNav />)
 
     await userEvent.click(screen.getByRole('button', { name: 'Menu de navegação' }))
-    await userEvent.click(screen.getByRole('menuitem', { name: 'Modo escuro' }), {
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Escuro' }), {
       pointerEventsCheck: 0,
     })
 
-    await userEvent.click(screen.getByRole('button', { name: 'Menu de navegação' }))
-    expect(screen.getByRole('menuitem', { name: 'Modo claro' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Menu de navegação' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
+    expect(screen.getByRole('menuitem', { name: 'Claro' })).toBeInTheDocument()
   })
 })
