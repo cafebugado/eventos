@@ -24,9 +24,9 @@ test.describe('PWA', () => {
     expect(scope).toBe('http://localhost:3000/')
   })
 
-  test('serve o ícone svg da aba', async ({ page }) => {
-    const response = await page.goto('/icon.svg')
+  test('serve o ícone da aba', async ({ page }) => {
+    const response = await page.goto('/logo.ico')
     expect(response.status()).toBe(200)
-    expect(response.headers()['content-type']).toContain('svg')
+    expect(response.headers()['content-type']).toMatch(/image\/(x-icon|vnd\.microsoft\.icon)/)
   })
 })

@@ -62,7 +62,12 @@ export default function Header() {
           rel="noopener noreferrer"
           sx={{ display: 'flex', alignItems: 'center', flex: 1 }}
         >
-          <Box component="img" src="/logo.png" alt="Eventos Cafe Bugado" sx={{ height: 36 }} />
+          <Box
+            component="img"
+            src="/logo.png"
+            alt="Eventos Cafe Bugado"
+            sx={{ display: 'block', height: { xs: 36, md: 52 }, width: 'auto' }}
+          />
         </Box>
 
         <Stack

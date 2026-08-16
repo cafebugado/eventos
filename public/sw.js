@@ -1,7 +1,7 @@
-const CACHE_VERSION = 'v3'
+const CACHE_VERSION = 'v4'
 const STATIC_CACHE = `cb-static-${CACHE_VERSION}`
 
-const STATIC_ASSETS = ['/', '/eventos', '/sobre', '/manifest.webmanifest', '/icon.svg']
+const STATIC_ASSETS = ['/', '/eventos', '/sobre', '/manifest.webmanifest', '/logo.ico']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS)))
