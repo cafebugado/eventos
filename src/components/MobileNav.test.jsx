@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider } from '@mui/material/styles'
 import theme from '../theme/theme'
+import { vivoVioleta } from '../theme/tokens/vivoVioleta'
 import { useFavouritesStore } from '../store/useFavouritesStore'
 import MobileNav from './MobileNav'
 
@@ -79,6 +80,19 @@ describe('MobileNav', () => {
     )
   })
 
+  it('mantém o item ativo branco e destaca apenas borda, texto e ícone no mobile', async () => {
+    usePathnameMock.mockReturnValue('/eventos')
+    renderWithTheme(<MobileNav />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Menu de navegação' }))
+
+    expect(screen.getByRole('menuitem', { name: 'Eventos' })).toHaveStyle({
+      backgroundColor: '#ffffff',
+      borderColor: vivoVioleta['500'],
+      color: vivoVioleta['500'],
+    })
+  })
+
   it('alterna o tema sem fechar o menu', async () => {
     renderWithTheme(<MobileNav />)
 
@@ -91,6 +105,8 @@ describe('MobileNav', () => {
       'aria-expanded',
       'true'
     )
-    expect(screen.getByRole('menuitem', { name: 'Claro' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Claro' })).toHaveStyle({
+      backgroundColor: '#ffffff',
+    })
   })
 })
