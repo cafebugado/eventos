@@ -29,6 +29,9 @@ export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: 'Eventos Café Bugado',
   description: 'Agenda de eventos da comunidade Café Bugado',
+  icons: {
+    icon: '/logo.ico',
+  },
   openGraph: {
     siteName: 'Eventos - Comunidade Café Bugado',
     locale: 'pt_BR',
