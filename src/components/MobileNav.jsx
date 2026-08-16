@@ -15,6 +15,7 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
 import { NAVIGATION_ITEMS, ROUTES } from '../constants/navigation'
 import { useFavouritesStore } from '../store/useFavouritesStore'
+import { vivoVioleta } from '../theme/tokens/vivoVioleta'
 
 const MOBILE_MENU_ORDER = [
   ROUTES.HOME,
@@ -25,6 +26,11 @@ const MOBILE_MENU_ORDER = [
   ROUTES.CONTACT,
 ]
 
+const MOBILE_MENU_ITEM_BG = '#ffffff'
+const MOBILE_MENU_ITEM_BORDER = '#e2e8f0'
+const MOBILE_MENU_ITEM_COLOR = '#64748b'
+const MOBILE_MENU_ACTIVE_COLOR = vivoVioleta['500']
+
 const menuItemSx = (isActive) => (theme) => ({
   width: 142,
   height: 44,
@@ -32,10 +38,10 @@ const menuItemSx = (isActive) => (theme) => ({
   px: 1.75,
   border: '1px solid',
   borderLeftWidth: isActive ? 4 : 1,
-  borderColor: isActive ? 'primary.main' : 'divider',
+  borderColor: isActive ? MOBILE_MENU_ACTIVE_COLOR : MOBILE_MENU_ITEM_BORDER,
   borderRadius: `${theme.shape.borderRadius * 2}px`,
-  bgcolor: isActive ? 'action.selected' : 'background.paper',
-  color: isActive ? 'primary.main' : 'text.secondary',
+  bgcolor: MOBILE_MENU_ITEM_BG,
+  color: isActive ? MOBILE_MENU_ACTIVE_COLOR : MOBILE_MENU_ITEM_COLOR,
   boxShadow: isActive ? theme.shadows[4] : theme.shadows[1],
   backdropFilter: 'blur(16px)',
   '& .MuiButton-startIcon': {
@@ -46,8 +52,11 @@ const menuItemSx = (isActive) => (theme) => ({
     fontSize: 20,
   },
   '&:hover': {
-    bgcolor: isActive ? 'action.selected' : 'action.hover',
-    borderColor: isActive ? 'primary.main' : 'text.secondary',
+    bgcolor: MOBILE_MENU_ITEM_BG,
+    borderColor: isActive ? MOBILE_MENU_ACTIVE_COLOR : MOBILE_MENU_ITEM_COLOR,
+  },
+  '&:active, &.Mui-focusVisible': {
+    bgcolor: MOBILE_MENU_ITEM_BG,
   },
 })
 
