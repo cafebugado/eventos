@@ -1,96 +1,137 @@
-import { useState, useEffect } from 'react'
-import { Github, Linkedin, ExternalLink } from 'lucide-react'
-import { getContributors } from '../services/contributorService'
-function ContributorsGrid() {
-  const [contributors, setContributors] = useState([])
-  const [loadingContributors, setLoadingContributors] = useState(true)
+'use client'
 
-  useEffect(() => {
-    async function loadContributors() {
-      try {
-        const data = await getContributors()
-        setContributors(data)
-      } catch (error) {
-        console.error('Erro ao carregar contribuintes:', error)
-      } finally {
-        setLoadingContributors(false)
-      }
-    }
+import Box from '@mui/material/Box'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import Avatar from '@mui/material/Avatar'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
+import GitHubIcon from '@mui/icons-material/GitHub'
+import LinkedInIcon from '@mui/icons-material/LinkedIn'
+import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNewOutlined'
 
-    loadContributors()
-  }, [])
+// `contributors` vem pronto do servidor (app/sobre/page.jsx via
+// getContributors, passado como prop) — sem loading state/skeleton
+// client-side, ao contrário do useEffect+useState do app antigo. Precisa ser
+// 'use client' porque Tooltip + IconButton component="a" como filho direto
+// de um Server Component causa hydration mismatch (o servidor renderiza um
+// <span> placeholder no lugar do <a> real) — mesmo padrão de Tooltip usado
+// em Footer.jsx, que já é client, funciona sem esse problema.
+export default function ContributorsGrid({ contributors = [] }) {
   return (
-    <div className="contributors-section">
-      <h2>
-        Quem mantém este <span className="highlight">projeto</span>
-      </h2>
-      <p className="contributors-description">
-        Este projeto é feito pela comunidade. Conheça as pessoas que contribuem para manter esta
-        plataforma funcionando e sempre melhorando.
-      </p>
+    <Stack spacing={4} sx={{ mt: { xs: 6, md: 8 } }}>
+      <Stack spacing={4} sx={{ alignItems: 'center' }}>
+        <Typography
+          variant="h3"
+          component="h2"
+          sx={{ fontSize: { xs: '1.85rem', md: '2.25rem' }, textAlign: 'center' }}
+        >
+          Quem mantém este{' '}
+          <Box component="span" sx={{ color: 'primary.main' }}>
+            projeto
+          </Box>
+        </Typography>
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
+        >
+          Este projeto é feito pela comunidade. Conheça as pessoas que contribuem para manter esta
+          plataforma funcionando e sempre melhorando.
+        </Typography>
+      </Stack>
 
-      {loadingContributors ? (
-        <div className="contributors-loading">
-          <div className="contributors-grid">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="contributor-card-skeleton">
-                <div className="skeleton-avatar"></div>
-                <div className="skeleton-name"></div>
-                <div className="skeleton-links"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : contributors.length === 0 ? (
-        <p className="contributors-empty">Nenhum contribuinte cadastrado ainda.</p>
+      {contributors.length === 0 ? (
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+          Nenhum contribuinte cadastrado ainda.
+        </Typography>
       ) : (
-        <div className="contributors-grid">
+        <Box
+          sx={{
+            display: 'grid',
+            gap: { xs: 1.5, sm: 3 },
+            gridTemplateColumns: {
+              xs: 'repeat(2, minmax(0, 1fr))',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)',
+            },
+          }}
+        >
           {contributors.map((contributor) => (
-            <div key={contributor.id} className="contributor-card">
-              <img
+            <Stack
+              key={contributor.id}
+              spacing={{ xs: 1, sm: 1.5 }}
+              sx={{
+                p: { xs: 1.5, sm: 3 },
+                minWidth: 0,
+                alignItems: 'center',
+                textAlign: 'center',
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+              }}
+            >
+              <Avatar
                 src={contributor.avatar_url}
                 alt={contributor.nome}
-                className="contributor-avatar"
+                sx={{ width: { xs: 56, sm: 72 }, height: { xs: 56, sm: 72 } }}
               />
-              <h4 className="contributor-name">{contributor.nome}</h4>
-              <div className="contributor-links">
-                <a
-                  href={contributor.github_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="contributor-link contributor-link-github"
-                  title={`GitHub de ${contributor.nome}`}
-                >
-                  <Github size={18} />
-                </a>
-                {contributor.linkedin_url && (
-                  <a
-                    href={contributor.linkedin_url}
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  width: '100%',
+                  minWidth: 0,
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontWeight: 600,
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                {contributor.nome}
+              </Typography>
+              <Stack direction="row" spacing={0.5}>
+                <Tooltip title={`GitHub de ${contributor.nome}`}>
+                  <IconButton
+                    component="a"
+                    href={contributor.github_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="contributor-link contributor-link-linkedin"
-                    title={`LinkedIn de ${contributor.nome}`}
+                    size="small"
                   >
-                    <Linkedin size={18} />
-                  </a>
+                    <GitHubIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                {contributor.linkedin_url && (
+                  <Tooltip title={`LinkedIn de ${contributor.nome}`}>
+                    <IconButton
+                      component="a"
+                      href={contributor.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="small"
+                    >
+                      <LinkedInIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                 )}
                 {contributor.portfolio_url && (
-                  <a
-                    href={contributor.portfolio_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="contributor-link contributor-link-portfolio"
-                    title={`Portfólio de ${contributor.nome}`}
-                  >
-                    <ExternalLink size={18} />
-                  </a>
+                  <Tooltip title={`Portfólio de ${contributor.nome}`}>
+                    <IconButton
+                      component="a"
+                      href={contributor.portfolio_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="small"
+                    >
+                      <OpenInNewOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                 )}
-              </div>
-            </div>
+              </Stack>
+            </Stack>
           ))}
-        </div>
+        </Box>
       )}
-    </div>
+    </Stack>
   )
 }
-export default ContributorsGrid

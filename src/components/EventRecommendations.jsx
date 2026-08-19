@@ -1,121 +1,92 @@
-import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
-import { getRecommendedEvents } from '../services/eventService'
+'use client'
+
+import { useEffect, useState } from 'react'
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
 import EventCard from './EventCard'
-import './EventRecommendations.css'
-import { parseEventDate } from '../utils/eventDate'
+import { useInViewport } from '../hooks/useInViewport'
+import { useFavouritesStore } from '../store/useFavouritesStore'
+import { getRecommendedEvents } from '../services/eventService'
+import { captureError } from '../lib/sentry'
 
-function EventRecommendations({ currentEvent, currentEventTags }) {
-  const [recommendations, setRecommendations] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [triggered, setTriggered] = useState(false)
-  const sectionRef = useRef(null)
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    const el = sectionRef.current
-    if (!el) {
-      return
-    }
-
-    if (!('IntersectionObserver' in window)) {
-      setTriggered(true)
-      return
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !triggered) {
-          setTriggered(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [triggered])
+// Busca sob demanda ao entrar na viewport (useInViewport) — evita disparar
+// essa chamada extra pra quem nem rola até o fim da página de detalhe.
+export default function EventRecommendations({ currentEvent }) {
+  const { ref, isInView } = useInViewport()
+  const [events, setEvents] = useState([])
+  const favouriteIds = useFavouritesStore((state) => state.favouriteIds)
+  const toggleFavourite = useFavouritesStore((state) => state.toggleFavourite)
 
   useEffect(() => {
-    if (!triggered || !currentEvent) {
-      return
+    if (!isInView || !currentEvent?.id) {
+      return undefined
     }
 
     let cancelled = false
 
-    async function load() {
-      setLoading(true)
-      try {
-        const currentEventDate = parseEventDate(currentEvent.data_evento)
-        const results = await getRecommendedEvents(
-          currentEvent.id,
-          currentEventTags,
-          currentEventDate,
-          3
-        )
+    getRecommendedEvents(currentEvent.id)
+      .then((result) => {
         if (!cancelled) {
-          setRecommendations(results)
+          setEvents(result)
         }
-      } catch (err) {
-        console.error('Erro ao carregar recomendações:', err)
-        if (!cancelled) {
-          setRecommendations([])
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      }
-    }
+      })
+      .catch((error) => {
+        captureError(error, { context: 'EventRecommendations.load' })
+      })
 
-    load()
     return () => {
       cancelled = true
     }
-  }, [triggered, currentEvent, currentEventTags])
-
-  if (!triggered && !loading) {
-    return <div ref={sectionRef} className="event-recs-sentinel" aria-hidden="true" />
-  }
-
-  if (!loading && recommendations.length === 0) {
-    return null
-  }
+  }, [isInView, currentEvent?.id])
 
   return (
-    <section className="event-recs-section" ref={sectionRef}>
-      <div className="event-recs-container">
-        <div className="event-recs-header">
-          <h2>Você também pode gostar</h2>
-          <p>Eventos relacionados baseados nos seus interesses.</p>
-        </div>
+    <Box
+      ref={ref}
+      component="section"
+      sx={events.length > 0 ? { py: { xs: 6, md: 10 } } : undefined}
+    >
+      {events.length > 0 && (
+        <Container maxWidth="lg">
+          <Stack spacing={0.5} sx={{ mb: 4 }}>
+            <Typography
+              variant="overline"
+              color="primary"
+              sx={{ fontWeight: 700, letterSpacing: 1 }}
+            >
+              Continue explorando
+            </Typography>
+            <Typography variant="h4" component="h2">
+              Eventos relacionados
+            </Typography>
+          </Stack>
 
-        <div className="event-recs-grid">
-          {loading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={`rec-skeleton-${i}`} className="event-recs-skeleton">
-                  <div className="event-recs-skeleton-image" />
-                  <div className="event-recs-skeleton-content">
-                    <div className="event-recs-skeleton-title" />
-                    <div className="event-recs-skeleton-text" />
-                    <div className="event-recs-skeleton-text short" />
-                  </div>
-                </div>
-              ))
-            : recommendations.map((rec) => (
-                <EventCard key={rec.id} event={rec} tags={rec.tags || []} />
-              ))}
-        </div>
-
-        <div className="event-recs-cta">
-          <button onClick={() => navigate('/eventos')}>
-            Ver todos os eventos
-            <ArrowRight size={16} />
-          </button>
-        </div>
-      </div>
-    </section>
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 3,
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+            }}
+          >
+            {events.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                variant="compact"
+                showDescription
+                showActionButton
+                showInfoRows={false}
+                showDateBadge
+                actionInternal
+                actionLabel="Ver evento"
+                favouriteIds={favouriteIds}
+                toggleFavourite={(eventId) => toggleFavourite(eventId, events)}
+              />
+            ))}
+          </Box>
+        </Container>
+      )}
+    </Box>
   )
 }
-
-export default EventRecommendations

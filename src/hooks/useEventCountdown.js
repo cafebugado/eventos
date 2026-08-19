@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { parseEventDate } from '../utils/eventDate'
 
@@ -47,16 +49,35 @@ export function useEventCountdown(dataEvento, horario) {
     return { isHappening: false, isWithin24h: false, countdown: null }
   }
 
-  const [state, setState] = useState(getState)
+  // Estado inicial fixo (sem countdown) igual no servidor e no primeiro
+  // render do cliente — depende de Date.now(), então calcular o valor real
+  // já no useState causaria hydration mismatch (servidor e cliente rodam em
+  // instantes diferentes). O valor de verdade é calculado no effect abaixo,
+  // que só roda no cliente.
+  const [state, setState] = useState({ isHappening: false, isWithin24h: false, countdown: null })
 
   useEffect(() => {
-    if (!state.isHappening && !state.isWithin24h) {
-      return
+    let interval
+
+    // setState roda dentro de um callback (setTimeout), não direto no corpo
+    // do effect — mesma regra (react-hooks/refs) de EventCard.jsx.
+    const tick = () => {
+      const next = getState()
+      setState(next)
+      if (!next.isHappening && !next.isWithin24h) {
+        clearInterval(interval)
+      }
     }
 
-    const interval = setInterval(() => setState(getState()), 1000)
-    return () => clearInterval(interval)
-  }, [state.isHappening, state.isWithin24h, dataEvento, horario])
+    const timeout = setTimeout(tick, 0)
+    interval = setInterval(tick, 1000)
+
+    return () => {
+      clearTimeout(timeout)
+      clearInterval(interval)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataEvento, horario])
 
   return state
 }

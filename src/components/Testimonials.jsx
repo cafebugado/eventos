@@ -1,7 +1,14 @@
-import { Star } from 'lucide-react'
-import './Testimonials.css'
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import Avatar from '@mui/material/Avatar'
+import StarIcon from '@mui/icons-material/Star'
 
-const testimonials = [
+// Componente estático (sem estado/interatividade) — não precisa de 'use client',
+// renderiza inteiramente no servidor.
+
+const TESTIMONIALS = [
   {
     id: 1,
     name: 'Lucas Mendes',
@@ -26,62 +33,64 @@ const testimonials = [
       'Como estudante, essa plataforma foi essencial para eu encontrar eventos gratuitos e networking. Recomendo demais!',
     avatar: 'PO',
   },
-  {
-    id: 4,
-    name: 'Mariana Costa',
-    role: 'DevOps Engineer',
-    quote:
-      'A curadoria dos eventos é excelente. Sempre encontro conteúdo relevante e de qualidade. Virou minha fonte principal de eventos tech.',
-    avatar: 'MC',
-  },
-  {
-    id: 5,
-    name: 'Rafael Santos',
-    role: 'Tech Lead',
-    quote:
-      'Uso a plataforma para divulgar os eventos da minha comunidade. É incrível ver como ela conecta pessoas e fortalece o ecossistema.',
-    avatar: 'RS',
-  },
 ]
 
 function StarRating() {
   return (
-    <div className="testi-stars">
+    <Stack direction="row" spacing={0.25} sx={{ color: 'warning.main' }}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <Star key={i} size={16} fill="currentColor" />
+        <StarIcon key={i} fontSize="small" />
       ))}
-    </div>
+    </Stack>
   )
 }
 
-function Testimonials() {
-  const visible = testimonials.slice(0, 3)
-
+export default function Testimonials() {
   return (
-    <section className="testimonials-section">
-      <div className="testimonials-container">
-        <div className="testimonials-header">
-          <h2>O que diz a comunidade</h2>
-        </div>
+    <Box component="section" sx={{ bgcolor: 'background.paper', py: { xs: 6, md: 10 } }}>
+      <Container maxWidth="lg">
+        <Typography variant="h4" component="h2" sx={{ textAlign: 'center', mb: 5 }}>
+          O que diz a comunidade
+        </Typography>
 
-        <div className="testi-grid">
-          {visible.map((t) => (
-            <div key={t.id} className="testi-card">
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 3,
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+          }}
+        >
+          {TESTIMONIALS.map((t) => (
+            <Stack
+              key={t.id}
+              spacing={2}
+              sx={{
+                p: 3,
+                bgcolor: 'background.default',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+              }}
+            >
               <StarRating />
-              <blockquote className="testi-quote">"{t.quote}"</blockquote>
-              <div className="testi-author">
-                <div className="testi-avatar">{t.avatar}</div>
-                <div className="testi-info">
-                  <strong>{t.name}</strong>
-                  <span>{t.role}</span>
-                </div>
-              </div>
-            </div>
+              <Typography component="blockquote" variant="body1" sx={{ m: 0, flexGrow: 1 }}>
+                &ldquo;{t.quote}&rdquo;
+              </Typography>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                <Avatar sx={{ bgcolor: 'primary.main' }}>{t.avatar}</Avatar>
+                <Box>
+                  <Typography variant="subtitle2" component="div">
+                    {t.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {t.role}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Stack>
           ))}
-        </div>
-      </div>
-    </section>
+        </Box>
+      </Container>
+    </Box>
   )
 }
-
-export default Testimonials

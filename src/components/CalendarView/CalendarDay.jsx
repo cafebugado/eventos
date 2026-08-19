@@ -1,20 +1,47 @@
+'use client'
+
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import { isEventPast, isEventToday } from '../../utils/eventDate'
 
-const MAX_DOTS_DESKTOP = 3
-const MAX_DOTS_MOBILE = 2
+const MAX_DOTS = 3
 
-function renderDots(events, maxDots) {
-  const count = Math.min(events.length, maxDots)
-  const dots = Array.from({ length: count }).map((_, i) => {
-    const isPast = isEventPast(events[i].data_evento)
-    return <span key={i} className={`cal-dot${isPast ? ' cal-dot--past' : ''}`} />
-  })
-  const extra = events.length - maxDots
+function EventDots({ events }) {
+  const count = Math.min(events.length, MAX_DOTS)
+  const extra = events.length - MAX_DOTS
+
   return (
-    <>
-      {dots}
-      {extra > 0 && <span className="cal-dot-more">+{extra}</span>}
-    </>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: { xs: 0.25, sm: 0.5 },
+        mt: { xs: 0.25, sm: 0.5 },
+        minWidth: 0,
+        alignItems: 'center',
+        flexWrap: 'wrap',
+      }}
+    >
+      {Array.from({ length: count }).map((_, i) => (
+        <Box
+          key={i}
+          sx={{
+            width: { xs: 4, sm: 6 },
+            height: { xs: 4, sm: 6 },
+            borderRadius: '50%',
+            bgcolor: isEventPast(events[i].data_evento) ? 'text.disabled' : 'primary.main',
+          }}
+        />
+      ))}
+      {extra > 0 && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ fontSize: { xs: '0.55rem', sm: '0.6rem' }, lineHeight: 1 }}
+        >
+          +{extra}
+        </Typography>
+      )}
+    </Box>
   )
 }
 
@@ -23,21 +50,8 @@ export default function CalendarDay({ day, currentMonth, isToday, events, onClic
   const allPast = hasEvents && events.every((e) => isEventPast(e.data_evento))
   const hasLive = hasEvents && events.some((e) => isEventToday(e.data_evento))
 
-  const classNames = [
-    'cal-day',
-    !currentMonth && 'cal-day--other-month',
-    isToday && 'cal-day--today',
-    hasEvents && 'cal-day--has-events',
-    hasEvents && !allPast && 'cal-day--upcoming',
-    allPast && 'cal-day--past-events',
-    hasLive && 'cal-day--live',
-  ]
-    .filter(Boolean)
-    .join(' ')
-
   return (
-    <div
-      className={classNames}
+    <Box
       onClick={hasEvents ? onClick : undefined}
       role={hasEvents ? 'button' : undefined}
       tabIndex={hasEvents ? 0 : undefined}
@@ -45,19 +59,34 @@ export default function CalendarDay({ day, currentMonth, isToday, events, onClic
       aria-label={
         hasEvents ? `${day}, ${events.length} evento${events.length > 1 ? 's' : ''}` : String(day)
       }
+      sx={{
+        width: { xs: '100%', sm: 'auto' },
+        minWidth: { xs: 0, sm: 'auto' },
+        boxSizing: 'border-box',
+        overflow: { xs: 'hidden', sm: 'visible' },
+        aspectRatio: '1',
+        p: { xs: 0.5, sm: 0.75 },
+        borderRadius: 1.5,
+        border: '1px solid',
+        borderColor: isToday ? 'primary.main' : 'divider',
+        opacity: currentMonth ? 1 : 0.4,
+        cursor: hasEvents ? 'pointer' : 'default',
+        bgcolor: hasLive
+          ? 'success.main'
+          : hasEvents && !allPast
+            ? 'action.selected'
+            : 'transparent',
+        color: hasLive ? 'success.contrastText' : 'text.primary',
+        '&:hover': hasEvents ? { bgcolor: hasLive ? 'success.dark' : 'action.hover' } : undefined,
+      }}
     >
-      <span className="cal-day-number">{day}</span>
-
-      {hasEvents && (
-        <>
-          <div className="cal-day-dots cal-day-dots--desktop">
-            {renderDots(events, MAX_DOTS_DESKTOP)}
-          </div>
-          <div className="cal-day-dots cal-day-dots--mobile">
-            {renderDots(events, MAX_DOTS_MOBILE)}
-          </div>
-        </>
-      )}
-    </div>
+      <Typography
+        variant="body2"
+        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: isToday ? 700 : 400 }}
+      >
+        {day}
+      </Typography>
+      {hasEvents && <EventDots events={events} />}
+    </Box>
   )
 }

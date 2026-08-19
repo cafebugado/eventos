@@ -1,35 +1,36 @@
-import { Heart } from 'lucide-react'
+'use client'
+
 import { memo } from 'react'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import FavoriteIcon from '@mui/icons-material/Favorite'
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
 
-import './FavouriteEventButton.css'
+export const FavouriteEventButton = memo(function FavouriteEventButton({
+  event,
+  isFavourite,
+  onToggle,
+  isCard,
+}) {
+  const handleClick = (e) => {
+    e.stopPropagation()
+    onToggle(event.id)
+  }
 
-export const FavouriteEventButton = memo(({ event, isFavourite, onToggle, isCard }) => {
+  const icon = isFavourite ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />
+  const label = isFavourite ? 'Remover dos favoritos' : 'Favoritar'
+
   if (!isCard) {
     return (
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          onToggle(event.id)
-        }}
-        className="favourite-button"
-      >
-        {isFavourite ? 'Remover dos favoritos' : 'Favoritar'}
-        <Heart className={`heart-icon ${isFavourite ? 'is-active' : ''}`} />
-      </button>
-    )
-  } else {
-    return (
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          onToggle(event.id)
-        }}
-        className="card-heart-div"
-      >
-        <Heart size={24} className={`heart-icon ${isFavourite ? 'is-active' : ''}`} />
-      </button>
+      <Button variant="outlined" color="inherit" onClick={handleClick} endIcon={icon}>
+        {label}
+      </Button>
     )
   }
-})
 
-FavouriteEventButton.displayName = 'FavouriteEventButton'
+  return (
+    <IconButton onClick={handleClick} aria-label={label}>
+      {icon}
+    </IconButton>
+  )
+})

@@ -1,20 +1,12 @@
-import { ArrowLeft } from 'lucide-react'
-import './BackButton.css'
+'use client'
 
-/**
- * Botão de voltar reutilizável.
- *
- * Props:
- *  - onClick: função chamada ao clicar (obrigatório)
- *  - label: texto do botão (padrão: "Voltar")
- */
-function BackButton({ onClick, label = 'Voltar' }) {
+import Button from '@mui/material/Button'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+
+export default function BackButton({ onClick, label = 'Voltar' }) {
   return (
-    <button className="back-btn" onClick={onClick}>
-      <ArrowLeft size={18} />
-      <span>{label}</span>
-    </button>
+    <Button variant="outlined" color="inherit" startIcon={<ArrowBackIcon />} onClick={onClick}>
+      {label}
+    </Button>
   )
 }
-
-export default BackButton

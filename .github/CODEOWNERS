@@ -12,30 +12,20 @@
 # CI / GitHub Actions — qualquer mudança em workflow exige revisão
 .github/                    @cafebugado
 
-# Infraestrutura e configuração crítica
-nginx.conf                  @cafebugado
-Dockerfile                  @cafebugado
-docker-compose*.yml         @cafebugado
-vite.config.*               @cafebugado
+# Configuração crítica
 .env.example                @cafebugado
 
-# Área admin — painel de administração
-src/admin/                  @cafebugado
-src/pages/EventDetails.jsx  @cafebugado
-
-# Serviços e lógica de negócio
+# Serviços, lógica de negócio e estado global
 src/services/               @cafebugado
 src/lib/                    @cafebugado
 src/hooks/                  @cafebugado
-src/context/                @cafebugado
-src/contexts/               @cafebugado
+src/store/                  @cafebugado
 
 # Componentes compartilhados
 src/components/             @cafebugado
 
-# Páginas públicas
-src/pages/                  @cafebugado
-src/App.jsx                 @cafebugado
+# Páginas públicas (App Router)
+src/app/                    @cafebugado
 
 # Testes — toda mudança em teste exige revisão
 **/*.test.jsx               @cafebugado

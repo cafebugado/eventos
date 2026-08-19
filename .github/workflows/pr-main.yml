@@ -13,8 +13,8 @@ on:
       - reopened
 
 env:
-  NODE_VERSION: '20'
-  PNPM_VERSION: '9'
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10'
 
 jobs:
   validate-branch:
@@ -70,38 +70,24 @@ jobs:
       - name: Executar lint
         run: pnpm lint
 
+      - name: Instalar navegador do Playwright (Chromium)
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Executar testes com cobertura
         run: pnpm test:coverage
 
       - name: Build de produção
         run: pnpm build
 
-      - name: Verificar tamanho do bundle
-        run: |
-          MAX_SIZE_KB=1300
-          TOTAL_SIZE_KB=$(du -sk dist/ | cut -f1)
-
-          echo "## Tamanho do Bundle" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Arquivo | Tamanho |" >> $GITHUB_STEP_SUMMARY
-          echo "|---------|---------|" >> $GITHUB_STEP_SUMMARY
-          find dist -name "*.js" -exec du -h {} \; | sort -rh | head -10 | while read size file; do
-            echo "| \`$file\` | $size |" >> $GITHUB_STEP_SUMMARY
-          done
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Total:** ${TOTAL_SIZE_KB}KB / Limite: ${MAX_SIZE_KB}KB" >> $GITHUB_STEP_SUMMARY
-
-          if [ "$TOTAL_SIZE_KB" -gt "$MAX_SIZE_KB" ]; then
-            echo "::error::Bundle excede o limite! ${TOTAL_SIZE_KB}KB > ${MAX_SIZE_KB}KB"
-            exit 1
-          else
-            echo "Bundle dentro do limite: ${TOTAL_SIZE_KB}KB <= ${MAX_SIZE_KB}KB"
-          fi
+      # Sem checagem de tamanho de bundle aqui: a saída do Next.js (.next/)
+      # não é comparável 1:1 com o dist/ do Vite (inclui código de servidor,
+      # cache, etc.) — medir o bundle real enviado ao browser exige analisar
+      # o output do build de outra forma. Fica como pendência separada.
 
   pr-info:
     name: Informações do PR
     runs-on: ubuntu-latest
-    needs: ci-checks
+    needs: [ci-checks]
 
     steps:
       - name: Resumo do PR

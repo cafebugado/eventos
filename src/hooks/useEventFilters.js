@@ -1,13 +1,62 @@
-import { useState, useMemo } from 'react'
-import { isEventPast } from '../utils/eventDate'
+'use client'
 
-export default function useEventFilters(agenda, eventTagsMap, favouriteIds) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedTagId, setSelectedTagId] = useState('')
-  const [showPastEvents, setShowPastEvents] = useState(false)
-  const [showOnlyFavourites, setShowOnlyFavourites] = useState(false)
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+import { useCallback, useMemo } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { isEventPast } from '../utils/eventDate'
+import { withUpdatedParams } from '../utils/urlSearchParams'
+
+// Porta useEventFilters.js (app antigo, estado local via useState) para
+// next/navigation — os filtros vivem na URL (?q=&tag=&fav=&from=&to=),
+// tornando a listagem filtrada compartilhável/"voltar" funcional. Qualquer
+// mudança de filtro reseta a página para 1 (mesmo comportamento do app antigo,
+// que chamava goToPage(1) manualmente antes de cada setter). A busca deve chamar
+// setSearchTerm somente no submit do formulário, evitando navegação a cada tecla.
+export function useEventFilters(agenda, eventTagsMap, favouriteIds) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const searchTerm = searchParams.get('q') || ''
+  const selectedTagId = searchParams.get('tag') || ''
+  const showOnlyFavourites = searchParams.get('fav') === '1'
+  const dateFrom = searchParams.get('from') || ''
+  const dateTo = searchParams.get('to') || ''
+  const selectedLocation = searchParams.get('local') || ''
+
+  const updateFilter = useCallback(
+    (patch) => {
+      const query = withUpdatedParams(searchParams, { ...patch, past: false }, { resetPage: true })
+      router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
+    },
+    [pathname, router, searchParams]
+  )
+
+  const setSearchTerm = useCallback((value) => updateFilter({ q: value }), [updateFilter])
+  const setSelectedTagId = useCallback((value) => updateFilter({ tag: value }), [updateFilter])
+
+  const setShowOnlyFavourites = useCallback(
+    (value) => {
+      const next = typeof value === 'function' ? value(showOnlyFavourites) : value
+      updateFilter({ fav: next })
+    },
+    [updateFilter, showOnlyFavourites]
+  )
+
+  const setDateFrom = useCallback((value) => updateFilter({ from: value }), [updateFilter])
+  const setDateTo = useCallback((value) => updateFilter({ to: value }), [updateFilter])
+
+  const setSelectedLocation = useCallback((value) => updateFilter({ local: value }), [updateFilter])
+
+  const setFilters = useCallback(
+    ({ tag, local, from, to }) => {
+      updateFilter({ tag, local, from, to })
+    },
+    [updateFilter]
+  )
+
+  const clearFilters = useCallback(() => {
+    updateFilter({ tag: '', local: '', from: '', to: '' })
+  }, [updateFilter])
 
   const filteredEvents = useMemo(() => {
     return agenda.filter((event) => {
@@ -21,9 +70,15 @@ export default function useEventFilters(agenda, eventTagsMap, favouriteIds) {
         !selectedTagId ||
         (eventTagsMap[event.id] || []).some((tag) => String(tag.id) === selectedTagId)
 
-      const matchesPastFilter = showPastEvents || !isEventPast(event.data_evento)
+      const matchesUpcomingEvent = !isEventPast(event.data_evento)
 
       const matchesFavourite = !showOnlyFavourites || favouriteIds.has(event.id)
+
+      const matchesLocation =
+        !selectedLocation ||
+        (selectedLocation === 'Online'
+          ? event.modalidade === 'Online'
+          : event.cidade === selectedLocation)
 
       let matchesDate = true
       if (dateFrom || dateTo) {
@@ -40,36 +95,45 @@ export default function useEventFilters(agenda, eventTagsMap, favouriteIds) {
         }
       }
 
-      return matchesSearch && matchesTag && matchesPastFilter && matchesFavourite && matchesDate
+      return (
+        matchesSearch &&
+        matchesTag &&
+        matchesUpcomingEvent &&
+        matchesFavourite &&
+        matchesLocation &&
+        matchesDate
+      )
     })
   }, [
     agenda,
     searchTerm,
     selectedTagId,
     eventTagsMap,
-    showPastEvents,
     showOnlyFavourites,
     favouriteIds,
+    selectedLocation,
     dateFrom,
     dateTo,
   ])
 
   const filterActiveCount =
-    (selectedTagId ? 1 : 0) + (showPastEvents ? 1 : 0) + (dateFrom ? 1 : 0) + (dateTo ? 1 : 0)
+    (selectedTagId ? 1 : 0) + (selectedLocation ? 1 : 0) + (dateFrom || dateTo ? 1 : 0)
 
   return {
     searchTerm,
     setSearchTerm,
     selectedTagId,
     setSelectedTagId,
-    showPastEvents,
-    setShowPastEvents,
     showOnlyFavourites,
     setShowOnlyFavourites,
+    selectedLocation,
+    setSelectedLocation,
     dateFrom,
     setDateFrom,
     dateTo,
     setDateTo,
+    setFilters,
+    clearFilters,
     filteredEvents,
     filterActiveCount,
   }

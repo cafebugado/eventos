@@ -1,125 +1,144 @@
-import { useNavigate } from 'react-router-dom'
-import { Calendar, Clock, MapPin, Wifi, Video, Monitor, ArrowUpRight } from 'lucide-react'
-import BgEventos from '../../assets/eventos.png'
-import { FavouriteEventButton } from '../FavouriteEventButton'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Box from '@mui/material/Box'
+import Stack from '@mui/material/Stack'
+import Chip from '@mui/material/Chip'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined'
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
+import WifiOutlinedIcon from '@mui/icons-material/WifiOutlined'
+import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined'
+import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined'
+import ArrowOutwardOutlinedIcon from '@mui/icons-material/ArrowOutwardOutlined'
 import { isEventPast, isEventToday } from '../../utils/eventDate'
+
+const FALLBACK_IMAGE = '/eventos.png'
 
 function ModalidadeIcon({ modalidade }) {
   if (modalidade === 'Online') {
-    return <Wifi size={13} />
+    return <WifiOutlinedIcon sx={{ fontSize: 13 }} />
   }
   if (modalidade === 'Híbrido') {
-    return <Video size={13} />
+    return <VideocamOutlinedIcon sx={{ fontSize: 13 }} />
   }
-  return <Monitor size={13} />
+  return <DesktopWindowsOutlinedIcon sx={{ fontSize: 13 }} />
 }
 
-export default function CalendarEventItem({
-  event,
-  tags = [],
-  favouriteIds,
-  toggleFavourite,
-  onNavigate,
-}) {
-  const navigate = useNavigate()
+export default function CalendarEventItem({ event, onNavigate }) {
+  const router = useRouter()
   const isPast = isEventPast(event?.data_evento)
   const isToday = isEventToday(event?.data_evento)
 
+  // Estado em vez de mutar e.target.src direto no onError — ver comentário
+  // equivalente em EventCard.jsx.
+  const [imageFailed, setImageFailed] = useState(false)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => setImageFailed(false), 0)
+    return () => clearTimeout(timeoutId)
+  }, [event?.imagem])
+
   function handleClick() {
-    if (onNavigate) {
-      onNavigate()
-    }
-    navigate(`/eventos/${event?.slug || event?.id}`)
+    onNavigate?.()
+    router.push(`/eventos/${event?.slug || event?.id}`)
   }
 
   const badgeText = isPast ? 'Encerrado' : isToday ? 'Hoje' : event?.periodo
-  const badgeClass = `cei-badge${isPast ? ' cei-badge--past' : isToday ? ' cei-badge--today' : ''}`
 
   return (
-    <div
-      className={`cei-item${isPast ? ' cei-item--past' : ''}`}
-      onClick={handleClick}
+    <Stack
+      direction="row"
+      spacing={1.5}
       role="button"
       tabIndex={0}
+      aria-label={event?.nome}
+      onClick={handleClick}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleClick()}
+      sx={{
+        p: 1.25,
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        cursor: 'pointer',
+        opacity: isPast ? 0.6 : 1,
+        '&:hover': { bgcolor: 'action.hover' },
+      }}
     >
-      <div className="cei-image">
-        <img
-          src={event?.imagem || BgEventos}
+      <Box sx={{ position: 'relative', flexShrink: 0 }}>
+        <Box
+          component="img"
+          src={imageFailed || !event?.imagem ? FALLBACK_IMAGE : event.imagem}
           alt={event?.nome ?? ''}
           loading="lazy"
-          onError={(e) => {
-            e.target.src = BgEventos
-          }}
+          onError={() => setImageFailed(true)}
+          sx={{ width: 88, height: 64, borderRadius: 1.5, objectFit: 'cover' }}
         />
-        {badgeText && <span className={badgeClass}>{badgeText}</span>}
-      </div>
+        {badgeText && (
+          <Chip
+            label={badgeText}
+            size="small"
+            color={isPast ? 'default' : isToday ? 'success' : 'primary'}
+            sx={{ position: 'absolute', top: 2, left: 2, height: 18, fontSize: '0.6rem' }}
+          />
+        )}
+      </Box>
 
-      <div className="cei-content">
-        <div className="cei-top">
-          <h4 className="cei-title">{event?.nome ?? ''}</h4>
-          {tags.length > 0 && (
-            <div className="cei-tags">
-              {tags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className="cei-tag"
-                  style={{ '--tag-color': tag.cor || '#2563eb' }}
-                >
-                  {tag.nome}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+      <Stack spacing={0.5} sx={{ flexGrow: 1, minWidth: 0 }}>
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+          <Typography variant="subtitle2" component="h4" noWrap title={event?.nome}>
+            {event?.nome}
+          </Typography>
+        </Stack>
 
-        <div className="cei-info">
-          <span className="cei-info-item cei-info-item--date">
-            <Calendar size={12} />
-            {event?.data_evento}
-          </span>
-          <span className="cei-info-item">
-            <Clock size={12} />
-            {event?.horario}
-          </span>
+        <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+            <AccessTimeOutlinedIcon sx={{ fontSize: 13 }} color="disabled" />
+            <Typography variant="caption" color="text.secondary">
+              {event?.horario}
+            </Typography>
+          </Stack>
           {event?.modalidade && (
-            <span className="cei-info-item">
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
               <ModalidadeIcon modalidade={event.modalidade} />
-              {event.modalidade}
-            </span>
+              <Typography variant="caption" color="text.secondary">
+                {event.modalidade}
+              </Typography>
+            </Stack>
           )}
           {event?.cidade && event?.modalidade !== 'Online' && (
-            <span className="cei-info-item">
-              <MapPin size={12} />
-              {[event.cidade, event.estado].filter(Boolean).join(' - ')}
-            </span>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+              <LocationOnOutlinedIcon sx={{ fontSize: 13 }} color="disabled" />
+              <Typography variant="caption" color="text.secondary">
+                {[event.cidade, event.estado].filter(Boolean).join(' - ')}
+              </Typography>
+            </Stack>
           )}
-        </div>
+        </Stack>
 
-        <div className="cei-actions" onClick={(e) => e.stopPropagation()}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ alignItems: 'center' }}
+          onClick={(e) => e.stopPropagation()}
+        >
           {isPast ? (
-            <button className="participate-button cei-participate disabled" onClick={handleClick}>
+            <Button size="small" variant="text" disabled>
               Ver detalhes
-            </button>
+            </Button>
           ) : (
-            <a
-              href={event?.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="participate-button cei-participate"
+            <Button
+              onClick={handleClick}
+              size="small"
+              variant="outlined"
+              endIcon={<ArrowOutwardOutlinedIcon sx={{ fontSize: 14 }} />}
             >
               Saber mais
-              <ArrowUpRight size={15} />
-            </a>
+            </Button>
           )}
-          <FavouriteEventButton
-            event={event}
-            isFavourite={favouriteIds.has(event?.id)}
-            onToggle={toggleFavourite}
-            isCard={true}
-          />
-        </div>
-      </div>
-    </div>
+        </Stack>
+      </Stack>
+    </Stack>
   )
 }

@@ -1,639 +1,299 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { supabase } from '../lib/supabase'
+import { describe, expect, it } from 'vitest'
+import { http, HttpResponse } from 'msw'
+import { server } from '../test/mocks/server'
 import {
-  getEvents,
-  getEventById,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  getEventsByPeriod,
-  getUpcomingEvents,
+  getContributors,
+  getEventDetail,
+  getEventsTagsMap,
   getEventStats,
-  uploadEventImage,
-  deleteEventImage,
+  getFeaturedEvents,
+  getPublishedEvents,
   getRecommendedEvents,
+  getTags,
 } from './eventService'
 
-describe('eventService', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
+const API_BASE_URL = 'https://v3.api.eventoscafebugado.cafebugado.com.br'
+
+describe('getFeaturedEvents', () => {
+  it('busca os eventos em destaque na API', async () => {
+    const events = [{ id: '1', nome: 'Evento Destaque' }]
+    server.use(http.get(`${API_BASE_URL}/events/featured`, () => HttpResponse.json(events)))
+
+    await expect(getFeaturedEvents()).resolves.toEqual(events)
   })
 
-  describe('getEvents', () => {
-    it('deve buscar todos os eventos ordenados por data', async () => {
-      const mockEvents = [
-        { id: '1', nome: 'Evento 1', data_evento: '2024-01-01' },
-        { id: '2', nome: 'Evento 2', data_evento: '2024-01-02' },
-      ]
+  it('passa o limit como query param, com default 3', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/featured`, ({ request }) => {
+        const url = new URL(request.url)
+        expect(url.searchParams.get('limit')).toBe('3')
+        return HttpResponse.json([])
+      })
+    )
 
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await getEvents()
-
-      expect(supabase.from).toHaveBeenCalledWith('eventos')
-      expect(mockChain.select).toHaveBeenCalledWith('*')
-      expect(mockChain.order).toHaveBeenCalledWith('data_evento', { ascending: true })
-      expect(result).toEqual(mockEvents)
-    })
-
-    it('deve lançar erro quando a busca falha', async () => {
-      const mockError = new Error('Database error')
-
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: null, error: mockError }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      await expect(getEvents()).rejects.toThrow('Database error')
-    })
+    await getFeaturedEvents()
   })
 
-  describe('getEventById', () => {
-    it('deve buscar evento por ID', async () => {
-      const mockEvent = { id: '1', nome: 'Evento 1' }
+  it('repassa um limit explícito como query param', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/featured`, ({ request }) => {
+        const url = new URL(request.url)
+        expect(url.searchParams.get('limit')).toBe('5')
+        return HttpResponse.json([])
+      })
+    )
 
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: mockEvent, error: null }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await getEventById('1')
-
-      expect(supabase.from).toHaveBeenCalledWith('eventos')
-      expect(mockChain.eq).toHaveBeenCalledWith('id', '1')
-      expect(result).toEqual(mockEvent)
-    })
-
-    it('deve lançar erro quando evento não existe', async () => {
-      const mockError = new Error('Event not found')
-
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: mockError }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      await expect(getEventById('999')).rejects.toThrow('Event not found')
-    })
+    await getFeaturedEvents(5)
   })
 
-  describe('createEvent', () => {
-    it('deve criar novo evento', async () => {
-      const newEvent = {
-        nome: 'Novo Evento',
-        descricao: 'Descrição do evento',
-        data_evento: '2024-02-15',
-        horario: '19:00',
-        dia_semana: 'Quinta-feira',
-        periodo: 'Noturno',
-        link: 'https://evento.com',
-        imagem: 'https://exemplo.com/imagem.jpg',
-      }
-
-      const createdEvent = { id: '1', slug: 'novo-evento', ...newEvent }
-
-      // Primeiro from: busca de conflitos de slug
-      const mockConflictChain = {
-        select: vi.fn().mockReturnThis(),
-        like: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
-      // Segundo from: insert do evento
-      const mockInsertChain = {
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: createdEvent, error: null }),
-      }
-
-      supabase.from.mockReturnValueOnce(mockConflictChain).mockReturnValueOnce(mockInsertChain)
-
-      const result = await createEvent(newEvent)
-
-      expect(supabase.from).toHaveBeenCalledWith('eventos')
-      expect(mockInsertChain.insert).toHaveBeenCalledWith([
-        expect.objectContaining({
-          nome: newEvent.nome,
-          slug: 'novo-evento',
-          descricao: newEvent.descricao,
-          data_evento: newEvent.data_evento,
-          horario: newEvent.horario,
-          dia_semana: newEvent.dia_semana,
-          periodo: newEvent.periodo,
-          link: newEvent.link,
-          imagem: newEvent.imagem,
-          modalidade: null,
-          endereco: null,
-          cidade: null,
-          estado: null,
-          status: 'rascunho',
-        }),
-      ])
-      expect(result).toEqual(createdEvent)
-    })
-
-    it('deve criar evento sem campos opcionais', async () => {
-      const newEvent = {
-        nome: 'Evento Mínimo',
-        data_evento: '2024-02-15',
-        horario: '19:00',
-        dia_semana: 'Quinta-feira',
-        periodo: 'Noturno',
-        link: 'https://evento.com',
-      }
-
-      const createdEvent = {
-        id: '1',
-        slug: 'evento-minimo',
-        ...newEvent,
-        descricao: null,
-        imagem: null,
-      }
-
-      const mockConflictChain = {
-        select: vi.fn().mockReturnThis(),
-        like: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
-      const mockInsertChain = {
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: createdEvent, error: null }),
-      }
-
-      supabase.from.mockReturnValueOnce(mockConflictChain).mockReturnValueOnce(mockInsertChain)
-
-      const result = await createEvent(newEvent)
-
-      expect(mockInsertChain.insert).toHaveBeenCalledWith([
-        expect.objectContaining({
-          descricao: null,
-          imagem: null,
-        }),
-      ])
-      expect(result).toEqual(createdEvent)
-    })
-
-    it('deve lançar erro quando a criação falha', async () => {
-      const mockError = new Error('Insert failed')
-
-      const mockConflictChain = {
-        select: vi.fn().mockReturnThis(),
-        like: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
-      const mockInsertChain = {
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: mockError }),
-      }
-
-      supabase.from.mockReturnValueOnce(mockConflictChain).mockReturnValueOnce(mockInsertChain)
-
-      await expect(createEvent({ nome: 'Teste' })).rejects.toThrow('Insert failed')
-    })
-  })
-
-  describe('updateEvent', () => {
-    it('deve atualizar evento existente', async () => {
-      const updatedData = {
-        nome: 'Evento Atualizado',
-        descricao: 'Nova descrição',
-        data_evento: '2024-03-01',
-        horario: '20:00',
-        dia_semana: 'Sexta-feira',
-        periodo: 'Noturno',
-        link: 'https://novo-link.com',
-        imagem: 'https://nova-imagem.com',
-      }
-
-      const updatedEvent = { id: '1', slug: 'evento-atualizado', ...updatedData }
-
-      // Primeiro from: busca de conflitos de slug (com neq para excluir o próprio evento)
-      const mockConflictChain = {
-        select: vi.fn().mockReturnThis(),
-        like: vi.fn().mockReturnThis(),
-        neq: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
-      const mockUpdateChain = {
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: updatedEvent, error: null }),
-      }
-
-      supabase.from.mockReturnValueOnce(mockConflictChain).mockReturnValueOnce(mockUpdateChain)
-
-      const result = await updateEvent('1', updatedData)
-
-      expect(supabase.from).toHaveBeenCalledWith('eventos')
-      expect(mockUpdateChain.update).toHaveBeenCalled()
-      expect(mockUpdateChain.eq).toHaveBeenCalledWith('id', '1')
-      expect(result).toEqual(updatedEvent)
-    })
-
-    it('deve lançar erro quando a atualização falha', async () => {
-      const mockError = new Error('Update failed')
-
-      const mockConflictChain = {
-        select: vi.fn().mockReturnThis(),
-        like: vi.fn().mockReturnThis(),
-        neq: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
-      const mockUpdateChain = {
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: mockError }),
-      }
-
-      supabase.from.mockReturnValueOnce(mockConflictChain).mockReturnValueOnce(mockUpdateChain)
-
-      await expect(updateEvent('1', { nome: 'Teste' })).rejects.toThrow('Update failed')
-    })
-  })
-
-  describe('deleteEvent', () => {
-    it('deve deletar evento', async () => {
-      const mockChain = {
-        delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: null }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await deleteEvent('1')
-
-      expect(supabase.from).toHaveBeenCalledWith('eventos')
-      expect(mockChain.delete).toHaveBeenCalled()
-      expect(mockChain.eq).toHaveBeenCalledWith('id', '1')
-      expect(result).toBe(true)
-    })
-
-    it('deve lançar erro quando a exclusão falha', async () => {
-      const mockError = new Error('Delete failed')
-
-      const mockChain = {
-        delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: mockError }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      await expect(deleteEvent('1')).rejects.toThrow('Delete failed')
-    })
-  })
-
-  describe('getEventsByPeriod', () => {
-    it('deve filtrar eventos por período', async () => {
-      const mockEvents = [
-        { id: '1', nome: 'Evento Noturno', periodo: 'Noturno' },
-        { id: '2', nome: 'Outro Noturno', periodo: 'Noturno' },
-      ]
-
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await getEventsByPeriod('Noturno')
-
-      expect(mockChain.eq).toHaveBeenCalledWith('periodo', 'Noturno')
-      expect(result).toEqual(mockEvents)
-    })
-
-    it('deve retornar array vazio quando não há eventos do período', async () => {
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await getEventsByPeriod('Matinal')
-
-      expect(result).toEqual([])
-    })
-  })
-
-  describe('getUpcomingEvents', () => {
-    it('deve retornar apenas eventos futuros limitados a 3', async () => {
-      const today = new Date()
-      const futureDate1 = new Date(today)
-      futureDate1.setDate(today.getDate() + 1)
-      const futureDate2 = new Date(today)
-      futureDate2.setDate(today.getDate() + 5)
-      const futureDate3 = new Date(today)
-      futureDate3.setDate(today.getDate() + 10)
-      const futureDate4 = new Date(today)
-      futureDate4.setDate(today.getDate() + 15)
-      const pastDate = new Date(today)
-      pastDate.setDate(today.getDate() - 5)
-
-      const fmt = (d) =>
-        `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
-
-      const mockEvents = [
-        { id: '0', nome: 'Passado', data_evento: fmt(pastDate) },
-        { id: '1', nome: 'Futuro 1', data_evento: fmt(futureDate1) },
-        { id: '2', nome: 'Futuro 2', data_evento: fmt(futureDate2) },
-        { id: '3', nome: 'Futuro 3', data_evento: fmt(futureDate3) },
-        { id: '4', nome: 'Futuro 4', data_evento: fmt(futureDate4) },
-      ]
-
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await getUpcomingEvents(3)
-
-      expect(result).toHaveLength(3)
-      expect(result[0].nome).toBe('Futuro 1')
-      expect(result[2].nome).toBe('Futuro 3')
-    })
-
-    it('deve lançar erro quando a busca falha', async () => {
-      const mockError = new Error('Database error')
-
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: null, error: mockError }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      await expect(getUpcomingEvents()).rejects.toThrow('Database error')
-    })
-
-    it('deve retornar array vazio quando não há eventos futuros', async () => {
-      const pastDate = new Date()
-      pastDate.setDate(pastDate.getDate() - 10)
-      const fmt = (d) =>
-        `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
-
-      const mockEvents = [{ id: '1', nome: 'Passado', data_evento: fmt(pastDate) }]
-
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await getUpcomingEvents()
-
-      expect(result).toEqual([])
-    })
-  })
-
-  describe('getEventStats', () => {
-    it('deve calcular estatísticas corretamente', async () => {
-      const mockEvents = [
-        { periodo: 'Noturno' },
-        { periodo: 'Noturno' },
-        { periodo: 'Diurno' },
-        { periodo: 'Matinal' },
-        { periodo: 'Vespertino' },
-      ]
-
-      const mockChain = {
-        select: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await getEventStats()
-
-      expect(result).toEqual(
-        expect.objectContaining({
-          total: 5,
-          noturno: 2,
-          diurno: 3, // Diurno + Matinal + Vespertino
-        })
+  it('anexa status no erro quando a API responde não-2xx', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/featured`, () =>
+        HttpResponse.json({ detail: 'erro interno' }, { status: 500 })
       )
-    })
+    )
 
-    it('deve retornar zeros quando não há eventos', async () => {
-      const mockChain = {
-        select: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
+    await expect(getFeaturedEvents()).rejects.toMatchObject({ status: 500 })
+  })
+})
 
-      supabase.from.mockReturnValue(mockChain)
+describe('getPublishedEvents', () => {
+  it('busca a lista de eventos publicados na API', async () => {
+    const events = [{ id: '1', nome: 'Evento Publicado' }]
+    server.use(http.get(`${API_BASE_URL}/events/published`, () => HttpResponse.json(events)))
 
-      const result = await getEventStats()
+    await expect(getPublishedEvents()).resolves.toEqual(events)
+  })
 
-      expect(result).toEqual(
-        expect.objectContaining({
-          total: 0,
-          noturno: 0,
-          diurno: 0,
-        })
+  it('não envia nenhum query param quando chamada sem argumentos', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/published`, ({ request }) => {
+        const url = new URL(request.url)
+        expect(Array.from(url.searchParams.keys())).toHaveLength(0)
+        return HttpResponse.json([])
+      })
+    )
+
+    await getPublishedEvents()
+  })
+
+  it('repassa cidade, modalidade, limit e offset como query params quando informados', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/published`, ({ request }) => {
+        const url = new URL(request.url)
+        expect(url.searchParams.get('cidade')).toBe('São Paulo')
+        expect(url.searchParams.get('modalidade')).toBe('Online')
+        expect(url.searchParams.get('limit')).toBe('9')
+        expect(url.searchParams.get('offset')).toBe('0')
+        return HttpResponse.json([])
+      })
+    )
+
+    await getPublishedEvents({ cidade: 'São Paulo', modalidade: 'Online', limit: 9, offset: 0 })
+  })
+
+  it('anexa status no erro quando a API responde não-2xx', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/published`, () =>
+        HttpResponse.json({ detail: 'erro interno' }, { status: 500 })
       )
-    })
+    )
 
-    it('deve lançar erro quando a busca falha', async () => {
-      const mockError = new Error('Stats error')
-
-      const mockChain = {
-        select: vi.fn().mockResolvedValue({ data: null, error: mockError }),
-      }
-
-      supabase.from.mockReturnValue(mockChain)
-
-      await expect(getEventStats()).rejects.toThrow('Stats error')
-    })
+    await expect(getPublishedEvents()).rejects.toMatchObject({ status: 500 })
   })
+})
 
-  describe('uploadEventImage', () => {
-    it('deve fazer upload de imagem e retornar URL pública', async () => {
-      const mockFile = new File(['test content'], 'test.jpg', { type: 'image/jpeg' })
-      const mockPublicUrl = 'https://storage.supabase.co/imagens/eventos/test.jpg'
-
-      const mockStorage = {
-        upload: vi.fn().mockResolvedValue({ error: null }),
-        getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: mockPublicUrl } }),
-      }
-
-      supabase.storage.from.mockReturnValue(mockStorage)
-
-      const result = await uploadEventImage(mockFile)
-
-      expect(supabase.storage.from).toHaveBeenCalledWith('imagens')
-      expect(mockStorage.upload).toHaveBeenCalled()
-      expect(result).toBe(mockPublicUrl)
-    })
-
-    it('deve lançar erro quando o upload falha', async () => {
-      const mockFile = new File(['test content'], 'test.jpg', { type: 'image/jpeg' })
-      const mockError = new Error('Upload failed')
-
-      const mockStorage = {
-        upload: vi.fn().mockResolvedValue({ error: mockError }),
-      }
-
-      supabase.storage.from.mockReturnValue(mockStorage)
-
-      await expect(uploadEventImage(mockFile)).rejects.toThrow('Upload failed')
-    })
-  })
-
-  describe('getRecommendedEvents', () => {
-    const fmt = (d) =>
-      `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
-
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const future = (days) => {
-      const d = new Date(today)
-      d.setDate(d.getDate() + days)
-      return d
+describe('getEventDetail', () => {
+  it('busca o detalhe agregado (evento + tags) pelo slug na API', async () => {
+    const detail = {
+      evento: { id: '1', slug: 'meetup-cafe-bugado', nome: 'Meetup Café Bugado' },
+      tags: [{ id: 't1', nome: 'Backend', cor: '#2563eb' }],
     }
+    server.use(
+      http.get(`${API_BASE_URL}/events/slug/meetup-cafe-bugado/detail`, () =>
+        HttpResponse.json(detail)
+      )
+    )
 
-    beforeEach(() => {
-      vi.doMock('./tagService', () => ({
-        getAllEventTags: vi.fn().mockResolvedValue({}),
-      }))
-    })
+    await expect(getEventDetail('meetup-cafe-bugado')).resolves.toEqual(detail)
+  })
 
-    it('deve retornar eventos futuros excluindo o evento atual', async () => {
-      const mockEvents = [
-        { id: '1', nome: 'Atual', data_evento: fmt(future(5)) },
-        { id: '2', nome: 'Recomendado', data_evento: fmt(future(3)) },
-        { id: '3', nome: 'Outro', data_evento: fmt(future(7)) },
-      ]
+  it('preserva o slug/id exato na URL mesmo com espaço/acento', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/slug/:slugOrId/detail`, ({ params }) => {
+        expect(params.slugOrId).toBe('evento com espaço')
+        return HttpResponse.json({ evento: { id: '1' }, tags: [] })
+      })
+    )
 
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
-      }
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await getRecommendedEvents('1', [], future(5), 3)
-
-      expect(result.find((r) => r.id === '1')).toBeUndefined()
-      expect(result.find((r) => r.nome === 'Recomendado')).toBeDefined()
-    })
-
-    it('deve respeitar o limite de resultados', async () => {
-      const mockEvents = Array.from({ length: 10 }, (_, i) => ({
-        id: String(i + 1),
-        nome: `Evento ${i + 1}`,
-        data_evento: fmt(future(i + 1)),
-      }))
-
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
-      }
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await getRecommendedEvents('99', [], future(0), 3)
-
-      expect(result).toHaveLength(3)
-    })
-
-    it('deve excluir eventos passados dos resultados', async () => {
-      const pastDate = new Date(today)
-      pastDate.setDate(pastDate.getDate() - 1)
-
-      const mockEvents = [
-        { id: '1', nome: 'Passado', data_evento: fmt(pastDate) },
-        { id: '2', nome: 'Futuro', data_evento: fmt(future(3)) },
-      ]
-
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
-      }
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await getRecommendedEvents('99', [], future(0), 3)
-
-      expect(result.find((r) => r.nome === 'Passado')).toBeUndefined()
-      expect(result.find((r) => r.nome === 'Futuro')).toBeDefined()
-    })
-
-    it('deve retornar array vazio quando não há candidatos', async () => {
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
-      supabase.from.mockReturnValue(mockChain)
-
-      const result = await getRecommendedEvents('1', [], future(0), 3)
-
-      expect(result).toEqual([])
-    })
-
-    it('deve lançar erro quando a busca falha', async () => {
-      const mockError = new Error('Database error')
-      const mockChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: null, error: mockError }),
-      }
-      supabase.from.mockReturnValue(mockChain)
-
-      await expect(getRecommendedEvents('1', [], future(0), 3)).rejects.toThrow('Database error')
+    await expect(getEventDetail('evento com espaço')).resolves.toEqual({
+      evento: { id: '1' },
+      tags: [],
     })
   })
 
-  describe('deleteEventImage', () => {
-    it('deve deletar imagem do storage', async () => {
-      const imageUrl =
-        'https://storage.supabase.co/storage/v1/object/public/imagens/eventos/test.jpg'
+  it('anexa status 404 no erro quando o evento não existe', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/slug/inexistente/detail`, () =>
+        HttpResponse.json({ message: 'Evento não encontrado' }, { status: 404 })
+      )
+    )
 
-      const mockStorage = {
-        remove: vi.fn().mockResolvedValue({ error: null }),
-      }
+    await expect(getEventDetail('inexistente')).rejects.toMatchObject({ status: 404 })
+  })
 
-      supabase.storage.from.mockReturnValue(mockStorage)
+  it('codifica caracteres estruturais (/, ?, #) no slug em vez de deixá-los alterar a URL', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/slug/:slugOrId/detail`, ({ params }) => {
+        expect(params.slugOrId).toBe('a/b?c#d')
+        return HttpResponse.json({ evento: { id: '1' }, tags: [] })
+      })
+    )
 
-      await deleteEventImage(imageUrl)
-
-      expect(supabase.storage.from).toHaveBeenCalledWith('imagens')
-      expect(mockStorage.remove).toHaveBeenCalledWith(['eventos/test.jpg'])
+    await expect(getEventDetail('a/b?c#d')).resolves.toEqual({
+      evento: { id: '1' },
+      tags: [],
     })
+  })
+})
 
-    it('deve retornar silenciosamente quando URL é null', async () => {
-      await deleteEventImage(null)
+describe('getTags', () => {
+  it('busca a lista de tags na API', async () => {
+    const tags = [{ id: '1', nome: 'Backend', cor: '#2563eb' }]
+    server.use(http.get(`${API_BASE_URL}/tags`, () => HttpResponse.json(tags)))
 
-      expect(supabase.storage.from).not.toHaveBeenCalled()
-    })
+    await expect(getTags()).resolves.toEqual(tags)
+  })
 
-    it('deve retornar silenciosamente quando URL é undefined', async () => {
-      await deleteEventImage(undefined)
+  it('anexa status no erro quando a API responde não-2xx', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/tags`, () =>
+        HttpResponse.json({ detail: 'erro interno' }, { status: 500 })
+      )
+    )
 
-      expect(supabase.storage.from).not.toHaveBeenCalled()
-    })
+    await expect(getTags()).rejects.toMatchObject({ status: 500 })
+  })
+})
 
-    it('deve retornar silenciosamente quando URL não tem path válido', async () => {
-      await deleteEventImage('https://exemplo.com/outra-url')
+describe('getEventsTagsMap', () => {
+  it('busca o mapa de tags por evento na API', async () => {
+    const map = { 'evento-1': [{ id: '1', nome: 'Backend', cor: '#2563eb' }] }
+    server.use(http.get(`${API_BASE_URL}/events/tags-map`, () => HttpResponse.json(map)))
 
-      expect(supabase.storage.from).not.toHaveBeenCalled()
-    })
+    await expect(getEventsTagsMap()).resolves.toEqual(map)
+  })
+
+  it('anexa status no erro quando a API responde não-2xx', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/tags-map`, () =>
+        HttpResponse.json({ detail: 'erro interno' }, { status: 500 })
+      )
+    )
+
+    await expect(getEventsTagsMap()).rejects.toMatchObject({ status: 500 })
+  })
+})
+
+describe('getRecommendedEvents', () => {
+  it('busca os eventos recomendados na API', async () => {
+    const events = [{ id: '1', nome: 'Evento Relacionado' }]
+    server.use(
+      http.get(`${API_BASE_URL}/events/evento-1/recommended`, () => HttpResponse.json(events))
+    )
+
+    await expect(getRecommendedEvents('evento-1')).resolves.toEqual(events)
+  })
+
+  it('passa o limit como query param, com default 3', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/evento-1/recommended`, ({ request }) => {
+        const url = new URL(request.url)
+        expect(url.searchParams.get('limit')).toBe('3')
+        return HttpResponse.json([])
+      })
+    )
+
+    await getRecommendedEvents('evento-1')
+  })
+
+  it('repassa um limit explícito como query param', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/evento-1/recommended`, ({ request }) => {
+        const url = new URL(request.url)
+        expect(url.searchParams.get('limit')).toBe('5')
+        return HttpResponse.json([])
+      })
+    )
+
+    await getRecommendedEvents('evento-1', 5)
+  })
+
+  it('anexa status 404 no erro quando o evento não existe', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/inexistente/recommended`, () =>
+        HttpResponse.json({ message: 'Evento não encontrado' }, { status: 404 })
+      )
+    )
+
+    await expect(getRecommendedEvents('inexistente')).rejects.toMatchObject({ status: 404 })
+  })
+
+  it('codifica caracteres estruturais (/, ?, #) no eventId em vez de deixá-los alterar a URL', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/:eventId/recommended`, ({ params }) => {
+        expect(params.eventId).toBe('a/b?c#d')
+        return HttpResponse.json([])
+      })
+    )
+
+    await expect(getRecommendedEvents('a/b?c#d')).resolves.toEqual([])
+  })
+})
+
+describe('getContributors', () => {
+  it('busca a lista de contribuintes na API', async () => {
+    const contributors = [
+      {
+        id: '1',
+        nome: 'Alice',
+        avatar_url: 'https://example.com/a.png',
+        github_url: 'https://github.com/alice',
+        linkedin_url: null,
+        portfolio_url: null,
+      },
+    ]
+    server.use(http.get(`${API_BASE_URL}/contributors`, () => HttpResponse.json(contributors)))
+
+    await expect(getContributors()).resolves.toEqual(contributors)
+  })
+
+  it('anexa status no erro quando a API responde não-2xx', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/contributors`, () =>
+        HttpResponse.json({ detail: 'erro interno' }, { status: 500 })
+      )
+    )
+
+    await expect(getContributors()).rejects.toMatchObject({ status: 500 })
+  })
+})
+
+describe('getEventStats', () => {
+  it('busca as estatísticas de eventos na API', async () => {
+    const stats = { totalEventos: 42 }
+    server.use(http.get(`${API_BASE_URL}/events/stats/public`, () => HttpResponse.json(stats)))
+
+    await expect(getEventStats()).resolves.toEqual(stats)
+  })
+
+  it('anexa status no erro quando a API responde não-2xx', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/events/stats/public`, () =>
+        HttpResponse.json({ detail: 'erro interno' }, { status: 500 })
+      )
+    )
+
+    await expect(getEventStats()).rejects.toMatchObject({ status: 500 })
   })
 })

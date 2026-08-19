@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect, useRef } from 'react'
 import {
   registerServiceWorker,
@@ -6,7 +8,14 @@ import {
   isInstalledPwa,
   canInstall,
   promptInstall,
+  captureInstallPrompt,
 } from '../lib/pwa.js'
+
+// Registra o listener de beforeinstallprompt assim que este módulo é
+// carregado no cliente — precisa acontecer o quanto antes (equivalente ao
+// captureInstallPrompt() chamado no topo do main.jsx do app antigo, antes do
+// primeiro render). No servidor é um no-op (guard em lib/pwa.js).
+captureInstallPrompt()
 
 export function usePwa() {
   const [swStatus, setSwStatus] = useState('idle')

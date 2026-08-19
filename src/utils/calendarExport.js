@@ -1,8 +1,14 @@
+import { parseEventDate } from './eventDate'
+
 // Converte DD/MM/YYYY + HH:MM para formato iCal YYYYMMDDTHHMMSS
 function toICalDate(dateBR, time) {
-  const [day, month, year] = dateBR.split('/')
+  const date = parseEventDate(dateBR)
+  if (!date) {
+    throw new Error(`Data inválida para exportação de calendário: "${dateBR}"`)
+  }
   const [hour, minute] = (time || '00:00').split(':')
-  return `${year}${month.padStart(2, '0')}${day.padStart(2, '0')}T${hour.padStart(2, '0')}${minute.padStart(2, '0')}00`
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${hour.padStart(2, '0')}${minute.padStart(2, '0')}00`
 }
 
 function sanitizePlainText(input) {
@@ -12,13 +18,13 @@ function sanitizePlainText(input) {
     .replace(/>/g, '&gt;')
 }
 
-// Retorna data/hora + 2h (duração padrão do evento)
+// Retorna data/hora + N horas (duração padrão do evento)
 function addHours(iCalDate, hours) {
-  const year = parseInt(iCalDate.slice(0, 4))
-  const month = parseInt(iCalDate.slice(4, 6)) - 1
-  const day = parseInt(iCalDate.slice(6, 8))
-  const hour = parseInt(iCalDate.slice(9, 11))
-  const minute = parseInt(iCalDate.slice(11, 13))
+  const year = parseInt(iCalDate.slice(0, 4), 10)
+  const month = parseInt(iCalDate.slice(4, 6), 10) - 1
+  const day = parseInt(iCalDate.slice(6, 8), 10)
+  const hour = parseInt(iCalDate.slice(9, 11), 10)
+  const minute = parseInt(iCalDate.slice(11, 13), 10)
 
   const d = new Date(year, month, day, hour + hours, minute)
   const pad = (n) => String(n).padStart(2, '0')

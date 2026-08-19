@@ -8,13 +8,12 @@ Guia completo para montar o ambiente de desenvolvimento do projeto **Eventos - C
 
 Antes de comecar, instale as ferramentas abaixo no seu computador:
 
-| Ferramenta  | Versao Minima | Link para Download                                                                  |
-| ----------- | ------------- | ----------------------------------------------------------------------------------- |
-| **Node.js** | 20.x          | [https://nodejs.org](https://nodejs.org) (versao LTS)                               |
-| **pnpm**    | 9.x           | [https://pnpm.io/installation](https://pnpm.io/installation)                        |
-| **Git**     | 2.x           | [https://git-scm.com](https://git-scm.com)                                          |
-| **Docker**  | 24.x          | [https://www.docker.com/get-started](https://www.docker.com/get-started) (opcional) |
-| **VS Code** | Qualquer      | [https://code.visualstudio.com](https://code.visualstudio.com) (recomendado)        |
+| Ferramenta  | Versao Minima | Link para Download                                                           |
+| ----------- | ------------- | ---------------------------------------------------------------------------- |
+| **Node.js** | 20.x          | [https://nodejs.org](https://nodejs.org) (versao LTS)                        |
+| **pnpm**    | 9.x           | [https://pnpm.io/installation](https://pnpm.io/installation)                 |
+| **Git**     | 2.x           | [https://git-scm.com](https://git-scm.com)                                   |
+| **VS Code** | Qualquer      | [https://code.visualstudio.com](https://code.visualstudio.com) (recomendado) |
 
 ### Verificando as instalacoes
 
@@ -29,9 +28,6 @@ pnpm --version
 
 git --version
 # Esperado: git version 2.x.x
-
-docker --version
-# Esperado: Docker version 24.x.x (se instalado)
 ```
 
 ### Instalando o pnpm (caso nao tenha)
@@ -50,17 +46,14 @@ corepack prepare pnpm@latest --activate
 ## Passo 1 - Clonar o Repositorio
 
 ```bash
-# Clone o projeto do GitHub
-git clone https://github.com/cafebugado/agendas-eventos.git
-
-# Entre na pasta do projeto
-cd agendas-eventos
+git clone https://github.com/cafebugado/eventos.git
+cd eventos
 ```
 
 > Se voce usa SSH em vez de HTTPS:
 >
 > ```bash
-> git clone git@github.com:cafebugado/agendas-eventos.git
+> git clone git@github.com:cafebugado/eventos.git
 > ```
 
 ---
@@ -71,7 +64,7 @@ cd agendas-eventos
 pnpm install
 ```
 
-Esse comando instala todas as dependencias listadas no `package.json`. Aguarde a conclusao (pode levar alguns minutos na primeira vez).
+Esse comando instala as dependencias do app **e** configura os git hooks (Husky) automaticamente via `prepare`. Aguarde a conclusao (pode levar alguns minutos na primeira vez).
 
 > O `pnpm-lock.yaml` garante que todos usem as mesmas versoes. Nunca delete esse arquivo.
 
@@ -79,84 +72,45 @@ Esse comando instala todas as dependencias listadas no `package.json`. Aguarde a
 
 ## Passo 3 - Configurar Variaveis de Ambiente
 
-### 3.1 Criar o arquivo `.env`
+### 3.1 Criar o arquivo `.env.local`
 
 ```bash
-# Copie o arquivo de exemplo
-cp .env.example .env
+cp .env.example .env.local
 ```
 
-### 3.2 Preencher as credenciais
+### 3.2 Nao precisa preencher nada pra rodar local
 
-Abra o arquivo `.env` no seu editor e preencha:
+A integração com a API dedicada foi removida (troca de backend em andamento,
+ver [SPRINT.md](../SPRINT.md)) — nenhuma variavel de API e necessaria no
+momento. As paginas de listagem renderizam estado vazio/erro ate a nova API
+ser plugada.
 
-```env
-# URL do seu projeto Supabase
-VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-
-# Chave publica (anon key) do Supabase
-VITE_SUPABASE_ANON_KEY=sua-anon-key-aqui
-```
-
-### 3.3 Onde encontrar as credenciais
-
-Peca ao lider do projeto ou acesse o Supabase Dashboard:
-
-1. Acesse [https://supabase.com](https://supabase.com) e faca login
-2. Selecione o projeto do Cafe Bugado
-3. Va em **Settings** > **API**
-4. Copie:
-   - **Project URL** -> cole em `VITE_SUPABASE_URL`
-   - **anon public key** (em Project API keys) -> cole em `VITE_SUPABASE_ANON_KEY`
-
-> **IMPORTANTE**: NUNCA commite o arquivo `.env`! Ele ja esta no `.gitignore`.
-
-> Se precisar configurar o Supabase do zero (criar tabelas, storage, etc.), siga o guia completo em [SUPABASE_SETUP.md](SUPABASE_SETUP.md).
+> **IMPORTANTE**: NUNCA commite o arquivo `.env.local`! Ele ja esta no `.gitignore`.
 
 ---
 
-## Passo 4 - Configurar Git Hooks (Husky)
+## Passo 4 - Confirmar os Git Hooks (Husky)
 
-Os hooks sao configurados automaticamente ao instalar as dependencias, mas confirme que estao funcionando:
+Os git hooks (pre-commit, commit-msg) ja foram configurados no Passo 2 (`pnpm install` roda o `prepare` do Husky automaticamente). Para confirmar:
 
 ```bash
-pnpm prepare
+pnpm exec husky
 ```
 
-Isso configura o Husky para executar automaticamente:
+Isso garante que o Husky execute automaticamente:
 
-- **Pre-commit**: Roda ESLint e Prettier nos arquivos modificados
+- **Pre-commit**: Roda ESLint e Prettier (`lint-staged`) nos arquivos modificados
 - **Commit-msg**: Valida se a mensagem de commit segue o padrao Conventional Commits
 
 ---
 
 ## Passo 5 - Rodar o Projeto
 
-Voce pode rodar de **duas formas**: localmente ou via Docker.
-
-### Opcao A: Rodar Localmente (Recomendado para Desenvolvimento)
-
 ```bash
 pnpm dev
 ```
 
-Acesse no navegador: **http://localhost:5173**
-
-### Opcao B: Rodar via Docker
-
-```bash
-# Inicia o container de desenvolvimento
-docker-compose up app-dev
-```
-
-Acesse no navegador: **http://localhost:5173**
-
-Para parar o container:
-
-```bash
-# Ctrl+C no terminal, ou em outro terminal:
-docker-compose down
-```
+Acesse no navegador: **http://localhost:3000**
 
 ---
 
@@ -164,13 +118,9 @@ docker-compose down
 
 ### 6.1 Pagina publica
 
-Acesse `http://localhost:5173` - voce deve ver a pagina inicial com a listagem de eventos.
+Acesse `http://localhost:3000` - voce deve ver a pagina inicial com a listagem de eventos.
 
-### 6.2 Painel administrativo
-
-Acesse `http://localhost:5173/admin` - voce deve ver a tela de login.
-
-### 6.3 Rodar os testes
+### 6.2 Rodar os testes
 
 ```bash
 # Testes unitarios (modo unico)
@@ -180,7 +130,7 @@ pnpm test:run
 pnpm test:coverage
 ```
 
-### 6.4 Verificar linting e formatacao
+### 6.3 Verificar linting e formatacao
 
 ```bash
 # Verificar erros de linting
@@ -200,12 +150,11 @@ Se tudo passou sem erros, seu ambiente esta pronto!
 
 Instale as extensoes abaixo para melhor produtividade:
 
-| Extensao     | ID                            | Para que serve          |
-| ------------ | ----------------------------- | ----------------------- |
-| ESLint       | `dbaeumer.vscode-eslint`      | Mostra erros de linting |
-| Prettier     | `esbenp.prettier-vscode`      | Formatacao automatica   |
-| EditorConfig | `editorconfig.editorconfig`   | Configuracoes do editor |
-| Docker       | `ms-azuretools.vscode-docker` | Suporte a Docker        |
+| Extensao     | ID                          | Para que serve          |
+| ------------ | --------------------------- | ----------------------- |
+| ESLint       | `dbaeumer.vscode-eslint`    | Mostra erros de linting |
+| Prettier     | `esbenp.prettier-vscode`    | Formatacao automatica   |
+| EditorConfig | `editorconfig.editorconfig` | Configuracoes do editor |
 
 ### Configuracao sugerida do VS Code
 
@@ -226,28 +175,26 @@ Adicione ao seu `settings.json` (Ctrl+Shift+P > "Open User Settings JSON"):
 ## Estrutura do Projeto
 
 ```
-agendas-eventos/
+eventos/
 ├── src/
-│   ├── admin/           # Painel administrativo (Login, Dashboard)
-│   ├── pages/           # Paginas publicas (Home, About, Contact, etc.)
-│   ├── components/      # Componentes reutilizaveis (Header, Footer, etc.)
-│   ├── services/        # Servicos de API (Supabase)
-│   ├── hooks/           # Custom React hooks
-│   ├── lib/             # Configuracoes (Supabase, Sentry)
-│   ├── utils/           # Funcoes utilitarias
-│   ├── assets/          # Arquivos estaticos
-│   ├── test/            # Setup e mocks de testes
-│   ├── App.jsx          # Componente principal + rotas
-│   └── main.jsx         # Entry point da aplicacao
-├── api/                 # Funcoes serverless (OG images)
-├── e2e/                 # Testes end-to-end (Playwright)
-├── supabase/            # Migracoes SQL
-├── docs/                # Documentacao do projeto
-├── .github/             # Workflows CI/CD
-├── docker-compose.yml   # Configuracao Docker
-├── vite.config.js       # Configuracao do Vite
-├── package.json         # Dependencias e scripts
-└── .env                 # Variaveis de ambiente (NAO commitar!)
+│   ├── app/           # Rotas (App Router)
+│   ├── components/    # Componentes reutilizaveis
+│   ├── services/      # (removido — integracao com API dedicada em troca, ver SPRINT.md)
+│   ├── hooks/         # Custom hooks
+│   ├── store/         # Estado global (Zustand)
+│   ├── lib/           # Configuracoes (API, Sentry)
+│   ├── theme/         # Tema MUI
+│   ├── utils/         # Funcoes utilitarias
+│   ├── test/          # Setup e mocks de testes
+│   └── instrumentation*.js, sentry.*.config.js
+├── e2e/               # Testes end-to-end (Playwright)
+├── public/            # Arquivos estaticos
+├── docs/              # Documentacao do projeto (esta pasta)
+├── .github/           # Workflows CI/CD
+├── .husky/            # Git hooks
+├── next.config.mjs    # Configuracao do Next.js
+├── package.json       # Dependencias e scripts (app + tooling de git hooks)
+└── .env.local         # Variaveis de ambiente (NAO commitar!)
 ```
 
 ---
@@ -258,7 +205,7 @@ agendas-eventos/
 | -------------------- | ----------------------------------------- |
 | `pnpm dev`           | Inicia servidor de desenvolvimento        |
 | `pnpm build`         | Gera build de producao                    |
-| `pnpm preview`       | Preview da build de producao              |
+| `pnpm start`         | Roda o build de producao localmente       |
 | `pnpm lint`          | Verifica erros de linting                 |
 | `pnpm lint:fix`      | Corrige erros de linting automaticamente  |
 | `pnpm format`        | Formata todos os arquivos com Prettier    |
@@ -268,22 +215,23 @@ agendas-eventos/
 | `pnpm test:coverage` | Executa testes com relatorio de cobertura |
 | `pnpm test:ui`       | Abre interface visual para testes         |
 | `pnpm test:e2e`      | Executa testes E2E (Playwright)           |
+| `pnpm storybook`     | Storybook em modo dev                     |
 
 ---
 
 ## Tecnologias Principais
 
-| Tecnologia         | Uso                                   |
-| ------------------ | ------------------------------------- |
-| React 19           | Biblioteca UI                         |
-| Vite 7             | Build tool e dev server               |
-| React Router DOM 7 | Roteamento SPA                        |
-| Supabase           | Backend (PostgreSQL + Auth + Storage) |
-| Vitest             | Framework de testes                   |
-| Playwright         | Testes end-to-end                     |
-| ESLint + Prettier  | Qualidade e formatacao de codigo      |
-| Husky + Commitlint | Git hooks e padrao de commits         |
-| Docker             | Containerizacao                       |
+| Tecnologia         | Uso                                                     |
+| ------------------ | ------------------------------------------------------- |
+| Next.js 16         | Framework (App Router, Server Components)               |
+| MUI (Material UI)  | Componentes de UI                                       |
+| Zustand            | Estado global                                           |
+| API dedicada       | Removida (troca de backend em andamento, ver SPRINT.md) |
+| Vitest             | Framework de testes                                     |
+| Playwright         | Testes end-to-end                                       |
+| Storybook          | Catalogo de componentes                                 |
+| ESLint + Prettier  | Qualidade e formatacao de codigo                        |
+| Husky + Commitlint | Git hooks e padrao de commits                           |
 
 ---
 

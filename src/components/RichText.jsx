@@ -1,13 +1,14 @@
-import { formatRichText } from '../utils/richText'
-import './RichText.css'
+'use client'
 
-function RichText({ content, className = '', stopPropagationOnLinks = false }) {
+import Box from '@mui/material/Box'
+import { formatRichText } from '../utils/richText'
+
+export default function RichText({ content, sx, stopPropagationOnLinks = false }) {
   if (!content) {
     return null
   }
 
   const html = formatRichText(content)
-  const classes = ['rich-text', className].filter(Boolean).join(' ')
   const handleClick = stopPropagationOnLinks
     ? (event) => {
         if (event.target.closest('a')) {
@@ -17,8 +18,27 @@ function RichText({ content, className = '', stopPropagationOnLinks = false }) {
     : undefined
 
   return (
-    <div className={classes} onClick={handleClick} dangerouslySetInnerHTML={{ __html: html }} />
+    <Box
+      onClick={handleClick}
+      dangerouslySetInnerHTML={{ __html: html }}
+      sx={[
+        {
+          color: 'inherit',
+          font: 'inherit',
+          lineHeight: 'inherit',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+          '& p': { m: 0, mb: 1.5 },
+          '& p:last-child': { mb: 0 },
+          '& ul, & ol': { m: 0, mb: 1.5, pl: 2.5 },
+          '& li': { mb: 0.5 },
+          '& li:last-child': { mb: 0 },
+          '& a': { color: 'primary.main', textDecoration: 'underline' },
+          '& a:hover': { color: 'primary.dark' },
+          '& strong': { color: 'text.primary' },
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
+    />
   )
 }
-
-export default RichText
