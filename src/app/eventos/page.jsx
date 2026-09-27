@@ -10,8 +10,26 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
-// getTags/getEventsTagsMap falhando não deve derrubar a listagem de eventos —
-// só o filtro por tag fica indisponível (degradação graciosa).
+const PUBLISHED_EVENTS_PAGE_SIZE = 100
+const MAX_PUBLISHED_EVENTS_PAGES = 20
+
+async function fetchAllPublishedEvents() {
+  const events = []
+  let offset = 0
+
+  for (let page = 0; page < MAX_PUBLISHED_EVENTS_PAGES; page += 1) {
+    const batch = await getPublishedEvents({ limit: PUBLISHED_EVENTS_PAGE_SIZE, offset })
+    events.push(...batch)
+
+    if (batch.length < PUBLISHED_EVENTS_PAGE_SIZE) {
+      break
+    }
+    offset += PUBLISHED_EVENTS_PAGE_SIZE
+  }
+
+  return events
+}
+
 function readSearchParam(searchParams, key) {
   const value = searchParams?.get ? searchParams.get(key) : searchParams?.[key]
   return Array.isArray(value) ? value[0] : value
@@ -19,7 +37,7 @@ function readSearchParam(searchParams, key) {
 
 async function loadEvents() {
   const [eventsResult, tagsResult, tagsMapResult] = await Promise.allSettled([
-    getPublishedEvents(),
+    fetchAllPublishedEvents(),
     getTags(),
     getEventsTagsMap(),
   ])

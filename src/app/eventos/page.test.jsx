@@ -57,18 +57,30 @@ describe('EventsPage', () => {
     expect(screen.getByText('Evento Publicado')).toBeInTheDocument()
   })
 
-  it('busca a lista completa, sem parâmetros de filtro/paginação', async () => {
+  it('busca eventos publicados paginando em lotes de 100 via limit/offset', async () => {
     getPublishedEvents.mockResolvedValue([])
+    await EventsPage()
+    expect(getPublishedEvents).toHaveBeenCalledWith({ limit: 100, offset: 0 })
+  })
+
+  it('continua buscando páginas seguintes enquanto o lote vier cheio (100 itens)', async () => {
+    const fullBatch = Array.from({ length: 100 }, (_, index) => ({
+      ...event,
+      id: String(index + 1),
+      slug: `evento-${index + 1}`,
+    }))
+    getPublishedEvents.mockResolvedValueOnce(fullBatch).mockResolvedValueOnce([])
 
     await EventsPage()
 
-    expect(getPublishedEvents).toHaveBeenCalledWith()
+    expect(getPublishedEvents).toHaveBeenNthCalledWith(1, { limit: 100, offset: 0 })
+    expect(getPublishedEvents).toHaveBeenNthCalledWith(2, { limit: 100, offset: 100 })
   })
 
   it('mantém a leitura de q sem repassar para a API, que ainda não aceita busca', async () => {
     await EventsPage({ searchParams: Promise.resolve({ q: ' react ' }) })
 
-    expect(getPublishedEvents).toHaveBeenCalledWith()
+    expect(getPublishedEvents).toHaveBeenCalledWith({ limit: 100, offset: 0 })
   })
 
   it('não quebra a página quando a busca de eventos falha', async () => {
