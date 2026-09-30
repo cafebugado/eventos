@@ -38,7 +38,16 @@ function truncateText(text, maxLength = 160) {
   return text.slice(0, maxLength - 3) + '...'
 }
 
-export const dynamic = 'force-dynamic'
+// ISR sob demanda: nenhum slug é pré-gerado no build — cada evento é
+// renderizado na primeira visita e depois servido do cache da CDN, regenerado
+// no máximo a cada 300s (ver issue #376). O selo "Encerrado" (isPast) é
+// calculado nessa renderização, então pode atrasar até 5 min na virada do dia.
+export const revalidate = 300
+export const dynamicParams = true
+
+export async function generateStaticParams() {
+  return []
+}
 
 // cache() do React dedupe a busca entre generateMetadata e a página — sem
 // isso, cada visita dispararia 2 chamadas de rede idênticas nesse mesmo

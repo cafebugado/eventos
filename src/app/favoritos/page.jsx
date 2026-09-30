@@ -8,7 +8,9 @@ export const metadata = {
   robots: { index: false, follow: true },
 }
 
-export const dynamic = 'force-dynamic'
+// ISR: servida do cache da CDN e regenerada no máximo a cada 300s — não voltar
+// pra force-dynamic, que roda a função a cada visita (ver issue #376).
+export const revalidate = 300
 
 // Favoritos em si vêm do localStorage (useFavouritesStore) — o único dado
 // buscado no servidor é o tagsMap, pros chips de tag do EventsGrid.

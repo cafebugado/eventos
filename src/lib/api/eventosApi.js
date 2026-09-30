@@ -19,11 +19,11 @@ function buildUrl(path, params) {
 }
 
 // GET na API dedicada de eventos (v3.api.eventoscafebugado.cafebugado.com.br).
-// Sem cache por padrão — os dados mudam a qualquer momento (eventos novos,
-// badge de "hoje"/"acontecendo agora"), então cada request busca o estado
-// atual. Passe `next: { revalidate }` pra rotas que toleram cache (ex.:
-// getTags, getContributors — ver eventService.js) — nesse caso `cache:
-// 'no-store'` é omitido, já que os dois são mutuamente exclusivos.
+// Sem cache por padrão (`cache: 'no-store'`). Toda chamada feita durante a
+// renderização de páginas deve passar `next: { revalidate }` (ver
+// eventService.js): as páginas são ISR (issue #376) e um fetch no-store dentro
+// delas as tornaria dinâmicas de novo. Com `next`, o `cache: 'no-store'` é
+// omitido, já que os dois são mutuamente exclusivos.
 export async function apiGet(path, { params, context, next, ...fetchOptions } = {}) {
   const url = buildUrl(path, params)
 

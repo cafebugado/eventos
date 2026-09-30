@@ -1,6 +1,9 @@
+import { Suspense } from 'react'
 import EventsPageClient from './EventsPageClient'
+import Loading from './loading'
 import { getEventsTagsMap, getPublishedEvents, getTags } from '../../services/eventService'
 import { captureError } from '../../lib/sentry'
+import { isEventPast } from '../../utils/eventDate'
 
 export const metadata = {
   title: 'Próximos Eventos | Eventos Café Bugado',
@@ -8,7 +11,10 @@ export const metadata = {
     'Confira os próximos eventos de tecnologia. Meetups, workshops, hackathons e conferências indicados pela comunidade Café Bugado.',
 }
 
-export const dynamic = 'force-dynamic'
+// ISR: servida do cache da CDN e regenerada no máximo a cada 60s — não voltar
+// pra force-dynamic, que roda a função (e até 20 fetches na API) a cada visita
+// (ver issue #376).
+export const revalidate = 60
 
 const PUBLISHED_EVENTS_PAGE_SIZE = 100
 const MAX_PUBLISHED_EVENTS_PAGES = 20
@@ -28,11 +34,6 @@ async function fetchAllPublishedEvents() {
   }
 
   return events
-}
-
-function readSearchParam(searchParams, key) {
-  const value = searchParams?.get ? searchParams.get(key) : searchParams?.[key]
-  return Array.isArray(value) ? value[0] : value
 }
 
 async function loadEvents() {
@@ -60,12 +61,19 @@ async function loadEvents() {
   return { events: eventsResult.value, tags, tagsMap, error: null }
 }
 
-export default async function EventsPage({ searchParams } = {}) {
-  const resolvedSearchParams = searchParams ? await searchParams : undefined
-  // A rota lê `q` para reagir ao submit da busca, mas não repassa para a API:
-  // o backend atual retorna 400 para parâmetros de pesquisa nesse endpoint.
-  readSearchParam(resolvedSearchParams, 'q')
+// Sem `searchParams` aqui de propósito: lê-los no servidor força a rota a ser
+// dinâmica. Os filtros (?q=&tag=&fav=&from=&to=) e a paginação vivem na URL e
+// são aplicados no client (hooks/useEventFilters.js) — e por usarem
+// useSearchParams numa rota estática, o client precisa de um <Suspense>.
+export default async function EventsPage() {
   const { events, tags, tagsMap, error } = await loadEvents()
+  // O client descarta os passados de novo (cobre a janela entre revalidações);
+  // filtrar aqui só evita mandar no HTML/RSC eventos que nunca são exibidos.
+  const upcomingEvents = events.filter((event) => !isEventPast(event.data_evento))
 
-  return <EventsPageClient events={events} tagsMap={tagsMap} tags={tags} error={error} />
+  return (
+    <Suspense fallback={<Loading />}>
+      <EventsPageClient events={upcomingEvents} tagsMap={tagsMap} tags={tags} error={error} />
+    </Suspense>
+  )
 }
