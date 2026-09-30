@@ -12,7 +12,9 @@ export const metadata = {
     'Galeria de fotos das comunidades e eventos presenciais do Café Bugado. Veja os melhores momentos de cada encontro.',
 }
 
-export const dynamic = 'force-dynamic'
+// ISR: servida do cache da CDN e regenerada no máximo a cada 300s — não voltar
+// pra force-dynamic, que roda a função a cada visita (ver issue #376).
+export const revalidate = 300
 
 async function loadGalleryEvents() {
   try {

@@ -7,7 +7,9 @@ import Testimonials from '../components/Testimonials'
 import { getEventsTagsMap, getFeaturedEvents } from '../services/eventService'
 import { captureError } from '../lib/sentry'
 
-export const dynamic = 'force-dynamic'
+// ISR: servida do cache da CDN e regenerada no máximo a cada 60s — não voltar
+// pra force-dynamic, que roda a função a cada visita (ver issue #376).
+export const revalidate = 60
 
 async function loadFeaturedEvents() {
   try {
