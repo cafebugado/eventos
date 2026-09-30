@@ -10,7 +10,9 @@ export const metadata = {
     'Conheça a Comunidade Café Bugado. Um jeito mais simples de descobrir eventos de tecnologia. Reunimos meetups, workshops, hackathons e conferências em um só lugar.',
 }
 
-export const dynamic = 'force-dynamic'
+// ISR: servida do cache da CDN e regenerada no máximo a cada 600s — não voltar
+// pra force-dynamic, que roda a função a cada visita (ver issue #376).
+export const revalidate = 600
 
 export default async function AboutPage() {
   const [contributorsResult, statsResult] = await Promise.allSettled([

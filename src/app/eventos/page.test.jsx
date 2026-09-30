@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
-import EventsPage, { metadata } from './page'
+import EventsPage, { metadata, revalidate } from './page'
 import { getEventsTagsMap, getPublishedEvents, getTags } from '../../services/eventService'
 
 vi.mock('../../services/eventService', () => ({
@@ -77,10 +77,28 @@ describe('EventsPage', () => {
     expect(getPublishedEvents).toHaveBeenNthCalledWith(2, { limit: 100, offset: 100 })
   })
 
-  it('mantém a leitura de q sem repassar para a API, que ainda não aceita busca', async () => {
-    await EventsPage({ searchParams: Promise.resolve({ q: ' react ' }) })
+  it('não envia eventos passados para o client (reduz o payload da página em cache)', async () => {
+    getPublishedEvents.mockResolvedValue([
+      event,
+      {
+        ...event,
+        id: '2',
+        slug: 'evento-passado',
+        nome: 'Evento Passado',
+        data_evento: '01/01/2020',
+      },
+    ])
 
-    expect(getPublishedEvents).toHaveBeenCalledWith({ limit: 100, offset: 0 })
+    const ui = await EventsPage()
+    renderWithTheme(ui)
+
+    expect(screen.getByText('Evento Publicado')).toBeInTheDocument()
+    expect(screen.queryByText('Evento Passado')).not.toBeInTheDocument()
+    expect(ui.props.children.props.events.map((item) => item.id)).toEqual(['1'])
+  })
+
+  it('é ISR (revalidate) e não força renderização dinâmica a cada visita', () => {
+    expect(revalidate).toBe(60)
   })
 
   it('não quebra a página quando a busca de eventos falha', async () => {
