@@ -21,8 +21,7 @@ const dmSans = DM_Sans({
 // metadataBase resolve URLs relativas (og:image, canonical, etc.) declaradas
 // pelas páginas — sem isso o Next avisa em build e as tags OG ficam relativas
 // (quebrando previews em redes sociais). Fallback é o domínio de produção do
-// app antigo (ver api/sitemap.ts na raiz); configurável via
-// NEXT_PUBLIC_SITE_URL para preview/staging.
+// site em produção; configurável via NEXT_PUBLIC_SITE_URL para preview/staging.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://eventos.cafebugado.com.br'
 
 export const metadata = {
