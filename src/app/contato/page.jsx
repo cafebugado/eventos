@@ -52,7 +52,7 @@ export default function ContactPage() {
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
+          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%' }}
         >
           Se você organiza eventos, participa ou quer colaborar, a gente quer ouvir você. Conte sua
           ideia, dúvida ou sugestão e vamos conversar.

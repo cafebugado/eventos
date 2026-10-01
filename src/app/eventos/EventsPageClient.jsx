@@ -68,7 +68,7 @@ export default function EventsPageClient({ events, tagsMap, tags, error }) {
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
+          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%' }}
         >
           Eventos de tecnologia que estão rolando ou vão acontecer em breve. Tudo indicado pela
           comunidade, com meetups, workshops, hackathons e conferências para quem quer aprender,

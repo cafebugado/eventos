@@ -34,7 +34,7 @@ export default function ContributorsGrid({ contributors = [] }) {
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
+          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%' }}
         >
           Este projeto é feito pela comunidade. Conheça as pessoas que contribuem para manter esta
           plataforma funcionando e sempre melhorando.

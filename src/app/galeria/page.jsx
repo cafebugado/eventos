@@ -44,7 +44,7 @@ export default async function GalleryPage() {
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
+          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%' }}
         >
           Cada foto conta uma história. Aqui, pessoas de comunidades como{' '}
           <Box component="strong">Café Bugado</Box>, <Box component="strong">Meet Up Tech SP</Box> e
