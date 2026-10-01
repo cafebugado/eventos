@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v4'
+const CACHE_VERSION = 'v5'
 const STATIC_CACHE = `cb-static-${CACHE_VERSION}`
 
 const STATIC_ASSETS = ['/', '/eventos', '/sobre', '/manifest.webmanifest', '/logo.ico']
@@ -67,20 +67,11 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Network-first pros demais assets same-origin (ex.: /_next/image, ícones,
-  // manifest): tenta buscar a versão atual primeiro e só cai pro cache
-  // quando a rede falha — cache-first aqui deixava esses assets presos numa
-  // versão antiga indefinidamente, sem nenhuma revalidação em background.
+  // Demais assets same-origin usam a rede e só consultam o cache estático no
+  // fallback. Não adicionar cada resposta ao cache impede crescimento sem
+  // limite com imagens otimizadas e outras URLs geradas em runtime.
   event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok) {
-          const clone = response.clone()
-          caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone))
-        }
-        return response
-      })
-      .catch(() => caches.match(request).then((cached) => cached || Response.error()))
+    fetch(request).catch(() => caches.match(request).then((cached) => cached || Response.error()))
   )
 })
 
