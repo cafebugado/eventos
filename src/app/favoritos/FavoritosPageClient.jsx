@@ -37,7 +37,7 @@ export default function FavoritosPageClient({ tagsMap }) {
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
+          sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%' }}
         >
           Os eventos que você favoritou, reunidos num só lugar.
         </Typography>

@@ -50,21 +50,13 @@ export default async function Home() {
               em um só lugar
             </Typography>
 
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{ fontSize: '1.1rem', textAlign: 'justify' }}
-            >
+            <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
               Descubra meetups, workshops, hackathons e conferências organizados por comunidades e
               empresas. Encontre eventos para aprender, conhecer pessoas da área, compartilhar
               experiências e acompanhar o que está acontecendo no mercado de tecnologia.
             </Typography>
 
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{ fontSize: '1.1rem', textAlign: 'justify' }}
-            >
+            <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
               Comunidades e empresas indicam seus eventos, e nós organizamos as principais
               informações para facilitar sua busca. Assim, você encontra diferentes eventos em um só
               lugar e escolhe aqueles que mais combinam com seus interesses. A organização e a
