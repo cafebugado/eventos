@@ -1,10 +1,8 @@
-// Convenção nativa do Next (substitui api/sitemap.ts): qualquer objeto
-// exportado aqui vira uma entrada do sitemap.xml servido automaticamente em
-// /sitemap.xml — sem Edge Function nem reescrita no vercel.json.
+// Convenção nativa do Next: cada objeto exportado aqui vira uma entrada do
+// sitemap.xml servido automaticamente em /sitemap.xml.
 //
-// Sem fonte de dados: integração com a API removida — o sitemap gera só as
-// rotas estáticas até a nova API ser plugada (entradas por evento voltam
-// nesse momento, ver SPRINT.md).
+// O sitemap ainda contém apenas rotas estáticas. A inclusão das páginas de
+// eventos publicadas pela API é acompanhada em #382.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://eventos.cafebugado.com.br'
 
 const STATIC_ROUTES = [
