@@ -8,9 +8,11 @@ export const metadata = {
   robots: { index: false, follow: true },
 }
 
-// ISR: servida do cache da CDN e regenerada no máximo a cada 300s — não voltar
+// ISR: servida do cache da CDN e regenerada no máximo a cada 600s — não voltar
 // pra force-dynamic, que roda a função a cada visita (ver issue #376).
-export const revalidate = 300
+// O valor precisa ser literal (exigência do Next) e igual a PAGE_REVALIDATE.FAVOURITES em
+// constants/revalidate.js — o page.test.jsx falha se divergirem (ver issue #400).
+export const revalidate = 600
 
 // Favoritos em si vêm do localStorage (useFavouritesStore) — o único dado
 // buscado no servidor é o tagsMap, pros chips de tag do EventsGrid.

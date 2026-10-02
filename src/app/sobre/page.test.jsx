@@ -1,7 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
-import AboutPage, { metadata } from './page'
+import AboutPage, { metadata, revalidate } from './page'
+import { PAGE_REVALIDATE } from '../../constants/revalidate'
 import { getContributors, getEventStats } from '../../services/eventService'
 import { captureError } from '../../lib/sentry'
 
@@ -22,6 +23,10 @@ describe('AboutPage', () => {
     getContributors.mockReset().mockResolvedValue([])
     getEventStats.mockReset().mockResolvedValue({ totalEventos: 0 })
     captureError.mockReset()
+  })
+
+  it('declara a janela de revalidação (ISR) definida em PAGE_REVALIDATE', () => {
+    expect(revalidate).toBe(PAGE_REVALIDATE.ABOUT)
   })
 
   it('define metadata de título e descrição', () => {

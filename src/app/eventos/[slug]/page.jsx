@@ -42,6 +42,8 @@ function truncateText(text, maxLength = 160) {
 // renderizado na primeira visita e depois servido do cache da CDN, regenerado
 // no máximo a cada 300s (ver issue #376). O selo "Encerrado" (isPast) é
 // calculado nessa renderização, então pode atrasar até 5 min na virada do dia.
+// O valor precisa ser literal (exigência do Next) e igual a PAGE_REVALIDATE.EVENT_DETAIL em
+// constants/revalidate.js — o page.test.jsx falha se divergirem (ver issue #400).
 export const revalidate = 300
 export const dynamicParams = true
 

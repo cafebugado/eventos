@@ -1,7 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
-import GalleryPage, { metadata } from './page'
+import GalleryPage, { metadata, revalidate } from './page'
+import { PAGE_REVALIDATE } from '../../constants/revalidate'
 import { getGalleryEvents } from '../../services/galleryService'
 import { captureError } from '../../lib/sentry'
 
@@ -20,6 +21,10 @@ describe('GalleryPage', () => {
   beforeEach(() => {
     getGalleryEvents.mockReset()
     captureError.mockReset()
+  })
+
+  it('declara a janela de revalidação (ISR) definida em PAGE_REVALIDATE', () => {
+    expect(revalidate).toBe(PAGE_REVALIDATE.GALLERY)
   })
 
   it('define metadata de título e descrição', () => {
