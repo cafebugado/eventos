@@ -11,10 +11,12 @@ export const metadata = {
     'Confira os próximos eventos de tecnologia. Meetups, workshops, hackathons e conferências indicados pela comunidade Café Bugado.',
 }
 
-// ISR: servida do cache da CDN e regenerada no máximo a cada 60s — não voltar
+// ISR: servida do cache da CDN e regenerada no máximo a cada 600s — não voltar
 // pra force-dynamic, que roda a função (e até 20 fetches na API) a cada visita
 // (ver issue #376).
-export const revalidate = 60
+// O valor precisa ser literal (exigência do Next) e igual a PAGE_REVALIDATE.EVENTS em
+// constants/revalidate.js — o page.test.jsx falha se divergirem (ver issue #400).
+export const revalidate = 600
 
 const PUBLISHED_EVENTS_PAGE_SIZE = 100
 const MAX_PUBLISHED_EVENTS_PAGES = 20

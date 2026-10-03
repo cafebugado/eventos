@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import EventsPage, { metadata, revalidate } from './page'
+import { PAGE_REVALIDATE } from '../../constants/revalidate'
 import { getEventsTagsMap, getPublishedEvents, getTags } from '../../services/eventService'
 
 vi.mock('../../services/eventService', () => ({
@@ -98,7 +99,7 @@ describe('EventsPage', () => {
   })
 
   it('é ISR (revalidate) e não força renderização dinâmica a cada visita', () => {
-    expect(revalidate).toBe(60)
+    expect(revalidate).toBe(PAGE_REVALIDATE.EVENTS)
   })
 
   it('não quebra a página quando a busca de eventos falha', async () => {

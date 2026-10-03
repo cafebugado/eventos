@@ -1,4 +1,5 @@
 import { apiGet } from '../lib/api/eventosApi'
+import { DATA_REVALIDATE } from '../constants/revalidate'
 import { formatDateToDisplay } from '../utils/eventDate'
 
 // A API (GET /gallery/albums/public) devolve português/snake_case; os componentes de
@@ -26,7 +27,7 @@ function mapAlbumToGalleryEvent(album) {
 export async function getGalleryEvents() {
   const albums = await apiGet('/gallery/albums/public', {
     context: 'getGalleryEvents',
-    next: { revalidate: 120 },
+    next: { revalidate: DATA_REVALIDATE.GALLERY_ALBUMS },
   })
   if (!Array.isArray(albums)) {
     return []

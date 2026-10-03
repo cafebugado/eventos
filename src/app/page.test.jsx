@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
-import Home from './page'
+import Home, { revalidate } from './page'
+import { PAGE_REVALIDATE } from '../constants/revalidate'
 import { getEventsTagsMap, getFeaturedEvents } from '../services/eventService'
 
 vi.mock('../services/eventService', () => ({
@@ -37,6 +38,10 @@ const event = {
 describe('Home', () => {
   beforeEach(() => {
     getEventsTagsMap.mockReset().mockResolvedValue({})
+  })
+
+  it('declara a janela de revalidação (ISR) definida em PAGE_REVALIDATE', () => {
+    expect(revalidate).toBe(PAGE_REVALIDATE.HOME)
   })
 
   it('renderiza o título e busca os eventos em destaque no servidor', async () => {

@@ -7,9 +7,11 @@ import Testimonials from '../components/Testimonials'
 import { getEventsTagsMap, getFeaturedEvents } from '../services/eventService'
 import { captureError } from '../lib/sentry'
 
-// ISR: servida do cache da CDN e regenerada no máximo a cada 60s — não voltar
+// ISR: servida do cache da CDN e regenerada no máximo a cada 600s — não voltar
 // pra force-dynamic, que roda a função a cada visita (ver issue #376).
-export const revalidate = 60
+// O valor precisa ser literal (exigência do Next) e igual a PAGE_REVALIDATE.HOME em
+// constants/revalidate.js — o page.test.jsx falha se divergirem (ver issue #400).
+export const revalidate = 600
 
 async function loadFeaturedEvents() {
   try {

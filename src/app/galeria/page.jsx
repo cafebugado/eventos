@@ -14,6 +14,8 @@ export const metadata = {
 
 // ISR: servida do cache da CDN e regenerada no máximo a cada 300s — não voltar
 // pra force-dynamic, que roda a função a cada visita (ver issue #376).
+// O valor precisa ser literal (exigência do Next) e igual a PAGE_REVALIDATE.GALLERY em
+// constants/revalidate.js — o page.test.jsx falha se divergirem (ver issue #400).
 export const revalidate = 300
 
 async function loadGalleryEvents() {

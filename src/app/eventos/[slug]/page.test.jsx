@@ -1,7 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
-import EventDetailsPage, { generateMetadata } from './page'
+import EventDetailsPage, { generateMetadata, revalidate } from './page'
+import { PAGE_REVALIDATE } from '../../../constants/revalidate'
 import { getEventDetail } from '../../../services/eventService'
 import { captureError } from '../../../lib/sentry'
 
@@ -52,6 +53,10 @@ describe('EventDetailsPage', () => {
     getEventDetail.mockReset().mockResolvedValue({ evento: event, tags: [] })
     captureError.mockReset()
     notFoundMock.mockClear()
+  })
+
+  it('declara a janela de revalidação (ISR) definida em PAGE_REVALIDATE', () => {
+    expect(revalidate).toBe(PAGE_REVALIDATE.EVENT_DETAIL)
   })
 
   it('busca o detalhe agregado do evento e renderiza os dados reais', async () => {

@@ -1,10 +1,11 @@
 import { apiGet } from '../lib/api/eventosApi'
+import { DATA_REVALIDATE } from '../constants/revalidate'
 
 export async function getFeaturedEvents(limit = 3) {
   return apiGet('/events/featured', {
     params: { limit },
     context: 'getFeaturedEvents',
-    next: { revalidate: 60 },
+    next: { revalidate: DATA_REVALIDATE.FEATURED_EVENTS },
   })
 }
 
@@ -12,23 +13,26 @@ export async function getPublishedEvents({ cidade, modalidade, limit, offset } =
   return apiGet('/events/published', {
     params: { cidade, modalidade, limit, offset },
     context: 'getPublishedEvents',
-    next: { revalidate: 60 },
+    next: { revalidate: DATA_REVALIDATE.PUBLISHED_EVENTS },
   })
 }
 
 export async function getEventDetail(slugOrId) {
   return apiGet(`/events/slug/${encodeURIComponent(slugOrId)}/detail`, {
     context: 'getEventDetail',
-    next: { revalidate: 30 },
+    next: { revalidate: DATA_REVALIDATE.EVENT_DETAIL },
   })
 }
 
 export async function getTags() {
-  return apiGet('/tags', { context: 'getTags', next: { revalidate: 300 } })
+  return apiGet('/tags', { context: 'getTags', next: { revalidate: DATA_REVALIDATE.TAGS } })
 }
 
 export async function getEventsTagsMap() {
-  return apiGet('/events/tags-map', { context: 'getEventsTagsMap', next: { revalidate: 300 } })
+  return apiGet('/events/tags-map', {
+    context: 'getEventsTagsMap',
+    next: { revalidate: DATA_REVALIDATE.EVENTS_TAGS_MAP },
+  })
 }
 
 export async function getRecommendedEvents(eventId, limit = 3) {
@@ -39,9 +43,15 @@ export async function getRecommendedEvents(eventId, limit = 3) {
 }
 
 export async function getContributors() {
-  return apiGet('/contributors', { context: 'getContributors', next: { revalidate: 600 } })
+  return apiGet('/contributors', {
+    context: 'getContributors',
+    next: { revalidate: DATA_REVALIDATE.CONTRIBUTORS },
+  })
 }
 
 export async function getEventStats() {
-  return apiGet('/events/stats/public', { context: 'getEventStats', next: { revalidate: 120 } })
+  return apiGet('/events/stats/public', {
+    context: 'getEventStats',
+    next: { revalidate: DATA_REVALIDATE.EVENT_STATS },
+  })
 }
