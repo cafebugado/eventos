@@ -74,11 +74,25 @@ export function parseEventDate(value) {
   return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
-/** Retorna a data de hoje com horário zerado (meia-noite). */
+const SAO_PAULO_DATE_FORMAT = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Sao_Paulo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+
+/**
+ * Retorna o dia de hoje no fuso de Brasília, com horário zerado — a mesma
+ * representação de parseEventDate, para os dois serem comparados direto.
+ *
+ * `data_evento` é uma data de calendário brasileira. Usar o fuso do processo
+ * dava resultados diferentes no servidor (UTC na Vercel, onde o dia vira às
+ * 21h de Brasília) e no navegador (ver issue #379).
+ */
 export function getToday() {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  return today
+  const parts = SAO_PAULO_DATE_FORMAT.formatToParts(new Date())
+  const part = (type) => Number(parts.find((item) => item.type === type).value)
+  return new Date(part('year'), part('month') - 1, part('day'))
 }
 
 /** Verifica se o evento está no passado. */
