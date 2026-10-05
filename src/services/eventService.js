@@ -9,11 +9,14 @@ export async function getFeaturedEvents(limit = 3) {
   })
 }
 
-export async function getPublishedEvents({ cidade, modalidade, limit, offset } = {}) {
-  return apiGet('/events/published', {
-    params: { cidade, modalidade, limit, offset },
-    context: 'getPublishedEvents',
-    next: { revalidate: DATA_REVALIDATE.PUBLISHED_EVENTS },
+// Eventos publicados de hoje em diante (fuso de Brasília), já ordenados por
+// data e horário pela API. Substitui a busca de todos os publicados, que
+// trazia os passados só para descartá-los (ver issue #381).
+export async function getUpcomingEvents({ limit, offset } = {}) {
+  return apiGet('/events/upcoming', {
+    params: { limit, offset },
+    context: 'getUpcomingEvents',
+    next: { revalidate: DATA_REVALIDATE.UPCOMING_EVENTS },
   })
 }
 

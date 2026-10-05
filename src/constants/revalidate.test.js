@@ -4,7 +4,7 @@ import { DATA_REVALIDATE, PAGE_REVALIDATE } from './revalidate'
 // Quais fetches cada página dispara durante a renderização no servidor.
 const PAGE_DATA = {
   HOME: ['FEATURED_EVENTS', 'EVENTS_TAGS_MAP'],
-  EVENTS: ['PUBLISHED_EVENTS', 'TAGS', 'EVENTS_TAGS_MAP'],
+  EVENTS: ['UPCOMING_EVENTS', 'TAGS', 'EVENTS_TAGS_MAP'],
   EVENT_DETAIL: ['EVENT_DETAIL'],
   FAVOURITES: ['EVENTS_TAGS_MAP'],
   GALLERY: ['GALLERY_ALBUMS'],

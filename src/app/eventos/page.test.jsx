@@ -3,10 +3,10 @@ import { render, screen } from '@testing-library/react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import EventsPage, { metadata, revalidate } from './page'
 import { PAGE_REVALIDATE } from '../../constants/revalidate'
-import { getEventsTagsMap, getPublishedEvents, getTags } from '../../services/eventService'
+import { getEventsTagsMap, getTags, getUpcomingEvents } from '../../services/eventService'
 
 vi.mock('../../services/eventService', () => ({
-  getPublishedEvents: vi.fn(),
+  getUpcomingEvents: vi.fn(),
   getTags: vi.fn(),
   getEventsTagsMap: vi.fn(),
 }))
@@ -39,7 +39,7 @@ const event = {
 
 describe('EventsPage', () => {
   beforeEach(() => {
-    getPublishedEvents.mockReset().mockResolvedValue([])
+    getUpcomingEvents.mockReset().mockResolvedValue([])
     getTags.mockReset().mockResolvedValue([])
     getEventsTagsMap.mockReset().mockResolvedValue({})
   })
@@ -49,8 +49,8 @@ describe('EventsPage', () => {
     expect(metadata.description).toBeTruthy()
   })
 
-  it('busca os eventos publicados no servidor e renderiza a lista', async () => {
-    getPublishedEvents.mockResolvedValue([event])
+  it('busca os eventos futuros no servidor e renderiza a lista', async () => {
+    getUpcomingEvents.mockResolvedValue([event])
 
     const ui = await EventsPage()
     renderWithTheme(ui)
@@ -58,44 +58,37 @@ describe('EventsPage', () => {
     expect(screen.getByText('Evento Publicado')).toBeInTheDocument()
   })
 
-  it('busca eventos publicados paginando em lotes de 100 via limit/offset', async () => {
-    getPublishedEvents.mockResolvedValue([])
+  it('busca os eventos futuros em uma única chamada no volume normal', async () => {
+    getUpcomingEvents.mockResolvedValue([event])
+
     await EventsPage()
-    expect(getPublishedEvents).toHaveBeenCalledWith({ limit: 100, offset: 0 })
+
+    expect(getUpcomingEvents).toHaveBeenCalledTimes(1)
+    expect(getUpcomingEvents).toHaveBeenCalledWith({ limit: 500, offset: 0 })
   })
 
-  it('continua buscando páginas seguintes enquanto o lote vier cheio (100 itens)', async () => {
-    const fullBatch = Array.from({ length: 100 }, (_, index) => ({
+  it('só busca a página seguinte se o lote vier cheio (500 itens)', async () => {
+    const fullBatch = Array.from({ length: 500 }, (_, index) => ({
       ...event,
       id: String(index + 1),
       slug: `evento-${index + 1}`,
     }))
-    getPublishedEvents.mockResolvedValueOnce(fullBatch).mockResolvedValueOnce([])
-
-    await EventsPage()
-
-    expect(getPublishedEvents).toHaveBeenNthCalledWith(1, { limit: 100, offset: 0 })
-    expect(getPublishedEvents).toHaveBeenNthCalledWith(2, { limit: 100, offset: 100 })
-  })
-
-  it('não envia eventos passados para o client (reduz o payload da página em cache)', async () => {
-    getPublishedEvents.mockResolvedValue([
-      event,
-      {
-        ...event,
-        id: '2',
-        slug: 'evento-passado',
-        nome: 'Evento Passado',
-        data_evento: '01/01/2020',
-      },
-    ])
+    getUpcomingEvents.mockResolvedValueOnce(fullBatch).mockResolvedValueOnce([event])
 
     const ui = await EventsPage()
-    renderWithTheme(ui)
 
-    expect(screen.getByText('Evento Publicado')).toBeInTheDocument()
-    expect(screen.queryByText('Evento Passado')).not.toBeInTheDocument()
-    expect(ui.props.children.props.events.map((item) => item.id)).toEqual(['1'])
+    expect(getUpcomingEvents).toHaveBeenCalledTimes(2)
+    expect(getUpcomingEvents).toHaveBeenNthCalledWith(2, { limit: 500, offset: 500 })
+    expect(ui.props.children.props.events).toHaveLength(501)
+  })
+
+  it('repassa ao client os eventos na ordem devolvida pela API', async () => {
+    const segundo = { ...event, id: '2', slug: 'segundo', nome: 'Segundo Evento' }
+    getUpcomingEvents.mockResolvedValue([event, segundo])
+
+    const ui = await EventsPage()
+
+    expect(ui.props.children.props.events.map((item) => item.id)).toEqual(['1', '2'])
   })
 
   it('é ISR (revalidate) e não força renderização dinâmica a cada visita', () => {
@@ -103,7 +96,7 @@ describe('EventsPage', () => {
   })
 
   it('não quebra a página quando a busca de eventos falha', async () => {
-    getPublishedEvents.mockRejectedValue(new Error('falha de rede'))
+    getUpcomingEvents.mockRejectedValue(new Error('falha de rede'))
 
     const ui = await EventsPage()
     renderWithTheme(ui)
@@ -112,7 +105,7 @@ describe('EventsPage', () => {
   })
 
   it('busca tags e o mapa de tags em paralelo com os eventos', async () => {
-    getPublishedEvents.mockResolvedValue([])
+    getUpcomingEvents.mockResolvedValue([])
     getTags.mockResolvedValue([{ id: 't1', nome: 'Backend', cor: '#2563eb' }])
     getEventsTagsMap.mockResolvedValue({ 1: [{ id: 't1', nome: 'Backend', cor: '#2563eb' }] })
 
@@ -123,7 +116,7 @@ describe('EventsPage', () => {
   })
 
   it('continua renderizando a lista de eventos quando a busca de tags falha (degradação graciosa)', async () => {
-    getPublishedEvents.mockResolvedValue([event])
+    getUpcomingEvents.mockResolvedValue([event])
     getTags.mockRejectedValue(new Error('falha ao buscar tags'))
 
     const ui = await EventsPage()
@@ -134,7 +127,7 @@ describe('EventsPage', () => {
   })
 
   it('continua renderizando a lista de eventos quando o mapa de tags falha (degradação graciosa)', async () => {
-    getPublishedEvents.mockResolvedValue([event])
+    getUpcomingEvents.mockResolvedValue([event])
     getEventsTagsMap.mockRejectedValue(new Error('falha ao buscar tags-map'))
 
     const ui = await EventsPage()
