@@ -1,9 +1,8 @@
 import { Suspense } from 'react'
 import EventsPageClient from './EventsPageClient'
 import Loading from './loading'
-import { getEventsTagsMap, getPublishedEvents, getTags } from '../../services/eventService'
+import { getEventsTagsMap, getTags, getUpcomingEvents } from '../../services/eventService'
 import { captureError } from '../../lib/sentry'
-import { isEventPast } from '../../utils/eventDate'
 
 export const metadata = {
   title: 'Próximos Eventos | Eventos Café Bugado',
@@ -18,21 +17,24 @@ export const metadata = {
 // constants/revalidate.js — o page.test.jsx falha se divergirem (ver issue #400).
 export const revalidate = 600
 
-const PUBLISHED_EVENTS_PAGE_SIZE = 100
-const MAX_PUBLISHED_EVENTS_PAGES = 20
+// Teto de itens por chamada de GET /events/upcoming. No volume normal, todos
+// os eventos futuros cabem em uma chamada; o laço só continua se um lote vier
+// cheio, para a lista nunca ser cortada em silêncio.
+const UPCOMING_EVENTS_PAGE_SIZE = 500
+const MAX_UPCOMING_EVENTS_PAGES = 10
 
-async function fetchAllPublishedEvents() {
+async function fetchAllUpcomingEvents() {
   const events = []
   let offset = 0
 
-  for (let page = 0; page < MAX_PUBLISHED_EVENTS_PAGES; page += 1) {
-    const batch = await getPublishedEvents({ limit: PUBLISHED_EVENTS_PAGE_SIZE, offset })
+  for (let page = 0; page < MAX_UPCOMING_EVENTS_PAGES; page += 1) {
+    const batch = await getUpcomingEvents({ limit: UPCOMING_EVENTS_PAGE_SIZE, offset })
     events.push(...batch)
 
-    if (batch.length < PUBLISHED_EVENTS_PAGE_SIZE) {
+    if (batch.length < UPCOMING_EVENTS_PAGE_SIZE) {
       break
     }
-    offset += PUBLISHED_EVENTS_PAGE_SIZE
+    offset += UPCOMING_EVENTS_PAGE_SIZE
   }
 
   return events
@@ -40,7 +42,7 @@ async function fetchAllPublishedEvents() {
 
 async function loadEvents() {
   const [eventsResult, tagsResult, tagsMapResult] = await Promise.allSettled([
-    fetchAllPublishedEvents(),
+    fetchAllUpcomingEvents(),
     getTags(),
     getEventsTagsMap(),
   ])
@@ -68,14 +70,14 @@ async function loadEvents() {
 // são aplicados no client (hooks/useEventFilters.js) — e por usarem
 // useSearchParams numa rota estática, o client precisa de um <Suspense>.
 export default async function EventsPage() {
+  // A API já devolve só eventos de hoje em diante. O client descarta de novo
+  // os passados (EventsPageClient), o que cobre a virada do dia enquanto esta
+  // página está em cache.
   const { events, tags, tagsMap, error } = await loadEvents()
-  // O client descarta os passados de novo (cobre a janela entre revalidações);
-  // filtrar aqui só evita mandar no HTML/RSC eventos que nunca são exibidos.
-  const upcomingEvents = events.filter((event) => !isEventPast(event.data_evento))
 
   return (
     <Suspense fallback={<Loading />}>
-      <EventsPageClient events={upcomingEvents} tagsMap={tagsMap} tags={tags} error={error} />
+      <EventsPageClient events={events} tagsMap={tagsMap} tags={tags} error={error} />
     </Suspense>
   )
 }
