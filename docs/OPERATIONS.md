@@ -51,6 +51,14 @@ O deploy e automatico via push para `main`. Toda outra branch/PR gera um deploy 
 1. Verificar `connect-src` no CSP declarado em `next.config.mjs` (`headers()`)
 2. Verificar `CORS_ORIGINS` no backend que for plugado — precisa incluir a origem deste app
 
+### ISR Write Units altos na Vercel
+
+A Vercel so cobra escrita de ISR quando a pagina regenerada e diferente da anterior. Se o consumo subir sem que eventos estejam sendo publicados:
+
+1. Baixar a mesma pagina duas vezes, com a janela de revalidacao entre uma e outra (`curl -s https://eventos.cafebugado.com.br/ -o a.html`, esperar 10 min, repetir para `b.html`)
+2. Comparar (`diff <(sed 's/></>\n</g' a.html) <(sed 's/></>\n</g' b.html)`): o que aparecer e o trecho nao deterministico
+3. Causas comuns: metas `sentry-trace`/`baggage` (removidas em `next.config.mjs`), `new Date()` ou valor aleatorio renderizado no servidor
+
 ### Build falha no CI
 
 1. Verificar logs no GitHub Actions
