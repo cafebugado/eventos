@@ -54,6 +54,17 @@ const nextConfig = {
 // org/project/authToken ficam de fora por enquanto (não temos esses valores
 // aqui) — sem eles o wrapper ainda injeta as rotas de monitoramento e a
 // config de instrumentation, só pula o upload de source maps pro Sentry.
-export default withSentryConfig(nextConfig, {
+const sentryConfig = withSentryConfig(nextConfig, {
   silent: true,
 })
+
+// O wrapper do Sentry liga experimental.clientTraceMetadata, que faz o Next
+// emitir as metas sentry-trace/baggage com um trace id novo a cada
+// renderização. Em rota ISR isso torna toda regeneração "conteúdo novo" e a
+// Vercel cobra a escrita da página inteira (ISR Write Units), mesmo sem dado
+// novo. O next.config.test.js falha se a opção voltar.
+if (sentryConfig.experimental) {
+  delete sentryConfig.experimental.clientTraceMetadata
+}
+
+export default sentryConfig
