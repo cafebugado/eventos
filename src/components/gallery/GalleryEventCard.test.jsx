@@ -26,12 +26,15 @@ describe('GalleryEventCard', () => {
     expect(screen.getByText('Meetup React')).toBeInTheDocument()
     expect(screen.getByText('Café Bugado')).toBeInTheDocument()
     expect(screen.getByText('2 fotos')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Abrir galeria de Meetup React' })
+    ).toBeInTheDocument()
   })
 
   it('chama onPhotoClick com o evento e índice 0 ao clicar', async () => {
     const onPhotoClick = vi.fn()
     renderWithTheme(<GalleryEventCard event={event} onPhotoClick={onPhotoClick} />)
-    await userEvent.click(screen.getByRole('button'))
+    await userEvent.click(screen.getByRole('button', { name: 'Abrir galeria de Meetup React' }))
     expect(onPhotoClick).toHaveBeenCalledWith(event, 0)
   })
 })
