@@ -68,7 +68,7 @@ export default function AboutFeatures({ totalEventos }) {
       <Typography
         variant="body1"
         color="text.secondary"
-        sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%', textAlign: 'justify' }}
+        sx={{ fontSize: '1.05rem', maxWidth: 760, width: '100%' }}
       >
         A Comunidade Café Bugado surgiu porque encontrar eventos de tecnologia nem sempre é simples.
         As informações ficam espalhadas em vários lugares. Criamos um espaço para reunir tudo em um
