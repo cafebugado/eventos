@@ -1,9 +1,18 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import FavoritosPageClient from './FavoritosPageClient'
 import { useFavouritesStore } from '../../store/useFavouritesStore'
+import { getEventsTagsMap } from '../../services/eventService'
+
+vi.mock('../../services/eventService', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    getEventsTagsMap: vi.fn(),
+  }
+})
 
 const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
@@ -35,6 +44,7 @@ const pastEvent = {
 describe('FavoritosPageClient', () => {
   beforeEach(() => {
     pushMock.mockClear()
+    getEventsTagsMap.mockReset().mockResolvedValue({})
     useFavouritesStore.setState({ favourites: [], favouriteIds: new Set() })
   })
 
@@ -77,5 +87,45 @@ describe('FavoritosPageClient', () => {
 
     expect(screen.queryByText('Evento Futuro Favoritado')).not.toBeInTheDocument()
     expect(screen.getByText('Você ainda não favoritou nenhum evento')).toBeInTheDocument()
+  })
+
+  it('não busca o mapa de tags no client quando não há favoritos', () => {
+    renderWithTheme(<FavoritosPageClient />)
+
+    expect(getEventsTagsMap).not.toHaveBeenCalled()
+  })
+
+  it('busca o mapa de tags no client quando há favoritos e exibe os chips', async () => {
+    useFavouritesStore.setState({
+      favourites: [pastEvent, futureEvent],
+      favouriteIds: new Set(['1', '2']),
+    })
+    getEventsTagsMap.mockResolvedValue({
+      1: [{ id: 't1', nome: 'Frontend', cor: '#2563eb' }],
+      2: [{ id: 't2', nome: 'Arquitetura', cor: '#16a34a' }],
+      999: [{ id: 't3', nome: 'Outro Evento', cor: '#000000' }],
+    })
+
+    renderWithTheme(<FavoritosPageClient />)
+
+    expect(getEventsTagsMap).toHaveBeenCalledTimes(1)
+    expect(await screen.findByText('Frontend')).toBeInTheDocument()
+    expect(await screen.findByText('Arquitetura')).toBeInTheDocument()
+    expect(screen.queryByText('Outro Evento')).not.toBeInTheDocument()
+  })
+
+  it('continua exibindo os eventos favoritados se a busca de tags falhar', async () => {
+    useFavouritesStore.setState({
+      favourites: [futureEvent],
+      favouriteIds: new Set(['1']),
+    })
+    getEventsTagsMap.mockRejectedValue(new Error('falha de rede'))
+
+    renderWithTheme(<FavoritosPageClient />)
+
+    await waitFor(() => {
+      expect(getEventsTagsMap).toHaveBeenCalledTimes(1)
+    })
+    expect(screen.getByText('Evento Futuro Favoritado')).toBeInTheDocument()
   })
 })

@@ -1,7 +1,12 @@
 import { Suspense } from 'react'
 import EventsPageClient from './EventsPageClient'
 import Loading from './loading'
-import { getEventsTagsMap, getTags, getUpcomingEvents } from '../../services/eventService'
+import {
+  filterTagsMapByEvents,
+  getEventsTagsMap,
+  getTags,
+  getUpcomingEvents,
+} from '../../services/eventService'
 import { captureError } from '../../lib/sentry'
 
 export const metadata = {
@@ -61,8 +66,9 @@ async function loadEvents() {
     captureError(eventsResult.reason, { context: 'EventsPage.loadEvents' })
     return { events: [], tags, tagsMap, error: eventsResult.reason }
   }
-
-  return { events: eventsResult.value, tags, tagsMap, error: null }
+  const events = eventsResult.value
+  const visibleTagsMap = filterTagsMapByEvents(tagsMap, events)
+  return { events, tags, tagsMap: visibleTagsMap, error: null }
 }
 
 // Sem `searchParams` aqui de propósito: lê-los no servidor força a rota a ser

@@ -5,11 +5,15 @@ import EventsPage, { metadata, revalidate } from './page'
 import { PAGE_REVALIDATE } from '../../constants/revalidate'
 import { getEventsTagsMap, getTags, getUpcomingEvents } from '../../services/eventService'
 
-vi.mock('../../services/eventService', () => ({
-  getUpcomingEvents: vi.fn(),
-  getTags: vi.fn(),
-  getEventsTagsMap: vi.fn(),
-}))
+vi.mock('../../services/eventService', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    getUpcomingEvents: vi.fn(),
+    getTags: vi.fn(),
+    getEventsTagsMap: vi.fn(),
+  }
+})
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
   usePathname: () => '/eventos',
@@ -135,5 +139,19 @@ describe('EventsPage', () => {
 
     expect(screen.getByText('Evento Publicado')).toBeInTheDocument()
     expect(screen.queryByText('Erro ao carregar eventos')).not.toBeInTheDocument()
+  })
+
+  it('filtra o mapa de tags no servidor para repassar apenas os eventos exibidos na página', async () => {
+    getUpcomingEvents.mockResolvedValue([event])
+    getEventsTagsMap.mockResolvedValue({
+      1: [{ id: 't1', nome: 'Backend', cor: '#2563eb' }],
+      999: [{ id: 't2', nome: 'Evento Passado', cor: '#000000' }],
+    })
+
+    const ui = await EventsPage()
+
+    expect(ui.props.children.props.tagsMap).toEqual({
+      1: [{ id: 't1', nome: 'Backend', cor: '#2563eb' }],
+    })
   })
 })

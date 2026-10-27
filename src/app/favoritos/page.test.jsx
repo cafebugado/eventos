@@ -5,9 +5,13 @@ import FavoritosPage, { metadata, revalidate } from './page'
 import { PAGE_REVALIDATE } from '../../constants/revalidate'
 import { getEventsTagsMap } from '../../services/eventService'
 
-vi.mock('../../services/eventService', () => ({
-  getEventsTagsMap: vi.fn(),
-}))
+vi.mock('../../services/eventService', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    getEventsTagsMap: vi.fn(),
+  }
+})
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }))
@@ -31,20 +35,11 @@ describe('FavoritosPage', () => {
     expect(metadata.robots).toEqual({ index: false, follow: true })
   })
 
-  it('renderiza a página buscando o mapa de tags real no servidor', async () => {
+  it('renderiza a página sem embutir o mapa de tags completo no servidor', async () => {
     const ui = await FavoritosPage()
     renderWithTheme(ui)
 
     expect(screen.getByRole('heading', { name: /meus favoritos/i })).toBeInTheDocument()
-    expect(getEventsTagsMap).toHaveBeenCalled()
-  })
-
-  it('não quebra a página quando a busca do mapa de tags falha (degradação graciosa)', async () => {
-    getEventsTagsMap.mockRejectedValue(new Error('falha ao buscar tags-map'))
-
-    const ui = await FavoritosPage()
-    renderWithTheme(ui)
-
-    expect(screen.getByRole('heading', { name: /meus favoritos/i })).toBeInTheDocument()
+    expect(getEventsTagsMap).not.toHaveBeenCalled()
   })
 })

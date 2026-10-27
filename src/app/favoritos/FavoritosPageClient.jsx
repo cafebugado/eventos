@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
@@ -11,17 +11,37 @@ import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined
 import { sortEventsByDate } from '../../utils/eventDate'
 import { useFavouritesStore } from '../../store/useFavouritesStore'
 import EventsGrid from '../../components/EventsGrid'
+import { filterTagsMapByEvents, getEventsTagsMap } from '../../services/eventService'
+import { captureError } from '../../lib/sentry'
 
 // Client Component: os favoritos vivem só no localStorage (useFavouritesStore),
-// então não há nada pra buscar no servidor além do tagsMap (ver page.jsx).
-// Reaproveita o mesmo EventsGrid de /eventos — sem filtros/paginação aqui,
-// a lista de favoritos tende a ser pequena.
-export default function FavoritosPageClient({ tagsMap }) {
+// As tags são buscadas no client apenas quando há favoritos, evitando embutir
+// o mapa completo de todos os eventos publicados no HTML estático (ver issue #409).
+export default function FavoritosPageClient({ tagsMap: initialTagsMap }) {
   const favourites = useFavouritesStore((state) => state.favourites)
   const favouriteIds = useFavouritesStore((state) => state.favouriteIds)
   const toggleFavouriteInStore = useFavouritesStore((state) => state.toggleFavourite)
+  const [fetchedTagsMap, setFetchedTagsMap] = useState({})
+  const hasFetchedRef = useRef(false)
+
+  useEffect(() => {
+    if (initialTagsMap || favourites.length === 0 || hasFetchedRef.current) {
+      return
+    }
+
+    hasFetchedRef.current = true
+    getEventsTagsMap()
+      .then(setFetchedTagsMap)
+      .catch((error) => {
+        captureError(error, { context: 'FavoritosPageClient.loadEventsTagsMap' })
+      })
+  }, [initialTagsMap, favourites.length])
 
   const agenda = useMemo(() => sortEventsByDate(favourites), [favourites])
+  const visibleTagsMap = useMemo(
+    () => filterTagsMapByEvents(initialTagsMap ?? fetchedTagsMap, agenda),
+    [initialTagsMap, fetchedTagsMap, agenda]
+  )
   const toggleFavourite = (eventId) => toggleFavouriteInStore(eventId, agenda)
 
   return (
@@ -70,7 +90,7 @@ export default function FavoritosPageClient({ tagsMap }) {
           totalEvents={agenda.length}
           viewMode="grid"
           pageSize={agenda.length}
-          eventTagsMap={tagsMap}
+          eventTagsMap={visibleTagsMap}
           favouriteIds={favouriteIds}
           toggleFavourite={toggleFavourite}
         />

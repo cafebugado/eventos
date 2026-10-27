@@ -4,7 +4,11 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import UpcomingEvents from '../components/UpcomingEvents'
 import Testimonials from '../components/Testimonials'
-import { getEventsTagsMap, getFeaturedEvents } from '../services/eventService'
+import {
+  filterTagsMapByEvents,
+  getEventsTagsMap,
+  getFeaturedEvents,
+} from '../services/eventService'
 import { captureError } from '../lib/sentry'
 
 // ISR: servida do cache da CDN e regenerada no máximo a cada 600s — não voltar
@@ -39,6 +43,7 @@ export default async function Home() {
     loadEventsTagsMap(),
   ])
 
+  const visibleTagsMap = filterTagsMapByEvents(tagsMap, events)
   return (
     <>
       <Box component="section" sx={{ py: { xs: 8, md: 12 } }}>
@@ -76,7 +81,7 @@ export default async function Home() {
         </Container>
       </Box>
 
-      <UpcomingEvents events={events} tagsMap={tagsMap} hasError={hasError} />
+      <UpcomingEvents events={events} tagsMap={visibleTagsMap} hasError={hasError} />
       <Testimonials />
     </>
   )
