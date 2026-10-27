@@ -38,6 +38,20 @@ export async function getEventsTagsMap() {
   })
 }
 
+export function filterTagsMapByEvents(tagsMap, events) {
+  if (!tagsMap || !Array.isArray(events)) {
+    return {}
+  }
+
+  const filtered = {}
+  for (const event of events) {
+    if (event?.id && tagsMap[event.id]) {
+      filtered[event.id] = tagsMap[event.id]
+    }
+  }
+  return filtered
+}
+
 export async function getRecommendedEvents(eventId, limit = 3) {
   return apiGet(`/events/${encodeURIComponent(eventId)}/recommended`, {
     params: { limit },
