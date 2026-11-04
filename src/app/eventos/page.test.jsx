@@ -5,15 +5,12 @@ import EventsPage, { metadata, revalidate } from './page'
 import { PAGE_REVALIDATE } from '../../constants/revalidate'
 import { getEventsTagsMap, getTags, getUpcomingEvents } from '../../services/eventService'
 
-vi.mock('../../services/eventService', async (importOriginal) => {
-  const actual = await importOriginal()
-  return {
-    ...actual,
-    getUpcomingEvents: vi.fn(),
-    getTags: vi.fn(),
-    getEventsTagsMap: vi.fn(),
-  }
-})
+vi.mock('../../services/eventService', () => ({
+  getUpcomingEvents: vi.fn(),
+  getTags: vi.fn(),
+  getEventsTagsMap: vi.fn(),
+}))
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
   usePathname: () => '/eventos',
@@ -141,7 +138,7 @@ describe('EventsPage', () => {
     expect(screen.queryByText('Erro ao carregar eventos')).not.toBeInTheDocument()
   })
 
-  it('filtra o mapa de tags no servidor para repassar apenas os eventos exibidos na página', async () => {
+  it('filtra o mapa de tags no servidor e renderiza apenas os chips dos eventos exibidos', async () => {
     getUpcomingEvents.mockResolvedValue([event])
     getEventsTagsMap.mockResolvedValue({
       1: [{ id: 't1', nome: 'Backend', cor: '#2563eb' }],
@@ -149,9 +146,22 @@ describe('EventsPage', () => {
     })
 
     const ui = await EventsPage()
+    renderWithTheme(ui)
+    expect(screen.getByText('Backend')).toBeInTheDocument()
+    expect(screen.queryByText('Evento Passado')).not.toBeInTheDocument()
+  })
 
-    expect(ui.props.children.props.tagsMap).toEqual({
+  it('retorna tagsMap vazio quando a busca de eventos falha', async () => {
+    getUpcomingEvents.mockRejectedValue(new Error('falha de rede'))
+    getEventsTagsMap.mockResolvedValue({
       1: [{ id: 't1', nome: 'Backend', cor: '#2563eb' }],
     })
+
+    const ui = await EventsPage()
+    renderWithTheme(ui)
+
+    expect(screen.getByText('Erro ao carregar eventos')).toBeInTheDocument()
+    expect(screen.queryByText('Backend')).not.toBeInTheDocument()
+    expect(ui.props.children.props.tagsMap).toEqual({})
   })
 })

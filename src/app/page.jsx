@@ -4,11 +4,8 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import UpcomingEvents from '../components/UpcomingEvents'
 import Testimonials from '../components/Testimonials'
-import {
-  filterTagsMapByEvents,
-  getEventsTagsMap,
-  getFeaturedEvents,
-} from '../services/eventService'
+import { getEventsTagsMap, getFeaturedEvents } from '../services/eventService'
+import { filterTagsMapByEvents } from '../utils/tagsMap'
 import { captureError } from '../lib/sentry'
 
 // ISR: servida do cache da CDN e regenerada no máximo a cada 600s — não voltar

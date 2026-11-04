@@ -1,12 +1,8 @@
 import { Suspense } from 'react'
 import EventsPageClient from './EventsPageClient'
 import Loading from './loading'
-import {
-  filterTagsMapByEvents,
-  getEventsTagsMap,
-  getTags,
-  getUpcomingEvents,
-} from '../../services/eventService'
+import { getEventsTagsMap, getTags, getUpcomingEvents } from '../../services/eventService'
+import { filterTagsMapByEvents } from '../../utils/tagsMap'
 import { captureError } from '../../lib/sentry'
 
 export const metadata = {
@@ -64,7 +60,7 @@ async function loadEvents() {
 
   if (eventsResult.status === 'rejected') {
     captureError(eventsResult.reason, { context: 'EventsPage.loadEvents' })
-    return { events: [], tags, tagsMap, error: eventsResult.reason }
+    return { events: [], tags, tagsMap: {}, error: eventsResult.reason }
   }
   const events = eventsResult.value
   const visibleTagsMap = filterTagsMapByEvents(tagsMap, events)

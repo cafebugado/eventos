@@ -9,15 +9,16 @@ import Button from '@mui/material/Button'
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
 import { sortEventsByDate } from '../../utils/eventDate'
+import { filterTagsMapByEvents } from '../../utils/tagsMap'
 import { useFavouritesStore } from '../../store/useFavouritesStore'
 import EventsGrid from '../../components/EventsGrid'
-import { filterTagsMapByEvents, getEventsTagsMap } from '../../services/eventService'
+import { getEventsTagsMap } from '../../services/eventService'
 import { captureError } from '../../lib/sentry'
 
 // Client Component: os favoritos vivem só no localStorage (useFavouritesStore),
 // As tags são buscadas no client apenas quando há favoritos, evitando embutir
 // o mapa completo de todos os eventos publicados no HTML estático (ver issue #409).
-export default function FavoritosPageClient({ tagsMap: initialTagsMap }) {
+export default function FavoritosPageClient() {
   const favourites = useFavouritesStore((state) => state.favourites)
   const favouriteIds = useFavouritesStore((state) => state.favouriteIds)
   const toggleFavouriteInStore = useFavouritesStore((state) => state.toggleFavourite)
@@ -25,7 +26,7 @@ export default function FavoritosPageClient({ tagsMap: initialTagsMap }) {
   const hasFetchedRef = useRef(false)
 
   useEffect(() => {
-    if (initialTagsMap || favourites.length === 0 || hasFetchedRef.current) {
+    if (favourites.length === 0 || hasFetchedRef.current) {
       return
     }
 
@@ -35,12 +36,12 @@ export default function FavoritosPageClient({ tagsMap: initialTagsMap }) {
       .catch((error) => {
         captureError(error, { context: 'FavoritosPageClient.loadEventsTagsMap' })
       })
-  }, [initialTagsMap, favourites.length])
+  }, [favourites.length])
 
   const agenda = useMemo(() => sortEventsByDate(favourites), [favourites])
   const visibleTagsMap = useMemo(
-    () => filterTagsMapByEvents(initialTagsMap ?? fetchedTagsMap, agenda),
-    [initialTagsMap, fetchedTagsMap, agenda]
+    () => filterTagsMapByEvents(fetchedTagsMap, agenda),
+    [fetchedTagsMap, agenda]
   )
   const toggleFavourite = (eventId) => toggleFavouriteInStore(eventId, agenda)
 

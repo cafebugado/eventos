@@ -6,13 +6,9 @@ import FavoritosPageClient from './FavoritosPageClient'
 import { useFavouritesStore } from '../../store/useFavouritesStore'
 import { getEventsTagsMap } from '../../services/eventService'
 
-vi.mock('../../services/eventService', async (importOriginal) => {
-  const actual = await importOriginal()
-  return {
-    ...actual,
-    getEventsTagsMap: vi.fn(),
-  }
-})
+vi.mock('../../services/eventService', () => ({
+  getEventsTagsMap: vi.fn(),
+}))
 
 const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
@@ -49,25 +45,25 @@ describe('FavoritosPageClient', () => {
   })
 
   it('renderiza o título da página', () => {
-    renderWithTheme(<FavoritosPageClient tagsMap={{}} />)
+    renderWithTheme(<FavoritosPageClient />)
     expect(screen.getByRole('heading', { name: /meus favoritos/i })).toBeInTheDocument()
   })
 
   it('exibe estado vazio com link para /eventos quando não há favoritos', () => {
-    renderWithTheme(<FavoritosPageClient tagsMap={{}} />)
+    renderWithTheme(<FavoritosPageClient />)
 
     expect(screen.getByText('Você ainda não favoritou nenhum evento')).toBeInTheDocument()
     const link = screen.getByRole('link', { name: /ver eventos/i })
     expect(link).toHaveAttribute('href', '/eventos')
   })
 
-  it('renderiza os eventos favoritados, ordenados por data', () => {
+  it('renderiza os eventos favoritados, ordenados por data', async () => {
     useFavouritesStore.setState({
       favourites: [pastEvent, futureEvent],
       favouriteIds: new Set(['1', '2']),
     })
 
-    renderWithTheme(<FavoritosPageClient tagsMap={{}} />)
+    renderWithTheme(<FavoritosPageClient />)
 
     expect(screen.queryByText('Você ainda não favoritou nenhum evento')).not.toBeInTheDocument()
     const names = screen.getAllByRole('heading', { level: 3 }).map((el) => el.textContent)
@@ -80,7 +76,7 @@ describe('FavoritosPageClient', () => {
       favouriteIds: new Set(['1']),
     })
 
-    renderWithTheme(<FavoritosPageClient tagsMap={{}} />)
+    renderWithTheme(<FavoritosPageClient />)
     expect(screen.getByText('Evento Futuro Favoritado')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: /remover dos favoritos/i }))
@@ -89,7 +85,7 @@ describe('FavoritosPageClient', () => {
     expect(screen.getByText('Você ainda não favoritou nenhum evento')).toBeInTheDocument()
   })
 
-  it('não busca o mapa de tags no client quando não há favoritos', () => {
+  it('não busca o mapa de tags no client quando não há favoritos', async () => {
     renderWithTheme(<FavoritosPageClient />)
 
     expect(getEventsTagsMap).not.toHaveBeenCalled()

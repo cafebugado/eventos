@@ -5,13 +5,9 @@ import FavoritosPage, { metadata, revalidate } from './page'
 import { PAGE_REVALIDATE } from '../../constants/revalidate'
 import { getEventsTagsMap } from '../../services/eventService'
 
-vi.mock('../../services/eventService', async (importOriginal) => {
-  const actual = await importOriginal()
-  return {
-    ...actual,
-    getEventsTagsMap: vi.fn(),
-  }
-})
+vi.mock('../../services/eventService', () => ({
+  getEventsTagsMap: vi.fn(),
+}))
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }))
