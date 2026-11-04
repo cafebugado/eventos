@@ -10,6 +10,7 @@ vi.mock('../../services/eventService', () => ({
   getTags: vi.fn(),
   getEventsTagsMap: vi.fn(),
 }))
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
   usePathname: () => '/eventos',
@@ -135,5 +136,32 @@ describe('EventsPage', () => {
 
     expect(screen.getByText('Evento Publicado')).toBeInTheDocument()
     expect(screen.queryByText('Erro ao carregar eventos')).not.toBeInTheDocument()
+  })
+
+  it('filtra o mapa de tags no servidor e renderiza apenas os chips dos eventos exibidos', async () => {
+    getUpcomingEvents.mockResolvedValue([event])
+    getEventsTagsMap.mockResolvedValue({
+      1: [{ id: 't1', nome: 'Backend', cor: '#2563eb' }],
+      999: [{ id: 't2', nome: 'Evento Passado', cor: '#000000' }],
+    })
+
+    const ui = await EventsPage()
+    renderWithTheme(ui)
+    expect(screen.getByText('Backend')).toBeInTheDocument()
+    expect(screen.queryByText('Evento Passado')).not.toBeInTheDocument()
+  })
+
+  it('retorna tagsMap vazio quando a busca de eventos falha', async () => {
+    getUpcomingEvents.mockRejectedValue(new Error('falha de rede'))
+    getEventsTagsMap.mockResolvedValue({
+      1: [{ id: 't1', nome: 'Backend', cor: '#2563eb' }],
+    })
+
+    const ui = await EventsPage()
+    renderWithTheme(ui)
+
+    expect(screen.getByText('Erro ao carregar eventos')).toBeInTheDocument()
+    expect(screen.queryByText('Backend')).not.toBeInTheDocument()
+    expect(ui.props.children.props.tagsMap).toEqual({})
   })
 })

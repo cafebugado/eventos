@@ -5,10 +5,14 @@ import Home, { revalidate } from './page'
 import { PAGE_REVALIDATE } from '../constants/revalidate'
 import { getEventsTagsMap, getFeaturedEvents } from '../services/eventService'
 
-vi.mock('../services/eventService', () => ({
-  getFeaturedEvents: vi.fn(),
-  getEventsTagsMap: vi.fn(),
-}))
+vi.mock('../services/eventService', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    getFeaturedEvents: vi.fn(),
+    getEventsTagsMap: vi.fn(),
+  }
+})
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }))
@@ -86,5 +90,19 @@ describe('Home', () => {
     renderWithTheme(ui)
 
     expect(screen.getByText('Evento Destaque')).toBeInTheDocument()
+  })
+
+  it('filtra o mapa de tags no servidor para repassar apenas os eventos em destaque', async () => {
+    getFeaturedEvents.mockResolvedValue([event])
+    getEventsTagsMap.mockResolvedValue({
+      1: [{ id: 't1', nome: 'Cloud', cor: '#2563eb' }],
+      999: [{ id: 't2', nome: 'Outro Evento', cor: '#000000' }],
+    })
+
+    const ui = await Home()
+    renderWithTheme(ui)
+
+    expect(screen.getByText('Cloud')).toBeInTheDocument()
+    expect(screen.queryByText('Outro Evento')).not.toBeInTheDocument()
   })
 })
