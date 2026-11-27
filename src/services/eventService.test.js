@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '../test/mocks/server'
 import {
+  filterTagsMapByEvents,
   getContributors,
   getEventDetail,
   getEventsTagsMap,
